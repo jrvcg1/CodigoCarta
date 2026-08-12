@@ -479,24 +479,24 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador del Mago Centrado Abajo con Mayor Tamaño y Contraste */
+            /* Indicador Secreto del Mago en Primer Plano dentro del Cartel */
             .secret-peek {{
-                position: fixed;
-                bottom: 12px;
+                position: absolute;
+                bottom: 16px;
                 left: 50%;
                 transform: translateX(-50%);
                 -webkit-transform: translateX(-50%);
-                font-family: monospace, sans-serif;
-                font-size: 16px;
-                font-weight: 700;
-                color: #e6c35f;
-                opacity: 0.75;
-                text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95);
-                letter-spacing: 2px;
+                font-family: 'Cinzel', monospace, sans-serif;
+                font-size: 22px;
+                font-weight: 900;
+                color: #ffe066;
+                opacity: 0.95;
+                text-shadow: 0 0 12px #000000, 0 0 6px #000000, 0 2px 4px #000000;
+                letter-spacing: 3px;
                 pointer-events: none;
                 user-select: none;
                 -webkit-user-select: none;
-                z-index: 99;
+                z-index: 99999;
             }}
         </style>
     </head>
@@ -515,10 +515,10 @@ def visualizar_carta(
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Indicador Secreto Discreto solo visible para el Mago -->
-        <div class="secret-peek" id="secretPeek">{card_valor}{simbolo}</div>
+            <!-- Indicador Secreto del Mago en Primer Plano dentro del Escenario -->
+            <div class="secret-peek" id="secretPeek">{card_valor}{simbolo}</div>
+        </div>
 
         <script>
             let currentVersion = -1;
