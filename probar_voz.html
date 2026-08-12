@@ -33,6 +33,17 @@
             display: flex;
             flex-direction: column;
             align-items: center;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* MODO SIGILOSO: OCULTAR TODO */
+        body.stealth-mode {
+            background: #000000 !important;
+            cursor: pointer;
+        }
+        body.stealth-mode .container {
+            display: none !important;
         }
 
         .container {
@@ -112,6 +123,8 @@
             text-align: center;
             text-transform: lowercase;
             outline: none;
+            user-select: text;
+            -webkit-user-select: text;
         }
         .kw-input:focus {
             box-shadow: 0 0 10px var(--gold);
@@ -143,10 +156,56 @@
             animation: pulseMic 2s infinite;
         }
 
+        .btn-hide {
+            background: rgba(40, 30, 60, 0.8);
+            border: 1px solid var(--border-gold);
+            color: var(--text-dim);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 10px 18px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn-hide:hover {
+            color: var(--text-light);
+            border-color: var(--gold);
+            background: rgba(60, 45, 90, 0.9);
+        }
+
         @keyframes pulseMic {
             0% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
             50% { box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
             100% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+        }
+
+        /* Banner emergente de Modo Sigiloso */
+        .stealth-toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 6, 18, 0.95);
+            border: 1px solid var(--gold);
+            color: var(--gold-bright);
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: 1px;
+            z-index: 999999;
+            box-shadow: 0 0 25px rgba(0,0,0,0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            text-align: center;
+        }
+        .stealth-toast.show {
+            opacity: 1;
         }
 
         /* Banner de Detección y Estado Bloqueado de Palabra Clave */
@@ -374,19 +433,28 @@
 </head>
 <body>
 
+    <!-- Toast Emergente de Modo Sigiloso -->
+    <div id="stealthToast" class="stealth-toast">🙈 MODO SIGILOSO: Doble toque en cualquier lugar para mostrar</div>
+
     <div class="container">
         <h1>🎙️ RECONOCIMIENTO DE VOZ</h1>
         <div class="subtitle">Detección continua por palabra clave fonética</div>
 
-        <!-- Panel de Control: Micrófono y Palabra Clave -->
+        <!-- Panel de Control: Micrófono, Palabra Clave y Botón Ocultar -->
         <div class="controls-box">
             <div class="kw-group">
                 <label for="keywordInput">🔑 PALABRA CLAVE:</label>
                 <input type="text" id="keywordInput" class="kw-input" value="vale">
             </div>
+
             <button id="btnMic" class="btn-mic">
                 <span id="micIcon">🔴</span>
                 <span id="micText">ACTIVAR ESCUCHA CONTINUA</span>
+            </button>
+
+            <button id="btnHideUI" class="btn-hide" title="Ocultar la pantalla en modo sigiloso (Doble toque en cualquier lugar para restaurar)">
+                <span>👁️</span>
+                <span>OCULTAR</span>
             </button>
         </div>
 
@@ -428,6 +496,54 @@
     </div>
 
     <script>
+        // --- LÓGICA MODO SIGILOSO (OCULTAR Y MOSTRAR CON DOBLE TAP / DOBLE CLICK) ---
+        const btnHideUI = document.getElementById('btnHideUI');
+        const stealthToast = document.getElementById('stealthToast');
+
+        function toggleStealthUI(hide) {
+            if (hide === undefined) {
+                hide = !document.body.classList.contains('stealth-mode');
+            }
+
+            if (hide) {
+                document.body.classList.add('stealth-mode');
+                showStealthToast('🙈 MODO SIGILOSO ACTIVADO: Doble toque en cualquier lugar para mostrar');
+            } else {
+                document.body.classList.remove('stealth-mode');
+                showStealthToast('👁️ INTERFAZ RESTAURADA');
+            }
+        }
+
+        function showStealthToast(msg) {
+            stealthToast.textContent = msg;
+            stealthToast.classList.add('show');
+            setTimeout(() => {
+                stealthToast.classList.remove('show');
+            }, 2500);
+        }
+
+        btnHideUI.addEventListener('click', () => toggleStealthUI(true));
+
+        // Detectar doble toque táctil (mobile) y doble clic (desktop) en cualquier lugar de la pantalla
+        let lastTapTime = 0;
+        document.addEventListener('touchend', (e) => {
+            // Evitar activar el toggle si el usuario está interactuando con el input de texto
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+
+            const currentTime = new Date().getTime();
+            const tapLength = currentTime - lastTapTime;
+            if (tapLength < 380 && tapLength > 0) {
+                toggleStealthUI();
+                e.preventDefault();
+            }
+            lastTapTime = currentTime;
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            toggleStealthUI();
+        });
+
         // --- MOTOR FONÉTICO JS LOCAL PARA DECODIFICAR PALABRA CLAVE Y CARTA ---
         const VALUE_PATTERNS = {
             "AS": "A", "DOS": "2", "TRE": "3", "CUA": "4", "CIN": "5", "SEI": "6",
