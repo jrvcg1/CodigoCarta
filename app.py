@@ -427,7 +427,7 @@ def visualizar_carta(
                 flex-direction: column;
                 align-items: center;
                 justify-content: center;
-                padding: 30px 20px;
+                padding: 12px 10px;
                 animation: stageEntrance 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
                 background: 
                     radial-gradient(ellipse at 50% 45%, rgba(212, 175, 55, 0.12) 0%, rgba(74, 13, 23, 0.35) 45%, rgba(5, 3, 8, 0.95) 85%),
@@ -439,7 +439,7 @@ def visualizar_carta(
                 position: fixed;
                 top: 0;
                 bottom: 0;
-                width: min(150px, 15vw);
+                width: min(120px, 12vw);
                 pointer-events: none;
                 z-index: 2;
             }}
@@ -457,16 +457,16 @@ def visualizar_carta(
             /* Marco Ornamental Vaudeville / Gran Circo */
             .theater-poster {{
                 width: 100%;
-                max-width: 900px;
+                max-width: 820px;
                 position: relative;
                 border: 2px solid var(--gold);
                 outline: 1px solid var(--gold-dark);
-                outline-offset: 4px;
+                outline-offset: 3px;
                 border-radius: 12px;
                 background: rgba(10, 6, 18, 0.88);
                 backdrop-filter: blur(8px);
-                padding: 36px 24px;
-                box-shadow: 0 0 80px rgba(0,0,0,0.95), inset 0 0 50px rgba(0,0,0,0.8), 0 0 30px var(--gold-shadow);
+                padding: 20px 16px;
+                box-shadow: 0 0 60px rgba(0,0,0,0.95), inset 0 0 40px rgba(0,0,0,0.8), 0 0 25px var(--gold-shadow);
                 display: flex;
                 flex-direction: column;
                 align-items: center;
@@ -476,53 +476,53 @@ def visualizar_carta(
             /* Esquinas Ornamentales Victorianas en SVG */
             .corner-filigree {{
                 position: absolute;
-                width: 32px;
-                height: 32px;
+                width: 26px;
+                height: 26px;
                 color: var(--gold);
                 opacity: 0.85;
                 pointer-events: none;
             }}
-            .corner-tl {{ top: 8px; left: 8px; }}
-            .corner-tr {{ top: 8px; right: 8px; transform: scaleX(-1); }}
-            .corner-bl {{ bottom: 8px; left: 8px; transform: scaleY(-1); }}
-            .corner-br {{ bottom: 8px; right: 8px; transform: scale(-1); }}
+            .corner-tl {{ top: 6px; left: 6px; }}
+            .corner-tr {{ top: 6px; right: 6px; transform: scaleX(-1); }}
+            .corner-bl {{ bottom: 6px; left: 6px; transform: scaleY(-1); }}
+            .corner-br {{ bottom: 6px; right: 6px; transform: scale(-1); }}
 
             /* Ojo del Oráculo Superior */
             .oracle-eye {{
-                font-size: 24px;
+                font-size: 18px;
                 color: var(--gold);
-                margin-bottom: 6px;
-                text-shadow: 0 0 15px var(--gold);
+                margin-bottom: 4px;
+                text-shadow: 0 0 12px var(--gold);
                 opacity: 0.9;
             }}
 
             /* Marquesina con Bombillas (El Gran Oráculo) */
             .marquee-box {{
                 position: relative;
-                border: 3px double var(--gold);
-                border-radius: 50px;
-                padding: 16px 38px;
+                border: 2px double var(--gold);
+                border-radius: 40px;
+                padding: 10px 28px;
                 background: linear-gradient(180deg, #24070d 0%, #120306 100%);
-                box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 5px 25px rgba(0,0,0,0.8);
-                margin-bottom: 20px;
+                box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 4px 18px rgba(0,0,0,0.8);
+                margin-bottom: 12px;
                 text-align: center;
             }}
             .marquee-bulbs {{
                 position: absolute;
-                inset: -7px;
-                border-radius: 54px;
+                inset: -6px;
+                border-radius: 44px;
                 pointer-events: none;
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-                padding: 0 10px;
+                padding: 0 8px;
             }}
             .bulb {{
-                width: 8px;
-                height: 8px;
+                width: 7px;
+                height: 7px;
                 border-radius: 50%;
                 background: #fff4cc;
-                box-shadow: 0 0 8px #ffb300, 0 0 16px #ff8f00;
+                box-shadow: 0 0 6px #ffb300, 0 0 12px #ff8f00;
                 animation: bulbFlicker 4s infinite;
             }}
             .bulb:nth-child(2n) {{ animation-delay: 0.7s; }}
@@ -530,22 +530,22 @@ def visualizar_carta(
 
             .title-main {{
                 font-family: 'Cinzel Decorative', 'Rye', serif;
-                font-size: clamp(24px, 5vw, 40px);
+                font-size: clamp(20px, 4vw, 32px);
                 font-weight: 900;
-                letter-spacing: 3px;
+                letter-spacing: 2px;
                 margin: 0;
                 background: linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 60%, var(--gold-dark) 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
                 text-transform: uppercase;
-                text-shadow: 0 3px 12px rgba(0,0,0,0.9);
+                text-shadow: 0 2px 8px rgba(0,0,0,0.9);
             }}
             .title-sub {{
                 font-family: 'Cinzel', serif;
-                font-size: 11px;
-                letter-spacing: 3px;
+                font-size: 10px;
+                letter-spacing: 2px;
                 color: var(--gold-bright);
-                margin-top: 6px;
+                margin-top: 4px;
                 text-transform: uppercase;
                 opacity: 0.9;
             }}
@@ -553,72 +553,72 @@ def visualizar_carta(
             /* Mensaje del Misterio con Manos Apuntando */
             .mystery-header {{
                 text-align: center;
-                margin-bottom: 22px;
+                margin-bottom: 12px;
             }}
             .mystery-title {{
                 font-family: 'Cinzel', serif;
-                font-size: clamp(14px, 3vw, 19px);
+                font-size: clamp(12px, 2.5vw, 16px);
                 font-weight: 700;
                 color: var(--gold-bright);
-                letter-spacing: 2px;
+                letter-spacing: 1.5px;
                 text-transform: uppercase;
-                margin: 0 0 8px;
+                margin: 0 0 4px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 12px;
+                gap: 8px;
             }}
-            .mystery-title span {{ color: var(--gold); font-size: 16px; }}
+            .mystery-title span {{ color: var(--gold); font-size: 14px; }}
             .mystery-instruction {{
                 font-family: 'Playfair Display', serif;
                 font-style: italic;
-                font-size: 13px;
+                font-size: 11px;
                 color: var(--text-muted);
-                letter-spacing: 1px;
+                letter-spacing: 0.8px;
                 margin: 0;
             }}
-            .mystery-instruction span {{ color: var(--gold); margin: 0 6px; }}
+            .mystery-instruction span {{ color: var(--gold); margin: 0 4px; }}
 
             /* Layout Escénico con Carteles Laterales en Desktop */
             .stage-layout {{
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 30px;
+                gap: 20px;
                 width: 100%;
-                margin: 10px 0 20px;
+                margin: 4px 0 10px;
             }}
 
             .side-panel {{
-                width: 170px;
+                width: 150px;
                 border: 1px solid var(--border-filigree);
                 border-radius: 8px;
                 background: rgba(18, 9, 24, 0.6);
-                padding: 16px 12px;
+                padding: 12px 10px;
                 text-align: center;
                 font-family: 'Cinzel', serif;
                 color: var(--gold-bright);
-                box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+                box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
             }}
             .side-panel h4 {{
-                font-size: 11px;
-                letter-spacing: 2px;
-                margin: 0 0 10px;
+                font-size: 10px;
+                letter-spacing: 1.5px;
+                margin: 0 0 6px;
                 color: var(--gold);
                 border-bottom: 1px stroke var(--gold-dark);
-                padding-bottom: 4px;
+                padding-bottom: 2px;
             }}
             .side-panel p {{
-                font-size: 10px;
-                line-height: 1.6;
-                letter-spacing: 1.5px;
+                font-size: 9px;
+                line-height: 1.5;
+                letter-spacing: 1px;
                 color: var(--text-muted);
                 margin: 0;
                 text-transform: uppercase;
             }}
             .side-icon {{
-                font-size: 20px;
-                margin-top: 10px;
+                font-size: 16px;
+                margin-top: 6px;
                 opacity: 0.8;
                 color: var(--gold);
             }}
@@ -633,9 +633,9 @@ def visualizar_carta(
             .spotlight-halo::before {{
                 content: "";
                 position: absolute;
-                width: 280px;
-                height: 360px;
-                background: radial-gradient(circle, rgba(212,175,55,0.22) 0%, rgba(74,13,23,0.15) 50%, transparent 75%);
+                width: 240px;
+                height: 320px;
+                background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, rgba(74,13,23,0.12) 50%, transparent 75%);
                 border-radius: 50%;
                 pointer-events: none;
                 z-index: 0;
@@ -645,8 +645,8 @@ def visualizar_carta(
             .card-scene {{
                 perspective: 1200px;
                 -webkit-perspective: 1200px;
-                width: 224px;
-                height: 314px;
+                width: 196px;
+                height: 274px;
                 position: relative;
                 z-index: 1;
                 cursor: pointer;
@@ -663,7 +663,7 @@ def visualizar_carta(
                 -webkit-transition: -webkit-transform 0.8s cubic-bezier(0.3, 1, 0.3, 1);
             }}
             .card-scene:hover .card-object {{
-                box-shadow: 0 0 35px rgba(212,175,55,0.45);
+                box-shadow: 0 0 30px rgba(212,175,55,0.45);
             }}
             .card-scene.volteada .card-object {{
                 -webkit-transform: rotateY(180deg);
@@ -676,10 +676,10 @@ def visualizar_carta(
                 height: 100%;
                 -webkit-backface-visibility: hidden;
                 backface-visibility: hidden;
-                border-radius: 14px;
+                border-radius: 12px;
                 overflow: hidden;
                 border: 1px solid rgba(212,175,55,0.4);
-                box-shadow: 0 15px 45px rgba(0,0,0,0.9);
+                box-shadow: 0 12px 36px rgba(0,0,0,0.9);
             }}
             .card-front {{
                 background: #ffffff;
@@ -702,20 +702,20 @@ def visualizar_carta(
             /* Texto Inferior Teatral */
             .truth-footer {{
                 text-align: center;
-                margin-top: 15px;
+                margin-top: 8px;
             }}
             .truth-question {{
                 font-family: 'Cinzel Decorative', 'Cinzel', serif;
-                font-size: clamp(14px, 3vw, 18px);
+                font-size: clamp(12px, 2.5vw, 15px);
                 color: var(--gold-bright);
-                letter-spacing: 2px;
-                margin: 0 0 6px;
+                letter-spacing: 1.5px;
+                margin: 0 0 4px;
                 text-transform: uppercase;
             }}
             .truth-destiny {{
                 font-family: 'Playfair Display', serif;
                 font-style: italic;
-                font-size: 13px;
+                font-size: 11px;
                 color: var(--text-muted);
                 margin: 0;
             }}
@@ -723,10 +723,10 @@ def visualizar_carta(
             /* Indicador Secreto Discreto solo para el Mago en Esquina */
             .secret-peek {{
                 position: fixed;
-                bottom: 10px;
-                right: 14px;
+                bottom: 8px;
+                right: 12px;
                 font-family: monospace;
-                font-size: 11px;
+                font-size: 10px;
                 color: rgba(212, 175, 55, 0.18);
                 letter-spacing: 1px;
                 user-select: none;
@@ -737,9 +737,11 @@ def visualizar_carta(
             /* Adaptación Responsiva para Móviles */
             @media (max-width: 768px) {{
                 .side-panel {{ display: none; }}
-                .curtains-left, .curtains-right {{ width: 25px; }}
-                .theater-poster {{ padding: 24px 14px; }}
-                .marquee-box {{ padding: 12px 24px; }}
+                .curtains-left, .curtains-right {{ width: 16px; }}
+                .theater-poster {{ padding: 14px 10px; border-width: 1px; }}
+                .marquee-box {{ padding: 8px 18px; margin-bottom: 8px; }}
+                .card-scene {{ width: min(52vw, 180px); height: min(73vw, 252px); }}
+                .stage-wrapper {{ padding: 6px 4px; }}
             }}
         </style>
     </head>
