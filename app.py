@@ -479,10 +479,10 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador Secreto del Mago en Primer Plano (Reducido un 50%) */
+            /* Indicador Secreto del Mago en Primer Plano (Elevado 2x su altura) */
             .secret-peek {{
                 position: absolute;
-                bottom: 14px;
+                bottom: 36px;
                 left: 50%;
                 transform: translateX(-50%);
                 -webkit-transform: translateX(-50%);
