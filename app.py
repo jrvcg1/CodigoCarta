@@ -403,25 +403,29 @@ def visualizar_carta(
                 display: flex;
                 align-items: center;
                 justify-content: center;
+                overflow: hidden;
                 box-shadow: 0 0 50px rgba(0,0,0,0.95);
             }}
 
-            /* Posicionamiento exacto de la Carta 3D dentro del marco del póster */
+            /* --- CONTENEDOR PRINCIPAL DE LA CARTA (PROPORCIÓN PÓKER REAL 63.5 / 88.9) --- */
             .card-scene {{
                 perspective: 1200px;
                 -webkit-perspective: 1200px;
                 width: 45.7%;
-                height: 47.4%;
+                aspect-ratio: 63.5 / 88.9;
                 margin-top: 4.1%;
                 position: relative;
                 cursor: pointer;
                 z-index: 10;
+                user-select: none;
+                -webkit-user-select: none;
             }}
 
+            /* Objeto 3D que gira (frente y dorso comparten el mismo tamaño exacto) */
             .card-object {{
+                position: relative;
                 width: 100%;
                 height: 100%;
-                position: relative;
                 -webkit-transform-style: preserve-3d;
                 transform-style: preserve-3d;
                 transition: transform 0.8s cubic-bezier(0.3, 1, 0.3, 1);
@@ -437,6 +441,7 @@ def visualizar_carta(
                 transform: rotateY(180deg);
             }}
 
+            /* Caras de la carta (Frente y Dorso exactamente iguales) */
             .card-face {{
                 position: absolute;
                 inset: 0;
@@ -444,28 +449,32 @@ def visualizar_carta(
                 height: 100%;
                 -webkit-backface-visibility: hidden;
                 backface-visibility: hidden;
-                border-radius: 2.2%;
+                border-radius: 4%;
                 overflow: hidden;
-                border: 1px solid rgba(212,175,55,0.45);
                 box-shadow: 0 10px 30px rgba(0,0,0,0.85);
             }}
 
+            /* Cara frontal (blanco para las cartas SVG) */
             .card-front {{
                 background: #ffffff;
+                border: 1px solid rgba(212,175,55,0.45);
                 -webkit-transform: rotateY(180deg);
                 transform: rotateY(180deg);
             }}
 
+            /* Cara posterior (dorso transparente sin recuadro blanco) */
             .card-back {{
-                background: #ffffff;
+                background: transparent;
+                border: none;
                 -webkit-transform: rotateY(0deg);
                 transform: rotateY(0deg);
             }}
 
+            /* Imágenes SVG dentro de cada cara (object-fit: contain) */
             .card-face img {{
                 width: 100%;
                 height: 100%;
-                object-fit: fill;
+                object-fit: contain;
                 display: block;
                 pointer-events: none;
             }}
