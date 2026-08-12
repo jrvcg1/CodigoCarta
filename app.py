@@ -479,16 +479,17 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador Secreto del Mago Mimetizado con el Marco Cromado */
+            /* Indicador Secreto del Mago Mimetizado con el Fondo */
             .secret-peek {{
                 position: absolute;
                 bottom: 30px;
-                left: 35px;
+                left: 15px;
                 font-family: 'Cinzel', monospace, sans-serif;
                 font-size: 6px;
                 font-weight: 400;
-                color: rgba(168, 143, 88, 0.45);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+                color: rgba(125, 100, 55, 0.28);
+                opacity: 0.80;
+                mix-blend-mode: overlay;
                 letter-spacing: 1px;
                 pointer-events: none;
                 user-select: none;
