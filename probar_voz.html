@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prueba de Reconocimiento de Voz con Palabra Clave — Código Carta</title>
+    <title>Consola del Oráculo — Transmisión & Sintonización</title>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Montserrat:wght@400;600;700&display=swap">
     <style>
         :root {
@@ -89,7 +89,7 @@
             text-align: center;
         }
 
-        /* Configuración de Palabra Clave y Botones de Control */
+        /* Configuración de Clave Oracular y Botones de Control */
         .controls-box {
             width: 100%;
             background: rgba(10, 6, 18, 0.7);
@@ -111,7 +111,7 @@
         }
 
         .kw-group label {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--gold-bright);
             letter-spacing: 1px;
@@ -238,7 +238,7 @@
             opacity: 1;
         }
 
-        /* PUNTO VERDE PARPADEANTE DISCRETO DE MICRÓFONO ACTIVO (6px, BAJO CONTRASTE) */
+        /* PUNTO VERDE PARPADEANTE DISCRETO DE CANAL ACTIVO (6px, BAJO CONTRASTE) */
         .mic-pulse-dot {
             position: fixed;
             top: 14px;
@@ -341,7 +341,7 @@
             transition: all 0.3s ease;
         }
 
-        /* Banner de Detección y Estado Bloqueado de Palabra Clave */
+        /* Banner de Detección y Estado Bloqueado */
         .kw-alert {
             width: 100%;
             padding: 12px 18px;
@@ -369,7 +369,7 @@
             box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
         }
 
-        /* Caja Transcripción en Vivo */
+        /* Caja de Registro de Transmisión */
         .feed-box {
             width: 100%;
             background: rgba(5, 3, 10, 0.8);
@@ -466,7 +466,7 @@
             100% { transform: scale(1) rotateY(0deg); opacity: 1; }
         }
 
-        /* Desglose Fonético */
+        /* Desglose de Frecuencias */
         .phonetic-breakdown {
             width: 100%;
             background: rgba(18, 12, 28, 0.75);
@@ -566,7 +566,7 @@
 </head>
 <body>
 
-    <!-- PUNTO VERDE PARPADEANTE DE ESCUCHA ACTIVA DE MICRÓFONO -->
+    <!-- PUNTO PARPADEANTE DISCRETO DE CANAL ACTIVO -->
     <div id="micPulseDot" class="mic-pulse-dot"></div>
 
     <!-- Toast Emergente de Modo Sigiloso -->
@@ -588,66 +588,66 @@
     </div>
 
     <div class="container">
-        <h1>🎙️ RECONOCIMIENTO DE VOZ</h1>
-        <div class="subtitle">Detección continua por palabra clave fonética</div>
+        <h1>🔮 CONSOLA DEL ORÁCULO</h1>
+        <div class="subtitle">Sintonización de Señal & Transmisión del Escenario</div>
 
-        <!-- Panel de Control: Micrófono, Palabra Clave y Botones de Pantalla -->
+        <!-- Panel de Control: Canal Oracular, Clave y Botones de Pantalla -->
         <div class="controls-box">
             <div class="kw-group">
-                <label for="keywordInput">🔑 PALABRA CLAVE:</label>
+                <label for="keywordInput">🔑 CLAVE ORACULAR:</label>
                 <input type="text" id="keywordInput" class="kw-input" value="vale">
             </div>
 
             <button id="btnMic" class="btn-mic">
                 <span id="micIcon">🔴</span>
-                <span id="micText">ACTIVAR ESCUCHA CONTINUA</span>
+                <span id="micText">CONECTAR CANAL ORACULAR</span>
             </button>
 
-            <button id="btnHideUI" class="btn-hide" title="Ocultar la pantalla en negro (Doble toque en cualquier lugar para restaurar)">
+            <button id="btnHideUI" class="btn-hide" title="Modo Pantalla Negra (Doble toque en cualquier lugar para restaurar)">
                 <span>👁️</span>
-                <span>OCULTAR</span>
+                <span>PANTALLA NEGRA</span>
             </button>
 
-            <button id="btnQRUI" class="btn-qr" title="Mostrar QR Espectador con indicador discreto de carta (Doble toque para restaurar)">
+            <button id="btnQRUI" class="btn-qr" title="Mostrar QR Espectador con indicador secreto (Doble toque para restaurar)">
                 <span>📱</span>
-                <span>MOSTRAR QR</span>
+                <span>QR ESPECTADOR</span>
             </button>
         </div>
 
-        <!-- Alerta de Palabra Clave Activada y Estado Bloqueado -->
+        <!-- Alerta de Clave Activada y Estado Bloqueado -->
         <div id="kwAlert" class="kw-alert">
-            🟢 PALABRA CLAVE "<span id="kwDetectedName">VALE</span>" DETECTADA — Escuchando código fonético...
+            🟢 CÓDIGO "<span id="kwDetectedName">VALE</span>" RECEPCIONADO — Sintonizando señal del oráculo...
         </div>
 
-        <!-- Caja de Transcripción Hablada en Vivo -->
+        <!-- Caja de Registro de Transmisión -->
         <div class="feed-box">
             <div class="feed-label">
-                <span>TRANSCRIPCIÓN HABLADA EN VIVO:</span>
-                <span id="lockStatusBadge" style="color: #a89bbd;">🔓 Esperando palabra clave</span>
+                <span>REGISTRO DE TRANSMISIÓN DE AMBIENTE:</span>
+                <span id="lockStatusBadge" style="color: #a89bbd;">🔓 Esperando clave oracular</span>
             </div>
-            <div class="feed-text" id="speechFeed">Haz clic en 'Activar Escucha' y pronuncia la palabra clave (ej. "vale")...</div>
+            <div class="feed-text" id="speechFeed">Inicia el canal oracular y transmite el código de apertura (ej. "vale")...</div>
         </div>
 
         <!-- CARTA RECONOCIDA EN PRIMER PLANO -->
         <div class="card-result-section">
-            <div class="result-badge" id="cardTitle">Aún no se ha detectado ninguna carta</div>
+            <div class="result-badge" id="cardTitle">Esperando señal del oráculo...</div>
 
             <div class="card-display-box">
-                <img id="cardImg" class="card-display-img" src="/cartas_svg/dorso.svg" alt="Carta reconocible">
+                <img id="cardImg" class="card-display-img" src="/cartas_svg/dorso.svg" alt="Revelación oracular">
             </div>
 
             <div class="phonetic-breakdown" id="phoneticDetail">
-                Esperando la palabra clave activa para iniciar el análisis de iniciales habladas...
+                Esperando sintonización de la clave oracular de apertura...
             </div>
         </div>
 
         <!-- INSPECTOR DE RESPUESTA EN VIVO DE LA API REST -->
         <div class="api-response-box">
             <div class="api-response-header">
-                <span>📡 RESPUESTA EN VIVO DE LA API REST (POST /api/decodificar_palabra_clave)</span>
-                <span id="apiStatusTag" class="api-tag-waiting">Pendiente de Invocación</span>
+                <span>📡 REGISTRO DE TRANSMISIÓN AL SERVIDOR (API REST)</span>
+                <span id="apiStatusTag" class="api-tag-waiting">Pendiente de Conexión</span>
             </div>
-            <pre id="apiJsonView" class="api-json-view">// Cuando se fije una carta por voz, aquí aparecerá la respuesta JSON exacta retornada por la API REST en tiempo real.</pre>
+            <pre id="apiJsonView" class="api-json-view">// Registro en tiempo real de la transmisión de señal con el servidor oracular.</pre>
         </div>
     </div>
 
@@ -660,7 +660,6 @@
         const qrSecretPeek = document.getElementById('qrSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
 
-        // Modos: 'normal', 'black', 'qr'
         let currentScreenMode = 'normal';
 
         function setScreenMode(mode) {
@@ -669,12 +668,12 @@
 
             if (mode === 'black') {
                 document.body.classList.add('stealth-mode');
-                showStealthToast('🙈 MODO SIGILOSO (FONDO NEGRO): Doble toque para restaurar');
+                showStealthToast('🙈 MODO PANTALLA NEGRA: Doble toque para restaurar');
             } else if (mode === 'qr') {
                 document.body.classList.add('qr-mode');
                 showStealthToast('📱 MODO QR ESPECTADOR: Doble toque para restaurar');
             } else {
-                showStealthToast('👁️ INTERFAZ DE PRUEBAS RESTAURADA');
+                showStealthToast('🔮 CONSOLA DEL ORÁCULO RESTAURADA');
             }
         }
 
@@ -696,7 +695,6 @@
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
             if (tapLength < 380 && tapLength > 0) {
-                // Si estamos en black o qr -> volver a normal. Si estamos en normal -> volver a black.
                 if (currentScreenMode !== 'normal') {
                     setScreenMode('normal');
                 } else {
@@ -821,7 +819,7 @@
             return matches.length > 0 ? matches[matches.length - 1] : null;
         }
 
-        // --- ESTADO DE RECONOCIMIENTO DE VOZ ---
+        // --- ESTADO DE PROCESAMIENTO ---
         const btnMic = document.getElementById('btnMic');
         const micIcon = document.getElementById('micIcon');
         const micText = document.getElementById('micText');
@@ -839,9 +837,9 @@
         let isListening = false;
         let recognition = null;
 
-        // VARIABLES DE ESTADO PARA EL BLOQUEO HASTA NUEVA PALABRA CLAVE
+        // VARIABLES DE ESTADO PARA EL BLOQUEO HASTA NUEVA CLAVE
         let cardLocked = false;
-        let lastKwWordCount = -1; // Índice de la última palabra clave procesada
+        let lastKwWordCount = -1;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -859,7 +857,7 @@
             };
 
             recognition.onerror = (err) => {
-                console.log('Error de micrófono:', err);
+                console.log('Error de canal:', err);
             };
 
             recognition.onend = () => {
@@ -868,7 +866,7 @@
                 }
             };
         } else {
-            alert('Tu navegador no soporta Web Speech API. Usa Chrome o Edge.');
+            alert('Navegador sin soporte de API de Voz. Usa Chrome o Edge.');
         }
 
         btnMic.addEventListener('click', () => {
@@ -876,16 +874,16 @@
             if (!isListening) {
                 isListening = true;
                 btnMic.classList.add('listening');
-                micPulseDot.classList.add('active'); // Activar punto verde parpadeante de escucha continua
+                micPulseDot.classList.add('active');
                 micIcon.textContent = '🟢';
-                micText.textContent = 'ESCUCHANDO EN CONTINUO...';
+                micText.textContent = 'CANAL ACTIVO (EN LÍNEA)';
                 try { recognition.start(); } catch(e) {}
             } else {
                 isListening = false;
                 btnMic.classList.remove('listening');
                 micPulseDot.classList.remove('active');
                 micIcon.textContent = '🔴';
-                micText.textContent = 'ACTIVAR ESCUCHA CONTINUA';
+                micText.textContent = 'CONECTAR CANAL ORACULAR';
                 try { recognition.stop(); } catch(e) {}
             }
         });
@@ -895,48 +893,44 @@
             let words = normalizeSpeech(transcript);
             let currentKwIdx = words.lastIndexOf(kw);
 
-            // 1. SI SE PRONUNCIA DE NUEVO LA PALABRA CLAVE -> LIMPIAR TRANSCRIPCIÓN Y DESBLOQUEAR
+            // 1. SI SE PRONUNCIA DE NUEVO LA CLAVE -> LIMPIAR TRANSCRIPCIÓN Y DESBLOQUEAR
             if (currentKwIdx !== -1 && currentKwIdx > lastKwWordCount) {
                 lastKwWordCount = currentKwIdx;
-                cardLocked = false; // Desbloquear reconocimiento para la nueva carta
+                cardLocked = false;
 
                 kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
-                lockStatusBadge.innerHTML = `🟢 Escuchando tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
+                lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
 
-                // LIMPIAR Y REINICIAR LA TRANSCRIPCIÓN VISTA EN PANTALLA
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
             }
 
-            // Si aún no ha dicho la palabra clave
+            // Si aún no ha dicho la clave
             if (lastKwWordCount === -1) {
-                speechFeed.textContent = transcript || 'Escuchando... Espera la palabra clave...';
+                speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
                 return;
             }
 
-            // Palabras habladas desde la última palabra clave
+            // Palabras habladas desde la última clave
             let wordsAfterKw = words.slice(lastKwWordCount + 1);
 
-            // 2. SI LA CARTA AÚN NO ESTÁ BLOQUEADA -> BUSCAR PATRÓN DE CARTA
+            // 2. SI AÚN NO ESTÁ BLOQUEADA -> BUSCAR PATRÓN
             if (!cardLocked) {
                 let match = detectCardFromWords(wordsAfterKw);
 
-                // Renderizar el texto hablado actual en vivo
                 let afterText = wordsAfterKw.join(' ');
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + afterText;
 
                 if (match) {
-                    // CARTA FIJADA / RECONOCIDA CON ÉXITO
-                    cardLocked = true; // 🔒 BLOQUEAR HASTA QUE SE DIGA DE NUEVO LA PALABRA CLAVE
+                    cardLocked = true;
 
-                    lockStatusBadge.innerHTML = `🔒 CARTA FIJADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva carta`;
+                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
                     kwAlert.className = 'kw-alert locked';
-                    kwAlert.innerHTML = `🔒 CARTA FIJADA — Se ignorarán palabras hasta repetir "${kw.toUpperCase()}"`;
+                    kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
 
                     renderRecognizedCard(match, transcript, kw, wordsAfterKw);
                 }
             } else {
-                // 3. SI LA CARTA YA FUE FIJADA -> MANTENER TEXTO Y RESALTADO SIN MODIFICAR LA CARTA
                 let matchedWordsSet = new Set(window.lastMatchedWords || []);
                 let formattedWords = wordsAfterKw.map(w => {
                     if (matchedWordsSet.has(w)) {
@@ -959,14 +953,14 @@
             // ACTUALIZAR INDICADOR SECRETO DISCRETO EN LA PANTALLA QR
             qrSecretPeek.textContent = `${val}${suitSymbol}`;
 
-            // RENDERIZAR CARTA EN PRIMER PLANO EN LA PANTALLA DE PRUEBAS
+            // RENDERIZAR CARTA EN PRIMER PLANO
             cardTitle.textContent = `✨ ${val} de ${suitName}`;
             cardImg.src = `/cartas_svg/${val}_${suit}.svg`;
             cardImg.classList.remove('pop');
-            void cardImg.offsetWidth; // Force reflow
+            void cardImg.offsetWidth;
             cardImg.classList.add('pop');
 
-            // RESALTAR PALABRAS DE LA CARTA Y SUS INICIALES FONÉTICAS EN COLOR
+            // RESALTAR PALABRAS EN COLOR
             let matchedWordsSet = new Set(cardMatch.matchedWords);
             let highlightedTranscript = afterWords.map(w => {
                 if (matchedWordsSet.has(w)) {
@@ -977,7 +971,7 @@
 
             speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + highlightedTranscript;
 
-            // INICIALES FONÉTICAS EN COLOR
+            // FRECUENCIAS DETECTADAS EN COLOR
             let initBadges = cardMatch.matchedWords.slice(0, 3).map(w => {
                 let init = getPhoneticInitial(w)[0] || w[0].toUpperCase();
                 return `<span class="init-badge">${w} (${init})</span>`;
@@ -987,12 +981,12 @@
             let suitBadge = `<span class="suit-badge">${suitWord} (${cardMatch.suitCode} -> ${suitName})</span>`;
 
             phoneticDetail.innerHTML = `
-                Palabra Clave: <span class="kw-tag">${kw.toUpperCase()}</span><br>
-                Iniciales Fonéticas: ${initBadges} | Palo: ${suitBadge}<br>
-                Patrón Decodificado: <span style="color:var(--gold-bright); font-weight:700;">${cardMatch.pattern}</span> + <span style="color:var(--cyan-glow); font-weight:700;">${cardMatch.suitCode}</span> => <strong>${val} de ${suitName}</strong>
+                Clave Oracular: <span class="kw-tag">${kw.toUpperCase()}</span><br>
+                Frecuencias Detectadas: ${initBadges} | Matriz: ${suitBadge}<br>
+                Sintonización Confirmada: <span style="color:var(--gold-bright); font-weight:700;">${cardMatch.pattern}</span> + <span style="color:var(--cyan-glow); font-weight:700;">${cardMatch.suitCode}</span> => <strong>${val} de ${suitName}</strong>
             `;
 
-            // ENVIAR AL SERVIDOR Y MOSTRAR LA RESPUESTA JSON EXACTA EN EL INSPECTOR DE LA PANTALLA
+            // TRANSMISIÓN AL SERVIDOR
             try {
                 const startTime = performance.now();
                 const response = await fetch('/api/decodificar_palabra_clave', {
@@ -1012,7 +1006,7 @@
                     apiStatusTag.className = 'api-tag-success';
                     apiStatusTag.textContent = `HTTP 200 OK (${duration}ms) — ${nowStr}`;
                     apiJsonView.textContent = JSON.stringify(data, null, 2);
-                    lockStatusBadge.innerHTML = `🔒 CARTA FIJADA — 🌐 <strong>API REST Sincronizada con /visualizar (${data.valor} de ${data.palo.nombre})</strong>`;
+                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — 🌐 <strong>Servidor Oracular Sincronizado con /visualizar (${data.valor} de ${data.palo.nombre})</strong>`;
                 } else {
                     apiStatusTag.className = 'api-tag-error';
                     apiStatusTag.textContent = `HTTP ${response.status} Error — ${nowStr}`;
@@ -1021,7 +1015,7 @@
             } catch (err) {
                 console.log('Sync API err:', err);
                 apiStatusTag.className = 'api-tag-error';
-                apiStatusTag.textContent = 'Error de Conexión API';
+                apiStatusTag.textContent = 'Error de Transmisión';
                 apiJsonView.textContent = JSON.stringify({ error: err.message }, null, 2);
             }
         }
