@@ -238,30 +238,30 @@
             opacity: 1;
         }
 
-        /* PUNTO VERDE PARPADEANTE DE MICRÓFONO ACTIVO */
+        /* PUNTO VERDE PARPADEANTE DISCRETO DE MICRÓFONO ACTIVO (6px, BAJO CONTRASTE) */
         .mic-pulse-dot {
             position: fixed;
-            top: 18px;
-            right: 18px;
-            width: 12px;
-            height: 12px;
+            top: 14px;
+            right: 14px;
+            width: 6px;
+            height: 6px;
             border-radius: 50%;
-            background: #2ecc71;
-            box-shadow: 0 0 12px #2ecc71;
+            background: rgba(35, 110, 60, 0.45);
+            box-shadow: 0 0 4px rgba(35, 110, 60, 0.35);
             opacity: 0;
             transition: opacity 0.4s ease;
             z-index: 999999;
             pointer-events: none;
         }
         .mic-pulse-dot.active {
-            opacity: 0.95;
-            animation: pulseDot 1.5s infinite;
+            opacity: 0.85;
+            animation: pulseDot 2s infinite;
         }
 
         @keyframes pulseDot {
-            0% { transform: scale(0.9); box-shadow: 0 0 4px #2ecc71; }
-            50% { transform: scale(1.35); box-shadow: 0 0 16px #2ecc71; }
-            100% { transform: scale(0.9); box-shadow: 0 0 4px #2ecc71; }
+            0% { transform: scale(0.9); opacity: 0.4; }
+            50% { transform: scale(1.2); opacity: 0.8; }
+            100% { transform: scale(0.9); opacity: 0.4; }
         }
 
         /* PANTALLA COMPLETA QR ESPECTADOR */
