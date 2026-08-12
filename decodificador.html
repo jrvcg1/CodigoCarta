@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Decodificador — Código verbal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #14131d;
+    --bg-panel: #1c1b28;
+    --bg-panel-2: #232231;
+    --accent: #c9a227;
+    --accent-soft: rgba(201,162,39,0.18);
+    --text: #ede8dd;
+    --text-dim: #9b96a8;
+    --line: #322f42;
+    --wine: #b5495b;
+    --ok: #6fae7f;
+  }
+  *{ box-sizing: border-box; }
+  html,body{
+    margin:0; padding:0; min-height:100vh;
+    background: radial-gradient(circle at 50% -10%, #201f30 0%, var(--bg) 55%);
+    color: var(--text);
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+  .stage{
+    max-width: 620px;
+    margin: 0 auto;
+    padding: 48px 20px 80px;
+  }
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    text-align:center;
+    margin-bottom: 8px;
+  }
+  h1{
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(26px, 5vw, 34px);
+    text-align:center;
+    margin: 0 0 6px;
+    letter-spacing: -0.01em;
+  }
+  .sub{
+    text-align:center;
+    color: var(--text-dim);
+    font-size: 14px;
+    margin: 0 0 36px;
+    line-height: 1.5;
+  }
+
+  /* --- carta revelada: elemento firma --- */
+  .card-frame{
+    perspective: 1200px;
+    width: 220px;
+    height: 300px;
+    margin: 0 auto 28px;
+  }
+  .card{
+    width: 100%; height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(.2,.8,.2,1);
+  }
+  .card.revelada{ transform: rotateY(180deg); }
+  .card-face{
+    position:absolute; inset:0;
+    border-radius: 14px;
+    backface-visibility: hidden;
+    display:flex; align-items:center; justify-content:center;
+    flex-direction:column;
+    border: 1px solid var(--line);
+  }
+  .card-back{
+    background:
+      repeating-linear-gradient(135deg, var(--bg-panel-2) 0 10px, var(--bg-panel) 10px 20px);
+    color: var(--accent);
+    font-family: 'Fraunces', serif;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .card-front{
+    background: var(--bg-panel);
+    transform: rotateY(180deg);
+    box-shadow: 0 0 0 1px var(--accent-soft), 0 20px 50px -20px rgba(0,0,0,0.7);
+  }
+  .card-valor{
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 64px;
+    line-height:1;
+    color: var(--text);
+  }
+  .card-palo-simbolo{ font-size: 46px; margin-top: 6px; }
+  .card-palo-simbolo.rojo{ color: #c14b4b; }
+  .card-palo-simbolo.negro{ color: var(--text); }
+  .card-meta{
+    margin-top: 14px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    text-align:center;
+    padding: 0 14px;
+  }
+
+  .controls{ display:flex; justify-content:center; margin-bottom: 12px; }
+
+  .estado-armado{
+    text-align:center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    color: var(--text-dim);
+    margin-bottom: 14px;
+    transition: color 0.2s;
+  }
+  .estado-armado.activo{ color: var(--ok); }
+
+  .config-divider{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 16px 0 10px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  button#mic{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    color: var(--text);
+    padding: 12px 22px;
+    border-radius: 999px;
+    cursor: pointer;
+    display:flex; align-items:center; gap:10px;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  button#mic:hover{ border-color: var(--accent); }
+  button#mic:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; }
+  button#mic.activo{ background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+  .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--text-dim);
+  }
+  button#mic.activo .dot{
+    background: var(--wine);
+    animation: pulso 1.4s ease-in-out infinite;
+  }
+  @keyframes pulso{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  .panel{
+    background: var(--bg-panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+  }
+  .panel h2{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin: 0 0 10px;
+    font-weight: 500;
+  }
+  #transcripcion{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 14px;
+    line-height: 1.7;
+    min-height: 46px;
+    color: var(--text);
+  }
+  #transcripcion .interina{ color: var(--text-dim); }
+
+  .log{ display:flex; flex-direction:column; gap:8px; max-height: 220px; overflow-y:auto; }
+  .log-item{
+    display:flex; justify-content:space-between; gap: 10px;
+    font-size: 13px;
+    padding: 8px 10px;
+    background: var(--bg-panel-2);
+    border-radius: 8px;
+  }
+  .log-item .frase{ color: var(--text-dim); flex:1; }
+  .log-item .carta{ font-family:'IBM Plex Mono', monospace; color: var(--accent); white-space:nowrap; }
+  .log-vacio{ color: var(--text-dim); font-size: 13px; }
+
+  .estado{
+    text-align:center;
+    font-size: 12px;
+    color: var(--text-dim);
+    min-height: 18px;
+    margin-top: -4px;
+    margin-bottom: 20px;
+  }
+  .estado.error{ color: var(--wine); }
+
+  .config-hint{ text-transform:none; letter-spacing:normal; color: var(--text-dim); font-size: 11px; }
+  .config-grid{ display:flex; flex-direction:column; gap: 10px; }
+  .config-row{ display:flex; align-items:center; gap: 12px; }
+  .config-label{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    width: 96px;
+    flex-shrink:0;
+    color: var(--text-dim);
+  }
+  .config-label.diamantes, .config-label.corazones{ color: #c14b4b; }
+  .config-label.picas, .config-label.treboles{ color: var(--text); }
+  .config-grid input[type="text"]{
+    flex:1;
+    background: var(--bg-panel-2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 10px;
+    color: var(--text);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+  }
+  .config-grid input[type="text"]:focus-visible{
+    outline: 2px solid var(--accent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+  .config-warning{
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--wine);
+    min-height: 16px;
+  }
+
+  .no-soportado{
+    text-align:center;
+    background: var(--bg-panel);
+    border: 1px solid var(--wine);
+    border-radius: 12px;
+    padding: 20px;
+    color: var(--text-dim);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .card{ transition: none; }
+    button#mic.activo .dot{ animation: none; }
+  }
+</style>
+</head>
+<body>
+<div class="stage">
+  <div class="eyebrow">Código verbal · valor + coletilla</div>
+  <h1>Decodificador en directo</h1>
+  <p class="sub">Termina cada frase con "Vale" (♦), "Genial" (♥), "Perfecto" (♠) o "Bien" (♣) — puedes cambiar estas palabras justo debajo, en cuanto actives el micrófono.</p>
+
+  <div class="card-frame">
+    <div class="card" id="card">
+      <div class="card-face card-back" style="background:#ffffff;">
+        <img src="cartas_svg/dorso.svg" alt="Dorso Bicycle Azul" style="width:100%; height:100%; object-fit:fill; border-radius:14px;" />
+      </div>
+      <div class="card-face card-front">
+        <img id="cardSvgImg" src="cartas_svg/A_picas.svg" alt="Carta" style="width:100%; height:100%; object-fit:contain; border-radius:14px;" />
+      </div>
+    </div>
+  </div>
+
+  <div class="controls">
+    <button id="mic">
+      <span class="dot"></span>
+      <span id="micLabel">Activar micrófono</span>
+    </button>
+  </div>
+  <div class="estado-armado" id="estadoArmado">⚪ Inactivo</div>
+  <div class="estado" id="estado"></div>
+
+  <div id="app" hidden>
+    <div class="panel">
+      <h2>Coletillas por palo <span class="config-hint">— separadas por coma, se aplican al instante</span></h2>
+      <div class="config-grid">
+        <label class="config-row">
+          <span class="config-label diamantes">♦ Diamantes</span>
+          <input type="text" id="cfg-diamantes" value="vale">
+        </label>
+        <label class="config-row">
+          <span class="config-label corazones">♥ Corazones</span>
+          <input type="text" id="cfg-corazones" value="genial">
+        </label>
+        <label class="config-row">
+          <span class="config-label picas">♠ Picas</span>
+          <input type="text" id="cfg-picas" value="perfecto">
+        </label>
+        <label class="config-row">
+          <span class="config-label treboles">♣ Tréboles</span>
+          <input type="text" id="cfg-treboles" value="bien">
+        </label>
+      </div>
+      <div class="config-warning" id="configWarning"></div>
+
+      <div class="config-divider">Palabras de control</div>
+      <div class="config-grid">
+        <label class="config-row">
+          <span class="config-label">▶ Inicio</span>
+          <input type="text" id="cfg-inicio" value="vamos">
+        </label>
+        <label class="config-row">
+          <span class="config-label">■ Fin</span>
+          <input type="text" id="cfg-fin" value="listo">
+        </label>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Transcripción</h2>
+      <div id="transcripcion"><span class="interina">— di algo para empezar —</span></div>
+    </div>
+
+    <div class="panel">
+      <h2>Historial</h2>
+      <div class="log" id="log">
+        <div class="log-vacio">Aún no se ha decodificado ninguna frase.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="no-soportado" id="noSoportado" hidden>
+    Tu navegador no soporta reconocimiento de voz en el micrófono (Web Speech API).
+    Pruébalo en Chrome o Edge de escritorio, o en Chrome para Android.
+  </div>
+</div>
+
+<script>
+// ---------------------------------------------------------------
+// Misma lógica del script Python (codigo_carta.py), portada a JS
+// ---------------------------------------------------------------
+const RANGOS = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+
+const PALOS = {
+  treboles:  { simbolo: "♣", nombre: "Tréboles",  color: "negro" },
+  corazones: { simbolo: "♥", nombre: "Corazones", color: "rojo" },
+  diamantes: { simbolo: "♦", nombre: "Diamantes", color: "rojo" },
+  picas:     { simbolo: "♠", nombre: "Picas",     color: "negro" },
+};
+
+// Config editable desde el panel de la página. Arranca con estos valores.
+let COLETILLAS = {
+  diamantes: ["vale"],
+  corazones: ["genial"],
+  picas: ["perfecto"],
+  treboles: ["bien"],
+};
+
+// Palabras de control (arman/desarman la decodificación). Coincidencia EXACTA
+// de toda la frase, no como coletilla al final de una frase más larga.
+let INICIO = ["vamos"];
+let FIN = ["listo"];
+let armado = false;
+
+function coincideExacto(frase, expresiones){
+  const tokens = tokenizar(frase).map(t => t.toLowerCase());
+  for (const expr of expresiones){
+    const exprTokens = expr.toLowerCase().split(/\s+/).filter(Boolean);
+    if (tokens.length === exprTokens.length && tokens.every((t,i) => t === exprTokens[i])) return true;
+  }
+  return false;
+}
+
+function parsearListaColetillas(texto){
+  return texto.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+}
+
+function tokenizar(frase){
+  const crudos = frase.trim().split(/\s+/).filter(Boolean);
+  return crudos.map(t => t.replace(/[¿¡?!.,;:]/g, "")).filter(Boolean);
+}
+
+const VALUE_PATTERNS = {
+  "AS": "A",
+  "DOS": "2",
+  "TRE": "3",
+  "CUA": "4",
+  "CIN": "5",
+  "SEI": "6",
+  "SIE": "7",
+  "OCH": "8",
+  "NUE": "9",
+  "DIE": "10",
+  "ONC": "J",
+  "DOC": "Q",
+  "REI": "K"
+};
+
+const SUIT_PATTERNS = {
+  "P": "picas",
+  "C": "corazones",
+  "D": "diamantes",
+  "T": "treboles"
+};
+
+const VALUE_NAMES = {
+  "A": "As", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7",
+  "8": "8", "9": "9", "10": "10", "J": "J", "Q": "Q", "K": "K"
+};
+
+function normalizeSpeech(text) {
+  if (!text) return [];
+  let t = text.toLowerCase();
+  t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  t = t.replace(/[^a-z0-9\s]/g, " ");
+  return t.split(/\s+/).filter(Boolean);
+}
+
+function getPhoneticInitial(word) {
+  if (!word) return [];
+  const w = word.toLowerCase();
+  const candidates = [];
+
+  if (w.startsWith("h") && w.length > 1) {
+    const vowel = w[1];
+    if ("aeiou".includes(vowel)) candidates.push(vowel.toUpperCase());
+    candidates.push("H");
+    return [...new Set(candidates)];
+  }
+
+  const c0 = w[0];
+  if ("aeiou".includes(c0)) {
+    candidates.push(c0.toUpperCase());
+    return candidates;
+  }
+  if (c0 === "y") candidates.push("I");
+
+  if ("ckq".includes(c0)) {
+    candidates.push("C");
+    if (w.length > 1 && w[1] === "o") candidates.push("O");
+  } else if ("sz".includes(c0)) {
+    candidates.push("S");
+  } else if ("bv".includes(c0)) {
+    candidates.push("B");
+  } else {
+    candidates.push(c0.toUpperCase());
+  }
+
+  return [...new Set(candidates)];
+}
+
+function detectCardFromSpeech(text) {
+  const words = normalizeSpeech(text);
+  if (words.length === 0) return { detected: false };
+
+  const phonetics = words.map(w => getPhoneticInitial(w));
+  const n = words.length;
+  const matches = [];
+
+  for (let i = 0; i < n; i++) {
+    // Especial AS (2 palabras + palo)
+    if (i + 1 < n) {
+      if (phonetics[i].includes("A") && phonetics[i+1].includes("S")) {
+        if (i + 2 < n) {
+          const suitCand = phonetics[i+2];
+          for (const sCode of ["P", "C", "D", "T"]) {
+            if (suitCand.includes(sCode)) {
+              matches.push({
+                detected: true,
+                value: "A",
+                valueName: "As",
+                suit: SUIT_PATTERNS[sCode],
+                suitCode: sCode,
+                valuePattern: "AS",
+                matchedWords: words.slice(i, i+3),
+                startIdx: i,
+                endIdx: i+3,
+                confidence: 1
+              });
+            }
+          }
+        }
+      }
+    }
+
+    // Patrón Estándar (3 palabras + 1 palo)
+    if (i + 2 < n) {
+      for (const c1 of phonetics[i]) {
+        for (const c2 of phonetics[i+1]) {
+          for (const c3 of phonetics[i+2]) {
+            const pat = c1 + c2 + c3;
+            if (VALUE_PATTERNS[pat]) {
+              const val = VALUE_PATTERNS[pat];
+              const valName = VALUE_NAMES[val];
+              if (i + 3 < n) {
+                const suitCand = phonetics[i+3];
+                for (const sCode of ["P", "C", "D", "T"]) {
+                  if (suitCand.includes(sCode)) {
+                    matches.push({
+                      detected: true,
+                      value: String(val),
+                      valueName: String(valName),
+                      suit: SUIT_PATTERNS[sCode],
+                      suitCode: sCode,
+                      valuePattern: pat,
+                      matchedWords: words.slice(i, i+4),
+                      startIdx: i,
+                      endIdx: i+4,
+                      confidence: 1
+                    });
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  if (matches.length === 0) return { detected: false };
+
+  matches.sort((a, b) => b.endIdx - a.endIdx || b.startIdx - a.startIdx);
+  const best = matches[0];
+  delete best.startIdx;
+  delete best.endIdx;
+  return best;
+}
+
+function analizarFrase(frase) {
+  const res = detectCardFromSpeech(frase);
+  if (!res.detected) {
+    return { error: "no se detectó ningún patrón fonético de valor + palo" };
+  }
+  return {
+    valor: res.value,
+    paloId: res.suit,
+    palo: PALOS[res.suit],
+    n: res.matchedWords.length,
+    coletilla: res.suitCode,
+    matchedWords: res.matchedWords,
+    valuePattern: res.valuePattern
+  };
+}
+
+// ---------------------------------------------------------------
+// Interfaz + reconocimiento de voz
+// ---------------------------------------------------------------
+const micBtn = document.getElementById("mic");
+const micLabel = document.getElementById("micLabel");
+const estadoEl = document.getElementById("estado");
+const transcripcionEl = document.getElementById("transcripcion");
+const logEl = document.getElementById("log");
+const cardEl = document.getElementById("card");
+const cardValorEl = document.getElementById("cardValor");
+const cardPaloEl = document.getElementById("cardPalo");
+const cardMetaEl = document.getElementById("cardMeta");
+const appEl = document.getElementById("app");
+const noSoportadoEl = document.getElementById("noSoportado");
+const estadoArmadoEl = document.getElementById("estadoArmado");
+
+function actualizarEstadoArmado(){
+  if (armado){
+    estadoArmadoEl.textContent = "🟢 Armado — decodificando";
+    estadoArmadoEl.className = "estado-armado activo";
+  } else {
+    const palabraInicio = INICIO[0] || "…";
+    estadoArmadoEl.textContent = `⚪ Inactivo — di "${palabraInicio}" para empezar`;
+    estadoArmadoEl.className = "estado-armado";
+  }
+}
+
+const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+let escuchando = false;
+let recognition = null;
+let historial = [];
+
+function parsearListaColetillas(texto){
+  return texto.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
+}
+
+function detectarDuplicados(){
+  const todas = { ...COLETILLAS, inicio: INICIO, fin: FIN };
+  const vistas = new Map();
+  for (const [categoria, lista] of Object.entries(todas)){
+    for (const expr of lista){
+      if (!vistas.has(expr)) vistas.set(expr, new Set());
+      vistas.get(expr).add(categoria);
+    }
+  }
+  return [...vistas.entries()].filter(([_, cats]) => cats.size > 1);
+}
+
+const configWarningEl = document.getElementById("configWarning");
+
+function actualizarAvisoDuplicados(){
+  const dup = detectarDuplicados();
+  if (dup.length === 0){
+    configWarningEl.textContent = "";
+    return;
+  }
+  const detalle = dup.map(([expr, cats]) => `"${expr}" en ${[...cats].join(" y ")}`).join(" · ");
+  configWarningEl.textContent = "⚠ Expresión repetida, será ambigua: " + detalle;
+}
+
+["diamantes","corazones","picas","treboles"].forEach(paloId => {
+  const input = document.getElementById("cfg-" + paloId);
+  input.addEventListener("input", () => {
+    COLETILLAS[paloId] = parsearListaColetillas(input.value);
+    actualizarAvisoDuplicados();
+  });
+});
+
+["inicio","fin"].forEach(clave => {
+  const input = document.getElementById("cfg-" + clave);
+  input.addEventListener("input", () => {
+    if (clave === "inicio") INICIO = parsearListaColetillas(input.value);
+    else FIN = parsearListaColetillas(input.value);
+    actualizarAvisoDuplicados();
+    actualizarEstadoArmado();
+  });
+});
+
+const cardSvgImgEl = document.getElementById("cardSvgImg");
+
+function mostrarCarta({ valor, paloId, palo, coletilla }){
+  cardEl.classList.add("revelada");
+  if (cardSvgImgEl) {
+    cardSvgImgEl.src = `cartas_svg/${valor}_${paloId}.svg`;
+    cardSvgImgEl.alt = `${valor} de ${palo.nombre}`;
+  }
+}
+
+function agregarAlHistorial(frase, resultado){
+  historial.unshift({ frase, resultado });
+  historial = historial.slice(0, 12);
+  logEl.innerHTML = "";
+  historial.forEach(({ frase, resultado }) => {
+    const item = document.createElement("div");
+    item.className = "log-item";
+    item.innerHTML = `<span class="frase">“${frase}”</span><span class="carta">${resultado.valor} ${resultado.palo.simbolo}</span>`;
+    logEl.appendChild(item);
+  });
+}
+
+function procesarFraseFinal(frase){
+  const limpio = frase.trim();
+  if (!limpio) return;
+
+  if (!armado){
+    if (coincideExacto(limpio, INICIO)){
+      armado = true;
+      actualizarEstadoArmado();
+      estadoEl.classList.remove("error");
+      estadoEl.textContent = "🟢 Armado — decodificando hasta que digas la palabra de fin.";
+      return;
+    }
+    estadoEl.classList.remove("error");
+    estadoEl.textContent = `En espera — dijiste "${limpio}", no cuenta (di la palabra de inicio para empezar).`;
+    return;
+  }
+
+  if (coincideExacto(limpio, FIN)){
+    armado = false;
+    actualizarEstadoArmado();
+    estadoEl.classList.remove("error");
+    estadoEl.textContent = "⚪ Detenido — vuelve a decir la palabra de inicio cuando quieras.";
+    return;
+  }
+
+  const resultado = analizarFrase(limpio);
+  if (resultado.error){
+    estadoEl.classList.remove("error");
+    estadoEl.textContent = "Sigues armado. Sin coletilla al final (" + resultado.error + ") — no se decodifica esta frase.";
+    return;
+  }
+  estadoEl.textContent = "";
+  mostrarCarta(resultado);
+  agregarAlHistorial(limpio, resultado);
+}
+
+function iniciarReconocimiento(){
+  recognition = new SpeechRecognitionAPI();
+  recognition.lang = "es-ES";
+  recognition.continuous = true;
+  recognition.interimResults = true;
+
+  recognition.onresult = (event) => {
+    let interina = "";
+    for (let i = event.resultIndex; i < event.results.length; i++){
+      const res = event.results[i];
+      const texto = res[0].transcript;
+      if (res.isFinal){
+        transcripcionEl.innerHTML = `<span>${texto}</span>`;
+        procesarFraseFinal(texto);
+      } else {
+        interina += texto;
+      }
+    }
+    if (interina){
+      transcripcionEl.innerHTML = `<span class="interina">${interina}</span>`;
+    }
+  };
+
+  recognition.onerror = (event) => {
+    if (event.error === "no-speech") return;
+    estadoEl.textContent = "Error de micrófono: " + event.error;
+    estadoEl.classList.add("error");
+  };
+
+  recognition.onend = () => {
+    if (escuchando) recognition.start(); // reinicia si se corta solo
+  };
+
+  recognition.start();
+}
+
+micBtn.addEventListener("click", () => {
+  if (!escuchando){
+    escuchando = true;
+    armado = false;
+    micBtn.classList.add("activo");
+    micLabel.textContent = "Escuchando…";
+    estadoEl.textContent = "";
+    estadoEl.classList.remove("error");
+    appEl.hidden = false;
+    actualizarEstadoArmado();
+    iniciarReconocimiento();
+  } else {
+    escuchando = false;
+    armado = false;
+    micBtn.classList.remove("activo");
+    micLabel.textContent = "Activar micrófono";
+    actualizarEstadoArmado();
+    if (recognition) recognition.stop();
+  }
+});
+
+if (!SpeechRecognitionAPI){
+  micBtn.hidden = true;
+  noSoportadoEl.hidden = false;
+}
+</script>
+</body>
+</html>

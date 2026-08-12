@@ -1,0 +1,606 @@
+"""
+Servicio Web API REST para Decodificación de Cartas (Código Verbal)
+====================================================================
+API desarrollada con FastAPI que permite decodificar cartas de póker a partir de frases habladas
+y configurar dinámicamente las palabras / coletillas asociadas a cada palo.
+"""
+
+from typing import Dict, List, Optional
+from fastapi import FastAPI, Query, HTTPException, status
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
+
+from codigo_carta import (
+    analizar_frase,
+    COLETILLAS,
+    PALOS,
+    RANGOS
+)
+
+app = FastAPI(
+    title="API REST — Código Verbal Mentalismo",
+    description="Servicio web para decodificar cartas de póker a partir de frases verbales y gestionar la configuración de coletillas por palo.",
+    version="1.0.0",
+)
+
+# Habilitar CORS para consumo desde aplicaciones frontend / decodificador.html
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Configuración global en memoria de coletillas activas (inicializada desde codigo_carta.py)
+CONFIG_COLETILLAS: Dict[str, List[str]] = {
+    palo_id: list(expresiones) for palo_id, expresiones in COLETILLAS.items()
+}
+
+# Montar carpeta de cartas SVG realistas como estáticos
+import os
+from fastapi.staticfiles import StaticFiles
+cartas_dir = os.path.join(os.path.dirname(__file__), "cartas_svg")
+if os.path.exists(cartas_dir):
+    app.mount("/cartas_svg", StaticFiles(directory=cartas_dir), name="cartas_svg")
+
+
+# -------------------------------------------------------------------
+# Modelos Pydantic para Request / Response
+# -------------------------------------------------------------------
+
+class PaloInfo(BaseModel):
+    simbolo: str = Field(..., example="♣")
+    nombre: str = Field(..., example="Tréboles")
+
+class ResultadoDecodificación(BaseModel):
+    exito: bool = Field(..., example=True)
+    frase: str = Field(..., example="Yo creo que todo va bien")
+    valor: Optional[str] = Field(None, example="5")
+    palo_id: Optional[str] = Field(None, example="treboles")
+    palo: Optional[PaloInfo] = None
+    n_palabras: Optional[int] = Field(None, example=5)
+    coletilla: Optional[str] = Field(None, example="bien")
+    error: Optional[str] = None
+
+class PeticionPostDecodificar(BaseModel):
+    frase: str = Field(..., example="Yo creo que todo va bien", description="Frase hablada a decodificar")
+    coletillas: Optional[Dict[str, List[str]]] = Field(
+        None,
+        description="Coletillas personalizadas opcionales para esta petición específica",
+        example={
+            "diamantes": ["vale"],
+            "corazones": ["genial"],
+            "picas": ["perfecto"],
+            "treboles": ["bien"]
+        }
+    )
+
+class ConfiguracionColetillas(BaseModel):
+    diamantes: Optional[List[str]] = Field(None, example=["vale", "ok"])
+    corazones: Optional[List[str]] = Field(None, example=["genial", "fantástico"])
+    picas: Optional[List[str]] = Field(None, example=["perfecto", "excelente"])
+    treboles: Optional[List[str]] = Field(None, example=["bien", "correcto"])
+
+class RespuestaConfiguracion(BaseModel):
+    coletillas: Dict[str, List[str]]
+    palos_disponibles: Dict[str, PaloInfo]
+
+
+# -------------------------------------------------------------------
+# Endpoints de la API REST
+# -------------------------------------------------------------------
+
+@app.get("/", include_in_schema=False)
+def inicio():
+    """Redirige automáticamente a la documentación interactiva Swagger UI."""
+    return RedirectResponse(url="/docs")
+
+
+@app.get("/health", tags=["Estado"])
+def health_check():
+    """Comprobación de estado del servicio."""
+    return {"status": "ok", "service": "API REST Código Verbal"}
+
+
+# Estado en memoria de la carta activa en el servidor (para el truco de mentalismo)
+CARTA_ACTUAL = {
+    "valor": "K",
+    "palo_id": "treboles",
+    "palo_nombre": "Tréboles",
+    "simbolo": "♣",
+    "frase": "Yo creo que todo va mucho mejor de lo esperado por mi rey bien",
+    "coletilla": "bien",
+    "n_palabras": 13,
+    "version": 1
+}
+
+
+def actualizar_estado_carta(res: dict, frase: str):
+    """Actualiza silenciosamente la carta activa en el servidor sin recargar la web."""
+    if "error" not in res:
+        global CARTA_ACTUAL
+        CARTA_ACTUAL = {
+            "valor": res["valor"],
+            "palo_id": res["palo_id"],
+            "palo_nombre": res["palo"]["nombre"],
+            "simbolo": res["palo"]["simbolo"],
+            "frase": frase,
+            "coletilla": res.get("coletilla", ""),
+            "n_palabras": res.get("n_palabras", 0),
+            "version": CARTA_ACTUAL.get("version", 0) + 1
+        }
+
+
+@app.get(
+    "/api/carta_actual",
+    summary="Obtener la carta activa almacenada en el servidor",
+    tags=["Mentalismo"]
+)
+def obtener_carta_actual():
+    """Retorna la última carta decodificada en el servidor."""
+    return CARTA_ACTUAL
+
+
+@app.get(
+    "/api/decodificar",
+    response_model=ResultadoDecodificación,
+    summary="Decodificar carta a partir de una frase (GET)",
+    tags=["Decodificación"]
+)
+def decodificar_get(
+    frase: str = Query(
+        ...,
+        description="Frase completa codificada (ej: 'Yo creo que todo va bien')",
+        example="Yo creo que todo va bien"
+    )
+):
+    """
+    Interpreta una frase completa para determinar la carta de póker codificada (Valor + Palo).
+    Actualiza silenciosamente el estado del servidor para la pantalla en directo.
+    """
+    res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
+    if "error" in res:
+        return ResultadoDecodificación(
+            exito=False,
+            frase=frase,
+            error=res["error"]
+        )
+
+    actualizar_estado_carta(res, frase)
+
+    return ResultadoDecodificación(
+        exito=True,
+        frase=frase,
+        valor=res["valor"],
+        palo_id=res["palo_id"],
+        palo=PaloInfo(**res["palo"]),
+        n_palabras=res["n_palabras"],
+        coletilla=res["coletilla"]
+    )
+
+
+@app.post(
+    "/api/decodificar",
+    response_model=ResultadoDecodificación,
+    summary="Decodificar carta a partir de una frase (POST)",
+    tags=["Decodificación"]
+)
+def decodificar_post(body: PeticionPostDecodificar):
+    """
+    Interpreta una frase enviada por JSON POST.
+    Actualiza silenciosamente el estado del servidor sin refrescar ninguna pantalla.
+    """
+    coletillas_a_usar = body.coletillas if body.coletillas is not None else CONFIG_COLETILLAS
+    res = analizar_frase(body.frase, coletillas=coletillas_a_usar)
+
+    if "error" in res:
+        return ResultadoDecodificación(
+            exito=False,
+            frase=body.frase,
+            error=res["error"]
+        )
+
+    actualizar_estado_carta(res, body.frase)
+
+    return ResultadoDecodificación(
+        exito=True,
+        frase=body.frase,
+        valor=res["valor"],
+        palo_id=res["palo_id"],
+        palo=PaloInfo(**res["palo"]),
+        n_palabras=res["n_palabras"],
+        coletilla=res["coletilla"]
+    )
+
+
+@app.get(
+    "/api/config",
+    response_model=RespuestaConfiguracion,
+    summary="Obtener configuración de coletillas y palos",
+    tags=["Configuración de Palos"]
+)
+def obtener_configuracion():
+    """Retorna la lista actual de palabras/coletillas configuradas para cada palo."""
+    palos_formatted = {palo_id: PaloInfo(**data) for palo_id, data in PALOS.items()}
+    return RespuestaConfiguracion(
+        coletillas=CONFIG_COLETILLAS,
+        palos_disponibles=palos_formatted
+    )
+
+
+@app.put(
+    "/api/config",
+    response_model=RespuestaConfiguracion,
+    summary="Actualizar coletillas por palo",
+    tags=["Configuración de Palos"]
+)
+def actualizar_configuracion(nueva_config: ConfiguracionColetillas):
+    """
+    Actualiza la lista de palabras/coletillas asociadas a uno o varios palos.
+    Las palabras no deben estar vacías.
+    """
+    datos = nueva_config.dict(exclude_unset=True)
+
+    for palo_id, lista_palabras in datos.items():
+        if lista_palabras is not None:
+            limpias = [p.strip().lower() for p in lista_palabras if p and p.strip()]
+            if not limpias:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"La lista de coletillas para '{palo_id}' no puede estar vacía."
+                )
+            CONFIG_COLETILLAS[palo_id] = limpias
+
+    palos_formatted = {palo_id: PaloInfo(**data) for palo_id, data in PALOS.items()}
+    return RespuestaConfiguracion(
+        coletillas=CONFIG_COLETILLAS,
+        palos_disponibles=palos_formatted
+    )
+
+
+from fastapi import Request
+
+@app.get(
+    "/api/carta/svg",
+    summary="Obtener imagen SVG vectorial de una carta o frase",
+    tags=["Visualización"]
+)
+def obtener_carta_svg(
+    request: Request,
+    frase: Optional[str] = Query(None, description="Frase codificada (opcional)"),
+    valor: Optional[str] = Query(None, description="Valor explicito (A, 2..10, J, Q, K)"),
+    palo_id: Optional[str] = Query(None, description="Palo id (diamantes, corazones, picas, treboles)"),
+    raw: Optional[bool] = Query(False, description="Si es True, devuelve la imagen SVG pura sin redirección web")
+):
+    """
+    Retorna la experiencia web interactiva 3D con volteo (frente/dorso).
+    Si se requiere la imagen SVG cruda (por ejemplo para <img src="...">), pasar `raw=true`.
+    """
+    if not raw:
+        if frase:
+            from urllib.parse import quote
+            return RedirectResponse(url=f"/visualizar?frase={quote(frase)}")
+        elif valor and palo_id:
+            return RedirectResponse(url=f"/visualizar?valor={valor}&palo_id={palo_id}")
+        return RedirectResponse(url="/visualizar")
+
+    card_valor = "A"
+    card_palo_id = "picas"
+
+    if frase:
+        res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
+        if "error" not in res:
+            card_valor = res["valor"]
+            card_palo_id = res["palo_id"]
+    else:
+        if valor: card_valor = valor.upper()
+        if palo_id and palo_id in PALOS: card_palo_id = palo_id
+
+    filename = f"{card_valor}_{card_palo_id}.svg"
+    filepath = os.path.join(os.path.dirname(__file__), "cartas_svg", filename)
+
+    if os.path.exists(filepath):
+        with open(filepath, "r", encoding="utf-8") as f:
+            svg_content = f.read()
+        return Response(content=svg_content, media_type="image/svg+xml")
+
+    # Fallback si no existiera el archivo
+    palo_info = PALOS.get(card_palo_id, PALOS["picas"])
+    simbolo = palo_info["simbolo"]
+    color = "#c14b4b" if card_palo_id in ["corazones", "diamantes"] else "#1e1e24"
+
+    svg_content = f"""<svg xmlns="http://www.w3.org/2000/svg" width="240" height="340" viewBox="0 0 240 340">
+  <rect x="5" y="5" width="230" height="330" rx="16" ry="16" fill="#fdfbf7" stroke="#d0c7b7" stroke-width="3" />
+  <text x="22" y="42" font-family="'Courier New', monospace" font-weight="bold" font-size="28" fill="{color}">{card_valor}</text>
+  <text x="22" y="68" font-family="sans-serif" font-size="24" fill="{color}">{simbolo}</text>
+  <text x="120" y="180" font-family="sans-serif" font-size="80" text-anchor="middle" dominant-baseline="middle" fill="{color}">{simbolo}</text>
+</svg>"""
+
+    return Response(content=svg_content, media_type="image/svg+xml")
+
+
+@app.get(
+    "/visualizar",
+    response_class=HTMLResponse,
+    summary="Visualizar carta interactiva en HTML con volteo 3D",
+    tags=["Visualización"]
+)
+def visualizar_carta(
+    frase: Optional[str] = Query(None, description="Frase hablada a interpretar"),
+    valor: Optional[str] = Query(None, description="Valor explicito de la carta"),
+    palo_id: Optional[str] = Query(None, description="Palo de la carta")
+):
+    """
+    Página HTML interactiva que muestra la carta de póker con animación 3D.
+    Haciendo clic sobre la carta, esta se voltea mostrando el frente y el dorso.
+    """
+    if frase:
+        res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
+    elif valor and palo_id:
+        res = {
+            "valor": valor.upper(),
+            "palo_id": palo_id,
+            "palo": PALOS.get(palo_id, PALOS["picas"]),
+            "n_palabras": RANGOS.index(valor.upper()) + 1 if valor.upper() in RANGOS else 1,
+            "coletilla": CONFIG_COLETILLAS.get(palo_id, [""])[0]
+        }
+    else:
+        frase = "Yo creo que todo va mucho mejor de lo esperado por mi rey bien"
+        res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
+
+    if "error" in res:
+        contenido = f"""
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+            <meta charset="UTF-8">
+            <title>Error de Decodificación</title>
+            <style>
+                body {{ background: #14131d; color: #ede8dd; font-family: sans-serif; text-align: center; padding: 60px 20px; }}
+                .box {{ background: #1c1b28; border: 1px solid #322f42; max-width: 500px; margin: 0 auto; padding: 30px; border-radius: 16px; }}
+                h2 {{ color: #b5495b; margin-top: 0; }}
+                a {{ color: #c9a227; text-decoration: none; font-weight: bold; }}
+            </style>
+        </head>
+        <body>
+            <div class="box">
+                <h2>⚠️ Error al interpretar la frase</h2>
+                <p style="font-size:16px;">"{res['error']}"</p>
+                <p style="color:#9b96a8;">Frase consultada: <i>{frase}</i></p>
+                <br>
+                <a href="/visualizar?frase=Yo+creo+que+todo+va+mucho+mejor+de+lo+esperado+por+mi+rey+bien">Probar frase por defecto (K♣)</a>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=contenido)
+
+    card_valor = res["valor"]
+    palo_nombre = res["palo"]["nombre"]
+    simbolo = res["palo"]["simbolo"]
+    card_palo_id = res["palo_id"]
+    coletilla = res.get("coletilla", "")
+
+    frase_mostrar = frase if frase else f"Carta {card_valor} de {palo_nombre}"
+
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pantalla de Mentalismo — Carta Interactiva</title>
+        <style>
+            :root {{
+                --bg: #14131d;
+                --panel: #1c1b28;
+                --accent: #c9a227;
+                --text: #ede8dd;
+                --text-dim: #9b96a8;
+                --line: #322f42;
+            }}
+            * {{ box-sizing: border-box; }}
+            body {{
+                background: radial-gradient(circle at 50% -10%, #201f30 0%, var(--bg) 60%);
+                color: var(--text);
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100vh;
+                margin: 0;
+                padding: 20px;
+            }}
+            h1 {{ font-size: 26px; margin: 0 0 6px; font-weight: 600; text-align: center; }}
+            .sub {{ color: var(--text-dim); margin-bottom: 18px; font-size: 14px; text-align: center; max-width: 500px; word-break: break-word; }}
+            .hint {{
+                font-size: 13px; color: var(--accent); margin-bottom: 20px;
+                background: rgba(201,162,39,0.12); border: 1px solid rgba(201,162,39,0.3);
+                padding: 8px 18px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px;
+                cursor: pointer;
+                user-select: none;
+            }}
+            .card-box {{
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 32px 28px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                max-width: 540px;
+                width: 100%;
+            }}
+            
+            /* --- Animación 3D de Volteo de Carta --- */
+            .card-scene {{
+                perspective: 1200px;
+                -webkit-perspective: 1200px;
+                width: 220px;
+                height: 310px;
+                margin: 10px auto 24px;
+                cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
+            }}
+            .card-object {{
+                width: 100%;
+                height: 100%;
+                position: relative;
+                -webkit-transform-style: preserve-3d;
+                transform-style: preserve-3d;
+                transition: transform 0.7s cubic-bezier(0.3, 1, 0.3, 1);
+                -webkit-transition: -webkit-transform 0.7s cubic-bezier(0.3, 1, 0.3, 1);
+            }}
+            .card-scene:hover .card-object {{
+                box-shadow: 0 0 25px rgba(201,162,39,0.3);
+            }}
+            .card-scene.volteada .card-object {{
+                -webkit-transform: rotateY(180deg);
+                transform: rotateY(180deg);
+            }}
+            .card-face {{
+                position: absolute;
+                inset: 0;
+                width: 100%;
+                height: 100%;
+                -webkit-backface-visibility: hidden;
+                backface-visibility: hidden;
+                border-radius: 14px;
+                overflow: hidden;
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 12px 36px rgba(0,0,0,0.5);
+            }}
+            .card-front {{
+                background: #ffffff;
+                -webkit-transform: rotateY(180deg);
+                transform: rotateY(180deg);
+            }}
+            .card-back {{
+                background: #ffffff;
+                -webkit-transform: rotateY(0deg);
+                transform: rotateY(0deg);
+            }}
+            .card-face img {{
+                width: 100%;
+                height: 100%;
+                object-fit: fill;
+                display: block;
+                pointer-events: none;
+            }}
+
+            .badge {{
+                background: rgba(201,162,39,0.15);
+                color: var(--accent);
+                border: 1px solid rgba(201,162,39,0.3);
+                padding: 8px 18px;
+                border-radius: 20px;
+                font-family: monospace;
+                font-size: 14px;
+                display: inline-block;
+                margin-top: 4px;
+            }}
+            .sync-dot {{
+                width: 8px; height: 8px; border-radius: 50%; background: #6fae7f;
+                display: inline-block; margin-right: 6px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="card-box">
+            <h1>Pantalla en Directo</h1>
+            <div class="sub" id="fraseSub"><span class="sync-dot"></span>Escuchando peticiones silenciosas de la API...</div>
+            
+            <div class="hint" id="hintBtn">
+                <span>🔄</span> Haz clic en la carta para voltear y revelar
+            </div>
+
+            <!-- Objeto de Carta Interactiva 3D (Inicialmente en Dorso) -->
+            <div class="card-scene" id="cardScene">
+                <div class="card-object">
+                    <!-- Frente de la Carta (Oculto inicialmente hasta que se gira) -->
+                    <div class="card-face card-front">
+                        <img id="imgFront" src="/cartas_svg/{card_valor}_{card_palo_id}.svg" alt="Frente de la carta" />
+                    </div>
+                    <!-- Dorso de la Carta (Visible inicialmente) -->
+                    <div class="card-face card-back">
+                        <img src="/cartas_svg/dorso.svg" alt="Dorso de la Carta" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="badge" id="badgeCarta">
+                Carta preparada · Haz clic para revelar
+            </div>
+        </div>
+
+        <script>
+            let currentVersion = -1;
+            const cardScene = document.getElementById('cardScene');
+            const hintBtn = document.getElementById('hintBtn');
+            const imgFront = document.getElementById('imgFront');
+            const badgeCarta = document.getElementById('badgeCarta');
+            const fraseSub = document.getElementById('fraseSub');
+
+            function toggleCard() {{
+                cardScene.classList.toggle('volteada');
+            }}
+
+            cardScene.addEventListener('click', toggleCard);
+            hintBtn.addEventListener('click', toggleCard);
+
+            // Polling silencioso en segundo plano sin recargar la pantalla
+            async function consultarEstadoSilencioso() {{
+                try {{
+                    const res = await fetch('/api/carta_actual');
+                    if (res.ok) {{
+                        const data = await res.json();
+                        if (data.version && data.version !== currentVersion) {{
+                            currentVersion = data.version;
+                            // Actualizar la imagen del frente y la info en segundo plano
+                            imgFront.src = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
+                            badgeCarta.textContent = `${{data.valor}} de ${{data.palo_nombre}} ${{data.simbolo}} (${{data.n_palabras}} palabras + "${{data.coletilla}}")`;
+                            fraseSub.innerHTML = `<span class="sync-dot"></span>Frase API: "${{data.frase}}"`;
+                            
+                            // Si estaba volteada mostrando el frente anterior, volver a ponerla boca abajo lista para la nueva revelación
+                            if (cardScene.classList.contains('volteada')) {{
+                                cardScene.classList.remove('volteada');
+                            }}
+                        }}
+                    }}
+                }} catch (err) {{
+                    console.log('Sync err:', err);
+                }}
+            }}
+
+            // Consultar cada 1 segundo sin afectar la experiencia del usuario
+            setInterval(consultarEstadoSilencioso, 1000);
+            consultarEstadoSilencioso();
+        </script>
+    </body>
+    </html>
+    """
+    return HTMLResponse(content=html_content)
+
+
+@app.get("/decodificador", response_class=HTMLResponse, summary="Aplicación Web Decodificador con Micrófono", tags=["Visualización"])
+def decodificador_web():
+    """Servicio de la interfaz gráfica interactiva decodificador.html."""
+    html_path = os.path.join(os.path.dirname(__file__), "decodificador.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="Archivo decodificador.html no encontrado.", status_code=404)
+
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port, reload=True)
+
