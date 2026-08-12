@@ -37,7 +37,7 @@
 
         .container {
             width: 100%;
-            max-width: 780px;
+            max-width: 820px;
             background: var(--card-bg);
             backdrop-filter: blur(14px);
             border: 1px solid var(--border-gold);
@@ -285,6 +285,7 @@
             color: var(--text-dim);
             text-align: center;
             line-height: 1.8;
+            margin-bottom: 18px;
         }
         .init-badge {
             color: var(--gold-bright);
@@ -305,6 +306,69 @@
             font-weight: 700;
             font-family: monospace;
             margin: 0 2px;
+        }
+
+        /* INSPECTOR DE RESPUESTA EN VIVO DE LA API REST */
+        .api-response-box {
+            width: 100%;
+            background: rgba(8, 5, 14, 0.95);
+            border: 1px solid rgba(0, 229, 255, 0.35);
+            border-radius: 12px;
+            padding: 14px 16px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+        }
+        .api-response-header {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: var(--cyan-glow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+            padding-bottom: 8px;
+        }
+        .api-tag-waiting {
+            color: #a89bbd;
+            background: rgba(168, 155, 189, 0.15);
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+        .api-tag-success {
+            color: #2ecc71;
+            background: rgba(46, 204, 113, 0.2);
+            border: 1px solid #2ecc71;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .api-tag-error {
+            color: #e74c3c;
+            background: rgba(231, 76, 60, 0.2);
+            border: 1px solid #e74c3c;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+        }
+        .api-json-view {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 12px;
+            color: #7efcff;
+            background: rgba(0, 0, 0, 0.55);
+            padding: 12px;
+            border-radius: 8px;
+            margin: 0;
+            overflow-x: auto;
+            max-height: 220px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            line-height: 1.5;
+            border: 1px solid rgba(0, 229, 255, 0.15);
         }
     </style>
 </head>
@@ -352,6 +416,15 @@
                 Esperando la palabra clave activa para iniciar el análisis de iniciales habladas...
             </div>
         </div>
+
+        <!-- INSPECTOR DE RESPUESTA EN VIVO DE LA API REST -->
+        <div class="api-response-box">
+            <div class="api-response-header">
+                <span>📡 RESPUESTA EN VIVO DE LA API REST (POST /api/decodificar_palabra_clave)</span>
+                <span id="apiStatusTag" class="api-tag-waiting">Pendiente de Invocación</span>
+            </div>
+            <pre id="apiJsonView" class="api-json-view">// Cuando se fije una carta por voz, aquí aparecerá la respuesta JSON exacta retornada por la API REST en tiempo real.</pre>
+        </div>
     </div>
 
     <script>
@@ -375,7 +448,7 @@
             if (!word) return [];
             let w = word.toLowerCase();
             let candidates = [];
-            if (w.startswith ? w.startswith("h") : w.startsWith("h")) {
+            if (w.startsWith("h")) {
                 if (w.length > 1 && "aeiou".includes(w[1])) candidates.push(w[1].toUpperCase());
                 candidates.push("H");
                 return candidates;
@@ -471,6 +544,8 @@
         const cardTitle = document.getElementById('cardTitle');
         const cardImg = document.getElementById('cardImg');
         const phoneticDetail = document.getElementById('phoneticDetail');
+        const apiStatusTag = document.getElementById('apiStatusTag');
+        const apiJsonView = document.getElementById('apiJsonView');
 
         let isListening = false;
         let recognition = null;
@@ -478,7 +553,6 @@
         // VARIABLES DE ESTADO PARA EL BLOQUEO HASTA NUEVA PALABRA CLAVE
         let cardLocked = false;
         let lastKwWordCount = -1; // Índice de la última palabra clave procesada
-        let activeTranscriptAfterKw = "";
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -623,8 +697,9 @@
                 Patrón Decodificado: <span style="color:var(--gold-bright); font-weight:700;">${cardMatch.pattern}</span> + <span style="color:var(--cyan-glow); font-weight:700;">${cardMatch.suitCode}</span> => <strong>${val} de ${suitName}</strong>
             `;
 
-            // ENVIAR AL SERVIDOR PARA ACTUALIZAR TAMBIÉN /visualizar SIMULTÁNEAMENTE DE FORMA GARANTIZADA
+            // ENVIAR AL SERVIDOR Y MOSTRAR LA RESPUESTA JSON EXACTA EN EL INSPECTOR DE LA PANTALLA
             try {
+                const startTime = performance.now();
                 const response = await fetch('/api/decodificar_palabra_clave', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -634,12 +709,25 @@
                     })
                 });
                 
+                const duration = Math.round(performance.now() - startTime);
+                const data = await response.json();
+                const nowStr = new Date().toLocaleTimeString();
+
                 if (response.ok) {
-                    const data = await response.json();
+                    apiStatusTag.className = 'api-tag-success';
+                    apiStatusTag.textContent = `HTTP 200 OK (${duration}ms) — ${nowStr}`;
+                    apiJsonView.textContent = JSON.stringify(data, null, 2);
                     lockStatusBadge.innerHTML = `🔒 CARTA FIJADA — 🌐 <strong>API REST Sincronizada con /visualizar (${data.valor} de ${data.palo.nombre})</strong>`;
+                } else {
+                    apiStatusTag.className = 'api-tag-error';
+                    apiStatusTag.textContent = `HTTP ${response.status} Error — ${nowStr}`;
+                    apiJsonView.textContent = JSON.stringify(data, null, 2);
                 }
             } catch (err) {
                 console.log('Sync API err:', err);
+                apiStatusTag.className = 'api-tag-error';
+                apiStatusTag.textContent = 'Error de Conexión API';
+                apiJsonView.textContent = JSON.stringify({ error: err.message }, null, 2);
             }
         }
     </script>
