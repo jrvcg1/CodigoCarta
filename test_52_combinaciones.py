@@ -22,7 +22,7 @@ PALO_PALABRAS = {
     'picas': "perfecto",
     'corazones': "correcto",
     'diamantes': "donde",
-    'tréboles': "tranquilo"
+    'treboles': "tranquilo"
 }
 
 def test_52_combinaciones():
@@ -59,7 +59,7 @@ def test_casos_borde():
         
         # Tildes y puntuación compleja
         ("¡Hombre! ¿No creo probable que sea correcto?", True, "J", "picas"),
-        ("¡¡¡SIEMPRE INTENTA ESTAR TRANQUILO!!!", True, 7, "tréboles"),
+        ("¡¡¡SIEMPRE INTENTA ESTAR TRANQUILO!!!", True, 7, "treboles"),
         
         # Frase larga con patrón en el medio de la conversación
         ("Hola a todos, bienvenido al show. Hombre no creo probable que ocurra nada raro hoy.", True, "J", "picas"),
@@ -84,7 +84,7 @@ def test_casos_borde():
         ("Hombre no creo posiblemente...", True, "J", "picas"),   # posiblemente -> P
         ("Hombre no creo cosas...", True, "J", "corazones"),     # cosas -> C
         ("Hombre no creo dado...", True, "J", "diamantes"),       # dado -> D
-        ("Hombre no creo todo...", True, "J", "tréboles"),        # todo -> T
+        ("Hombre no creo todo...", True, "J", "treboles"),        # todo -> T
     ]
 
     total = len(casos)

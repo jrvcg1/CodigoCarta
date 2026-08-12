@@ -39,7 +39,7 @@ SUIT_PATTERNS = {
     "P": "picas",
     "C": "corazones",
     "D": "diamantes",
-    "T": "tréboles"
+    "T": "treboles"
 }
 
 VALUE_NAMES = {

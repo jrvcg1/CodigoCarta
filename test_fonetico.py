@@ -21,7 +21,7 @@ SUIT_PATTERNS = {
     'P': 'picas',
     'C': 'corazones',
     'D': 'diamantes',
-    'T': 'tréboles'
+    'T': 'treboles'
 }
 
 VALUE_NAMES = {
@@ -33,7 +33,7 @@ PALO_NOMBRES = {
     'picas': 'Picas',
     'corazones': 'Corazones',
     'diamantes': 'Diamantes',
-    'tréboles': 'Tréboles'
+    'treboles': 'Tréboles'
 }
 
 def normalizeSpeech(text: str):
