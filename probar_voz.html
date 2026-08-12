@@ -18,6 +18,7 @@
             --text-dim: #a89bbd;
             --border-gold: rgba(212, 175, 55, 0.35);
             --green-glow: #2ecc71;
+            --cyan-glow: #00e5ff;
         }
 
         * { box-sizing: border-box; }
@@ -148,7 +149,7 @@
             100% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
         }
 
-        /* Banner de Detección de Palabra Clave */
+        /* Banner de Detección y Estado Bloqueado de Palabra Clave */
         .kw-alert {
             width: 100%;
             padding: 12px 18px;
@@ -168,6 +169,13 @@
             color: #2ecc71;
             box-shadow: 0 0 15px rgba(46, 204, 113, 0.2);
         }
+        .kw-alert.locked {
+            display: block;
+            background: rgba(0, 229, 255, 0.15);
+            border: 1px solid var(--cyan-glow);
+            color: var(--cyan-glow);
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
+        }
 
         /* Caja Transcripción en Vivo */
         .feed-box {
@@ -184,20 +192,39 @@
             letter-spacing: 1.5px;
             color: var(--gold);
             margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
         }
         .feed-text {
             font-family: 'Playfair Display', serif;
             font-style: italic;
             font-size: 16px;
             color: var(--text-light);
-            min-height: 28px;
-            line-height: 1.5;
+            min-height: 34px;
+            line-height: 1.6;
             word-break: break-word;
         }
-        .feed-text .highlight-kw {
-            color: var(--green-glow);
+
+        /* Resaltados de palabras en el texto */
+        .kw-tag {
+            color: #2ecc71;
             font-weight: 700;
-            text-decoration: underline;
+            text-transform: uppercase;
+            background: rgba(46, 204, 113, 0.15);
+            padding: 2px 6px;
+            border-radius: 4px;
+            border: 1px solid rgba(46, 204, 113, 0.4);
+            margin: 0 2px;
+        }
+        .matched-words-tag {
+            color: var(--cyan-glow);
+            font-weight: 700;
+            background: rgba(0, 229, 255, 0.15);
+            padding: 2px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(0, 229, 255, 0.4);
+            box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+            margin: 0 2px;
         }
 
         /* RESULTADO: CARTA RECONOCIDA EN PRIMER PLANO */
@@ -251,17 +278,33 @@
         .phonetic-breakdown {
             width: 100%;
             background: rgba(18, 12, 28, 0.75);
-            border: 1px stroke var(--border-gold);
+            border: 1px solid var(--border-gold);
             border-radius: 10px;
             padding: 12px 16px;
-            font-size: 12px;
+            font-size: 13px;
             color: var(--text-dim);
             text-align: center;
-            line-height: 1.6;
+            line-height: 1.8;
         }
-        .phonetic-breakdown span {
+        .init-badge {
             color: var(--gold-bright);
-            font-weight: 600;
+            background: rgba(212, 175, 55, 0.25);
+            border: 1px solid #d4af37;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-family: monospace;
+            margin: 0 2px;
+        }
+        .suit-badge {
+            color: #00e5ff;
+            background: rgba(0, 229, 255, 0.2);
+            border: 1px solid #00e5ff;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-weight: 700;
+            font-family: monospace;
+            margin: 0 2px;
         }
     </style>
 </head>
@@ -283,15 +326,18 @@
             </button>
         </div>
 
-        <!-- Alerta de Palabra Clave Activada -->
+        <!-- Alerta de Palabra Clave Activada y Estado Bloqueado -->
         <div id="kwAlert" class="kw-alert">
-            🟢 PALABRA CLAVE "<span id="kwDetectedName">VALE</span>" DETECTADA — Analizando frase fonética...
+            🟢 PALABRA CLAVE "<span id="kwDetectedName">VALE</span>" DETECTADA — Escuchando código fonético...
         </div>
 
         <!-- Caja de Transcripción Hablada en Vivo -->
         <div class="feed-box">
-            <div class="feed-label">TRANSCRIPCIÓN HABLADA EN VIVO:</div>
-            <div class="feed-text" id="speechFeed">Haz clic en 'Activar Escucha' y pronuncia: "vale, de otro sitio cabría esperar"...</div>
+            <div class="feed-label">
+                <span>TRANSCRIPCIÓN HABLADA EN VIVO:</span>
+                <span id="lockStatusBadge" style="color: #a89bbd;">🔓 Esperando palabra clave</span>
+            </div>
+            <div class="feed-text" id="speechFeed">Haz clic en 'Activar Escucha' y pronuncia la palabra clave (ej. "vale")...</div>
         </div>
 
         <!-- CARTA RECONOCIDA EN PRIMER PLANO -->
@@ -329,9 +375,8 @@
             if (!word) return [];
             let w = word.toLowerCase();
             let candidates = [];
-            if (w.startsWith("h") && w.length > 1) {
-                let v = w[1];
-                if ("aeiou".includes(v)) candidates.push(v.toUpperCase());
+            if (w.startswith ? w.startswith("h") : w.startsWith("h")) {
+                if (w.length > 1 && "aeiou".includes(w[1])) candidates.push(w[1].toUpperCase());
                 candidates.push("H");
                 return candidates;
             }
@@ -372,7 +417,9 @@
                                         suit: SUIT_PATTERNS[sCode],
                                         suitCode: sCode,
                                         pattern: "AS",
-                                        matchedWords: words.slice(i, i+3)
+                                        matchedWords: words.slice(i, i+3),
+                                        startIdx: i,
+                                        endIdx: i+3
                                     });
                                 }
                             }
@@ -395,7 +442,9 @@
                                                     suit: SUIT_PATTERNS[sCode],
                                                     suitCode: sCode,
                                                     pattern: pat,
-                                                    matchedWords: words.slice(i, i+4)
+                                                    matchedWords: words.slice(i, i+4),
+                                                    startIdx: i,
+                                                    endIdx: i+4
                                                 });
                                             }
                                         }
@@ -410,7 +459,7 @@
             return matches.length > 0 ? matches[matches.length - 1] : null;
         }
 
-        // --- LÓGICA DE RECONOCIMIENTO DE VOZ Y UI ---
+        // --- ESTADO DE RECONOCIMIENTO DE VOZ ---
         const btnMic = document.getElementById('btnMic');
         const micIcon = document.getElementById('micIcon');
         const micText = document.getElementById('micText');
@@ -418,12 +467,18 @@
         const kwAlert = document.getElementById('kwAlert');
         const kwDetectedName = document.getElementById('kwDetectedName');
         const speechFeed = document.getElementById('speechFeed');
+        const lockStatusBadge = document.getElementById('lockStatusBadge');
         const cardTitle = document.getElementById('cardTitle');
         const cardImg = document.getElementById('cardImg');
         const phoneticDetail = document.getElementById('phoneticDetail');
 
         let isListening = false;
         let recognition = null;
+
+        // VARIABLES DE ESTADO PARA EL BLOQUEO HASTA NUEVA PALABRA CLAVE
+        let cardLocked = false;
+        let lastKwWordCount = -1; // Índice de la última palabra clave procesada
+        let activeTranscriptAfterKw = "";
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -473,25 +528,59 @@
         function processSpeechText(transcript) {
             let kw = keywordInput.value.trim().toLowerCase() || 'vale';
             let words = normalizeSpeech(transcript);
-            speechFeed.textContent = transcript || 'Escuchando...';
+            let currentKwIdx = words.lastIndexOf(kw);
 
-            let kwIdx = words.lastIndexOf(kw);
-            if (kwIdx !== -1) {
-                kwAlert.classList.add('active');
+            // 1. SI SE PRONUNCIA DE NUEVO LA PALABRA CLAVE -> LIMPIAR TRANSCRIPCIÓN Y DESBLOQUEAR
+            if (currentKwIdx !== -1 && currentKwIdx > lastKwWordCount) {
+                lastKwWordCount = currentKwIdx;
+                cardLocked = false; // Desbloquear reconocimiento para la nueva carta
+
+                kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
+                lockStatusBadge.innerHTML = `🟢 Escuchando tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
 
-                let afterWords = words.slice(kwIdx + 1);
-                let match = detectCardFromWords(afterWords);
+                // LIMPIAR Y REINICIAR LA TRANSCRIPCIÓN VISTA EN PANTALLA
+                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+            }
 
-                if (!match) {
-                    match = detectCardFromWords(words.slice(kwIdx));
-                }
+            // Si aún no ha dicho la palabra clave
+            if (lastKwWordCount === -1) {
+                speechFeed.textContent = transcript || 'Escuchando... Espera la palabra clave...';
+                return;
+            }
+
+            // Palabras habladas desde la última palabra clave
+            let wordsAfterKw = words.slice(lastKwWordCount + 1);
+
+            // 2. SI LA CARTA AÚN NO ESTÁ BLOQUEADA -> BUSCAR PATRÓN DE CARTA
+            if (!cardLocked) {
+                let match = detectCardFromWords(wordsAfterKw);
+
+                // Renderizar el texto hablado actual en vivo
+                let afterText = wordsAfterKw.join(' ');
+                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + afterText;
 
                 if (match) {
-                    renderRecognizedCard(match, transcript, kw, afterWords);
+                    // CARTA FIJADA / RECONOCIDA CON ÉXITO
+                    cardLocked = true; // 🔒 BLOQUEAR HASTA QUE SE DIGA DE NUEVO LA PALABRA CLAVE
+
+                    lockStatusBadge.innerHTML = `🔒 CARTA FIJADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva carta`;
+                    kwAlert.className = 'kw-alert locked';
+                    kwAlert.innerHTML = `🔒 CARTA FIJADA — Se ignorarán palabras hasta repetir "${kw.toUpperCase()}"`;
+
+                    renderRecognizedCard(match, transcript, kw, wordsAfterKw);
                 }
             } else {
-                kwAlert.classList.remove('active');
+                // 3. SI LA CARTA YA FUE FIJADA -> MANTENER TEXTO Y RESALTADO SIN MODIFICAR LA CARTA
+                let matchedWordsSet = new Set(window.lastMatchedWords || []);
+                let formattedWords = wordsAfterKw.map(w => {
+                    if (matchedWordsSet.has(w)) {
+                        return `<span class="matched-words-tag">${w}</span>`;
+                    }
+                    return w;
+                }).join(' ');
+
+                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
             }
         }
 
@@ -499,7 +588,8 @@
             let val = cardMatch.value;
             let suit = cardMatch.suit;
             let suitName = PALO_NOMBRES[suit];
-            
+            window.lastMatchedWords = cardMatch.matchedWords;
+
             // RENDERIZAR CARTA EN PRIMER PLANO EN LA PANTALLA DE PRUEBAS
             cardTitle.textContent = `✨ ${val} de ${suitName}`;
             cardImg.src = `/cartas_svg/${val}_${suit}.svg`;
@@ -507,11 +597,30 @@
             void cardImg.offsetWidth; // Force reflow
             cardImg.classList.add('pop');
 
-            let wordsJoined = cardMatch.matchedWords.join(" — ");
+            // RESALTAR PALABRAS DE LA CARTA Y SUS INICIALES FONÉTICAS EN COLOR
+            let matchedWordsSet = new Set(cardMatch.matchedWords);
+            let highlightedTranscript = afterWords.map(w => {
+                if (matchedWordsSet.has(w)) {
+                    return `<span class="matched-words-tag">${w}</span>`;
+                }
+                return w;
+            }).join(' ');
+
+            speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + highlightedTranscript;
+
+            // INICIALES FONÉTICAS EN COLOR
+            let initBadges = cardMatch.matchedWords.slice(0, 3).map(w => {
+                let init = getPhoneticInitial(w)[0] || w[0].toUpperCase();
+                return `<span class="init-badge">${w} (${init})</span>`;
+            }).join(' + ');
+
+            let suitWord = cardMatch.matchedWords[cardMatch.matchedWords.length - 1];
+            let suitBadge = `<span class="suit-badge">${suitWord} (${cardMatch.suitCode} -> ${suitName})</span>`;
+
             phoneticDetail.innerHTML = `
-                Palabra Clave: <span>"${kw.toUpperCase()}"</span> | Frase Posterior: <span>"${afterWords.join(' ')}"</span><br>
-                Palabras Clave Identificadas: <span>${wordsJoined}</span><br>
-                Patrón Fonético: <span>${cardMatch.pattern}</span> + Coletilla Palo: <span>${cardMatch.suitCode}</span>
+                Palabra Clave: <span class="kw-tag">${kw.toUpperCase()}</span><br>
+                Iniciales Fonéticas: ${initBadges} | Palo: ${suitBadge}<br>
+                Patrón Decodificado: <span style="color:var(--gold-bright); font-weight:700;">${cardMatch.pattern}</span> + <span style="color:var(--cyan-glow); font-weight:700;">${cardMatch.suitCode}</span> => <strong>${val} de ${suitName}</strong>
             `;
 
             // ENVIAR AL SERVIDOR PARA ACTUALIZAR TAMBIÉN /visualizar SIMULTÁNEAMENTE
