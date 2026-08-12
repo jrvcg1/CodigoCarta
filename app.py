@@ -478,16 +478,16 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            .badge {{
-                background: rgba(201,162,39,0.15);
-                color: var(--accent);
-                border: 1px solid rgba(201,162,39,0.3);
-                padding: 8px 18px;
-                border-radius: 20px;
+            .secret-peek {{
+                position: fixed;
+                bottom: 10px;
+                right: 14px;
                 font-family: monospace;
-                font-size: 14px;
-                display: inline-block;
-                margin-top: 4px;
+                font-size: 11px;
+                color: rgba(255, 255, 255, 0.15);
+                letter-spacing: 1px;
+                user-select: none;
+                pointer-events: none;
             }}
             .sync-dot {{
                 width: 8px; height: 8px; border-radius: 50%; background: #6fae7f;
@@ -498,7 +498,7 @@ def visualizar_carta(
     <body>
         <div class="card-box">
             <h1>Pantalla en Directo</h1>
-            <div class="sub" id="fraseSub"><span class="sync-dot"></span>Escuchando peticiones silenciosas de la API...</div>
+            <div class="sub" id="fraseSub"><span class="sync-dot"></span>Sistema preparado y listo en directo</div>
             
             <div class="hint" id="hintBtn">
                 <span>🔄</span> Haz clic en la carta para voltear y revelar
@@ -511,25 +511,23 @@ def visualizar_carta(
                     <div class="card-face card-front">
                         <img id="imgFront" src="/cartas_svg/{card_valor}_{card_palo_id}.svg" alt="Frente de la carta" />
                     </div>
-                    <!-- Dorso de la Carta (Visible inicialmente) -->
+                    <!-- Dorso de la Carta Bicycle Azul (Visible inicialmente) -->
                     <div class="card-face card-back">
                         <img src="/cartas_svg/dorso.svg" alt="Dorso de la Carta" />
                     </div>
                 </div>
             </div>
-
-            <div class="badge" id="badgeCarta">
-                Carta preparada · Haz clic para revelar
-            </div>
         </div>
+
+        <!-- Indicador Secreto Discreto solo visible para el mago -->
+        <div class="secret-peek" id="secretPeek">{card_valor}{simbolo}</div>
 
         <script>
             let currentVersion = -1;
             const cardScene = document.getElementById('cardScene');
             const hintBtn = document.getElementById('hintBtn');
             const imgFront = document.getElementById('imgFront');
-            const badgeCarta = document.getElementById('badgeCarta');
-            const fraseSub = document.getElementById('fraseSub');
+            const secretPeek = document.getElementById('secretPeek');
 
             function toggleCard() {{
                 cardScene.classList.toggle('volteada');
@@ -546,10 +544,9 @@ def visualizar_carta(
                         const data = await res.json();
                         if (data.version && data.version !== currentVersion) {{
                             currentVersion = data.version;
-                            // Actualizar la imagen del frente y la info en segundo plano
+                            // Actualizar la imagen del frente y la marca secreta muy sutil
                             imgFront.src = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
-                            badgeCarta.textContent = `${{data.valor}} de ${{data.palo_nombre}} ${{data.simbolo}} (${{data.n_palabras}} palabras + "${{data.coletilla}}")`;
-                            fraseSub.innerHTML = `<span class="sync-dot"></span>Frase API: "${{data.frase}}"`;
+                            secretPeek.textContent = `${{data.valor}}${{data.simbolo}}`;
                             
                             // Si estaba volteada mostrando el frente anterior, volver a ponerla boca abajo lista para la nueva revelación
                             if (cardScene.classList.contains('volteada')) {{
