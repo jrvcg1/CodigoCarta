@@ -104,15 +104,15 @@ def health_check():
     return {"status": "ok", "service": "API REST Código Verbal"}
 
 
-# Estado en memoria de la carta activa en el servidor (para el truco de mentalismo)
+# Estado en memoria de la carta activa en el servidor (por defecto As de Corazones)
 CARTA_ACTUAL = {
-    "valor": "K",
-    "palo_id": "treboles",
-    "palo_nombre": "Tréboles",
-    "simbolo": "♣",
-    "frase": "Yo creo que todo va mucho mejor de lo esperado por mi rey bien",
-    "coletilla": "bien",
-    "n_palabras": 13,
+    "valor": "A",
+    "palo_id": "corazones",
+    "palo_nombre": "Corazones",
+    "simbolo": "♥",
+    "frase": "Ahora sí correcto",
+    "coletilla": "C",
+    "n_palabras": 3,
     "version": 1
 }
 
@@ -334,7 +334,7 @@ def visualizar_carta(
 ):
     """
     Página HTML interactiva que muestra la carta de póker con animación 3D.
-    Haciendo clic sobre la carta, esta se voltea mostrando el frente y el dorso.
+    Por defecto muestra el As de Corazones (A♥).
     """
     if frase:
         res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
@@ -342,40 +342,24 @@ def visualizar_carta(
         res = {
             "valor": valor.upper(),
             "palo_id": palo_id,
-            "palo": PALOS.get(palo_id, PALOS["picas"]),
-            "n_palabras": RANGOS.index(valor.upper()) + 1 if valor.upper() in RANGOS else 1,
-            "coletilla": CONFIG_COLETILLAS.get(palo_id, [""])[0]
+            "palo": PALOS.get(palo_id, PALOS["corazones"]),
+            "n_palabras": 3,
+            "coletilla": "C"
         }
     else:
-        frase = "Yo creo que todo va mucho mejor de lo esperado por mi rey bien"
+        # Carta por defecto: As de Corazones (A♥)
+        frase = "Ahora sí correcto"
         res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
 
+    # Si hay error en la frase dada, recurrir a la carta activa actual o As de Corazones
     if "error" in res:
-        contenido = f"""
-        <!DOCTYPE html>
-        <html lang="es">
-        <head>
-            <meta charset="UTF-8">
-            <title>Error de Decodificación</title>
-            <style>
-                body {{ background: #14131d; color: #ede8dd; font-family: sans-serif; text-align: center; padding: 60px 20px; }}
-                .box {{ background: #1c1b28; border: 1px solid #322f42; max-width: 500px; margin: 0 auto; padding: 30px; border-radius: 16px; }}
-                h2 {{ color: #b5495b; margin-top: 0; }}
-                a {{ color: #c9a227; text-decoration: none; font-weight: bold; }}
-            </style>
-        </head>
-        <body>
-            <div class="box">
-                <h2>⚠️ Error al interpretar la frase</h2>
-                <p style="font-size:16px;">"{res['error']}"</p>
-                <p style="color:#9b96a8;">Frase consultada: <i>{frase}</i></p>
-                <br>
-                <a href="/visualizar?frase=Yo+creo+que+todo+va+mucho+mejor+de+lo+esperado+por+mi+rey+bien">Probar frase por defecto (K♣)</a>
-            </div>
-        </body>
-        </html>
-        """
-        return HTMLResponse(content=contenido)
+        res = {
+            "valor": CARTA_ACTUAL["valor"],
+            "palo_id": CARTA_ACTUAL["palo_id"],
+            "palo": PALOS.get(CARTA_ACTUAL["palo_id"], PALOS["corazones"]),
+            "n_palabras": CARTA_ACTUAL.get("n_palabras", 3),
+            "coletilla": CARTA_ACTUAL.get("coletilla", "C")
+        }
 
     card_valor = res["valor"]
     palo_nombre = res["palo"]["nombre"]
