@@ -529,7 +529,7 @@ def visualizar_carta(
 
             cardScene.addEventListener('click', toggleCard);
 
-            // Polling silencioso en segundo plano sin recargar la pantalla
+            // Polling silencioso en segundo plano sin recargar ni girar la carta automáticamente
             async function consultarEstadoSilencioso() {{
                 try {{
                     const res = await fetch('/api/carta_actual');
@@ -537,13 +537,9 @@ def visualizar_carta(
                         const data = await res.json();
                         if (data.version && data.version !== currentVersion) {{
                             currentVersion = data.version;
-                            // Actualizar la carta de frente y el indicador sutil del mago
+                            // Actualizar la carta de frente y el indicador sutil del mago en silencio
                             imgFront.src = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
                             secretPeek.textContent = `${{data.valor}}${{data.simbolo}}`;
-                            
-                            if (cardScene.classList.contains('volteada')) {{
-                                cardScene.classList.remove('volteada');
-                            }}
                         }}
                     }}
                 }} catch (err) {{
