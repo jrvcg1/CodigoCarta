@@ -411,9 +411,9 @@ def visualizar_carta(
             .card-scene {{
                 perspective: 1200px;
                 -webkit-perspective: 1200px;
-                width: 45.7%;
+                width: 44.5%;
                 aspect-ratio: 63.5 / 88.9;
-                margin-top: 4.1%;
+                margin-top: 8.5%;
                 position: relative;
                 cursor: pointer;
                 z-index: 10;
@@ -479,14 +479,14 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador Secreto Discreto solo para el Mago en Esquina */
+            /* Indicador Secreto Discreto solo para el Mago en Esquina Inferior Izquierda con Bajo Contraste */
             .secret-peek {{
                 position: fixed;
-                bottom: 8px;
-                right: 12px;
+                bottom: 12px;
+                left: 16px;
                 font-family: monospace;
-                font-size: 10px;
-                color: rgba(212, 175, 55, 0.2);
+                font-size: 11px;
+                color: rgba(180, 140, 60, 0.22);
                 letter-spacing: 1px;
                 user-select: none;
                 pointer-events: none;
