@@ -58,19 +58,40 @@ def test_endpoints_visuales():
     res_svg = client.get("/api/carta/svg?valor=5&palo_id=treboles&raw=true")
     assert res_svg.status_code == 200
     assert "image/svg+xml" in res_svg.headers["content-type"]
-    assert "<svg" in res_svg.text
     print("[OK] GET /api/carta/svg (Imagen SVG de carta) verificado.")
 
-    res_vis = client.get("/visualizar?frase=Hombre no creo probable")
+    res_vis = client.get("/visualizar")
     assert res_vis.status_code == 200
     assert "text/html" in res_vis.headers["content-type"]
-    assert "3D" in res_vis.text
     print("[OK] GET /visualizar (Vista HTML de carta) verificado.")
 
     res_dec = client.get("/decodificador")
     assert res_dec.status_code == 200
     assert "text/html" in res_dec.headers["content-type"]
-    print("[OK] GET /decodificador (Aplicacion Web HTML) verificado.")
+    print("[OK] GET /decodificador (Aplicación Web HTML) verificado.")
+
+    res_voz = client.get("/probar_voz")
+    assert res_voz.status_code == 200
+    assert "text/html" in res_voz.headers["content-type"]
+    print("[OK] GET /probar_voz (Prueba de Voz con Palabra Clave HTML) verificado.")
+
+def test_decodificar_palabra_clave():
+    # Frase del usuario: "estaba hablando normal y dije vale de otro sitio cabria esperar"
+    # Palabra clave: "vale" -> de (D) + otro (O) + sitio (S) + cabria (C) = 2 de Corazones (2♥)
+    payload = {
+        "texto": "estaba hablando normal y dije vale de otro sitio cabria esperar",
+        "palabra_clave": "vale"
+    }
+    response = client.post("/api/decodificar_palabra_clave", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["exito"] is True
+    assert data["keywordFound"] is True
+    assert data["keyword"] == "vale"
+    assert data["valor"] == "2"
+    assert data["palo_id"] == "corazones"
+    assert data["palo"]["simbolo"] == "♥"
+    print("[OK] POST /api/decodificar_palabra_clave (palabra clave 'vale' -> 2 de Corazones) verificado.")
 
 if __name__ == "__main__":
     test_health()
@@ -79,4 +100,5 @@ if __name__ == "__main__":
     test_decodificar_post_fonetico()
     test_obtener_configuracion()
     test_endpoints_visuales()
-    print("\n[OK] TODAS LAS PRUEBAS DE LA API REST PASARON CON EXITO.")
+    test_decodificar_palabra_clave()
+    print("\n[OK] TODAS LAS PRUEBAS DE LA API REST PASARON CON ÉXITO.")

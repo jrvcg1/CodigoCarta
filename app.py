@@ -83,6 +83,10 @@ class ConfiguracionColetillas(BaseModel):
     picas: Optional[List[str]] = Field(None, example=["perfecto", "excelente"])
     treboles: Optional[List[str]] = Field(None, example=["bien", "correcto"])
 
+class PeticionDecodificacionPalabraClave(BaseModel):
+    texto: str = Field(..., description="Texto reconocido por voz", example="estaba hablando y dije vale de otro sitio cabría esperar")
+    palabra_clave: str = Field("vale", description="Palabra clave activadora (ej. 'vale')", example="vale")
+
 class RespuestaConfiguracion(BaseModel):
     coletillas: Dict[str, List[str]]
     palos_disponibles: Dict[str, PaloInfo]
@@ -121,16 +125,21 @@ def actualizar_estado_carta(res: dict, frase: str):
     """Actualiza silenciosamente la carta activa en el servidor sin recargar la web."""
     if "error" not in res:
         global CARTA_ACTUAL
-        CARTA_ACTUAL = {
-            "valor": res["valor"],
-            "palo_id": res["palo_id"],
-            "palo_nombre": res["palo"]["nombre"],
-            "simbolo": res["palo"]["simbolo"],
-            "frase": frase,
-            "coletilla": res.get("coletilla", ""),
-            "n_palabras": res.get("n_palabras", 0),
-            "version": CARTA_ACTUAL.get("version", 0) + 1
-        }
+        val = res.get("valor") or res.get("value")
+        suit_id = res.get("palo_id") or res.get("suit")
+        palo_info = res.get("palo") if isinstance(res.get("palo"), dict) else PALOS.get(suit_id, {})
+
+        if val and suit_id:
+            CARTA_ACTUAL = {
+                "valor": str(val),
+                "palo_id": suit_id,
+                "palo_nombre": palo_info.get("nombre", suit_id),
+                "simbolo": palo_info.get("simbolo", ""),
+                "frase": frase,
+                "coletilla": res.get("coletilla", res.get("suitCode", "")),
+                "n_palabras": res.get("n_palabras", len(res.get("matchedWords", []))),
+                "version": CARTA_ACTUAL.get("version", 0) + 1
+            }
 
 
 @app.get(
@@ -213,6 +222,46 @@ def decodificar_post(body: PeticionPostDecodificar):
         n_palabras=res["n_palabras"],
         coletilla=res["coletilla"]
     )
+
+
+@app.post(
+    "/api/decodificar_palabra_clave",
+    summary="Decodificar carta a partir de una palabra clave hablada (ej. 'vale')",
+    tags=["Decodificación Fonética"]
+)
+def decodificar_palabra_clave(body: PeticionDecodificacionPalabraClave):
+    """
+    Busca la palabra clave (ej. 'vale') dentro del texto hablado y analiza
+    las palabras subsecuentes para detectar la carta.
+    Si se detecta una carta, actualiza el estado CARTA_ACTUAL para /visualizar.
+    """
+    from codigo_carta import detectCardWithKeyword
+    res = detectCardWithKeyword(body.texto, body.palabra_clave)
+
+    if res.get("detected"):
+        actualizar_estado_carta(res, body.texto)
+        return {
+            "exito": True,
+            "keywordFound": True,
+            "keyword": res.get("keyword"),
+            "fullText": body.texto,
+            "afterWords": res.get("afterWords"),
+            "matchedWords": res.get("matchedWords"),
+            "valor": res.get("value"),
+            "palo_id": res.get("suit"),
+            "palo": PALOS[res.get("suit")],
+            "coletilla": res.get("suitCode"),
+            "valuePattern": res.get("valuePattern")
+        }
+
+    return {
+        "exito": False,
+        "keywordFound": res.get("keywordFound", False),
+        "keyword": res.get("keyword", body.palabra_clave),
+        "fullText": body.texto,
+        "afterWords": res.get("afterWords", []),
+        "error": "No se detectó ninguna carta válida tras la palabra clave"
+    }
 
 
 @app.get(
@@ -564,6 +613,21 @@ def decodificador_web():
         with open(html_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="Archivo decodificador.html no encontrado.", status_code=404)
+
+
+@app.get("/probar_voz", response_class=HTMLResponse, summary="Prueba de Reconocimiento de Voz con Palabra Clave", tags=["Visualización"])
+def probar_voz_web():
+    """Servicio de la interfaz gráfica de pruebas de voz con palabra clave (probar_voz.html)."""
+    html_path = os.path.join(os.path.dirname(__file__), "probar_voz.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    # Si no existe probar_voz.html, devolver decodificador.html
+    html_path_fallback = os.path.join(os.path.dirname(__file__), "decodificador.html")
+    if os.path.exists(html_path_fallback):
+        with open(html_path_fallback, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="Archivo de interfaz no encontrado.", status_code=404)
 
 
 if __name__ == "__main__":

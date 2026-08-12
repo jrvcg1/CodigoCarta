@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba de Reconocimiento de Voz con Palabra Clave — Código Carta</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Montserrat:wght@400;600;700&display=swap">
+    <style>
+        :root {
+            --bg-dark: #0a0712;
+            --card-bg: rgba(20, 14, 32, 0.92);
+            --gold: #d4af37;
+            --gold-bright: #fbe394;
+            --gold-dark: #8c6d17;
+            --crimson: #8b0000;
+            --crimson-glow: rgba(139, 0, 0, 0.4);
+            --text-light: #f5f1fa;
+            --text-dim: #a89bbd;
+            --border-gold: rgba(212, 175, 55, 0.35);
+            --green-glow: #2ecc71;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 20px 12px;
+            background: radial-gradient(ellipse at 50% 30%, #1c1130 0%, #0a0712 70%, #030206 100%);
+            color: var(--text-light);
+            font-family: 'Montserrat', system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 780px;
+            background: var(--card-bg);
+            backdrop-filter: blur(14px);
+            border: 1px solid var(--border-gold);
+            border-radius: 20px;
+            padding: 28px 22px;
+            box-shadow: 0 0 50px rgba(0,0,0,0.9), 0 0 25px rgba(212,175,55,0.15);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(20px, 4vw, 30px);
+            letter-spacing: 2px;
+            margin: 0 0 6px;
+            background: linear-gradient(135deg, var(--gold-bright) 0%, var(--gold) 60%, var(--gold-dark) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 22px;
+            text-align: center;
+        }
+
+        /* Configuración de Palabra Clave y Micrófono */
+        .controls-box {
+            width: 100%;
+            background: rgba(10, 6, 18, 0.7);
+            border: 1px solid var(--border-gold);
+            border-radius: 14px;
+            padding: 18px 16px;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+        }
+
+        .kw-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .kw-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-bright);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .kw-input {
+            background: rgba(0,0,0,0.6);
+            border: 1px solid var(--gold);
+            color: var(--gold-bright);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-family: 'Cinzel', monospace;
+            font-size: 15px;
+            font-weight: 700;
+            width: 110px;
+            text-align: center;
+            text-transform: lowercase;
+            outline: none;
+        }
+        .kw-input:focus {
+            box-shadow: 0 0 10px var(--gold);
+        }
+
+        .btn-mic {
+            background: linear-gradient(135deg, var(--crimson) 0%, #5a0000 100%);
+            border: 1px solid var(--gold);
+            color: #ffffff;
+            font-family: 'Montserrat', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .btn-mic:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 20px var(--crimson-glow);
+        }
+        .btn-mic.listening {
+            background: linear-gradient(135deg, #27ae60 0%, #1e8449 100%);
+            box-shadow: 0 0 20px rgba(46, 204, 113, 0.5);
+            animation: pulseMic 2s infinite;
+        }
+
+        @keyframes pulseMic {
+            0% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+            50% { box-shadow: 0 0 25px rgba(46, 204, 113, 0.8); }
+            100% { box-shadow: 0 0 10px rgba(46, 204, 113, 0.4); }
+        }
+
+        /* Banner de Detección de Palabra Clave */
+        .kw-alert {
+            width: 100%;
+            padding: 12px 18px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-align: center;
+            margin-bottom: 18px;
+            transition: all 0.4s ease;
+            display: none;
+        }
+        .kw-alert.active {
+            display: block;
+            background: rgba(46, 204, 113, 0.15);
+            border: 1px solid var(--green-glow);
+            color: #2ecc71;
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.2);
+        }
+
+        /* Caja Transcripción en Vivo */
+        .feed-box {
+            width: 100%;
+            background: rgba(5, 3, 10, 0.8);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 22px;
+        }
+        .feed-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--gold);
+            margin-bottom: 6px;
+        }
+        .feed-text {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 16px;
+            color: var(--text-light);
+            min-height: 28px;
+            line-height: 1.5;
+            word-break: break-word;
+        }
+        .feed-text .highlight-kw {
+            color: var(--green-glow);
+            font-weight: 700;
+            text-decoration: underline;
+        }
+
+        /* RESULTADO: CARTA RECONOCIDA EN PRIMER PLANO */
+        .card-result-section {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .result-badge {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gold-bright);
+            letter-spacing: 2px;
+            margin-bottom: 16px;
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        /* Carta 3D en Primer Plano */
+        .card-display-box {
+            perspective: 1000px;
+            width: 210px;
+            height: 294px;
+            margin-bottom: 18px;
+            position: relative;
+        }
+        .card-display-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.9), 0 0 25px rgba(212,175,55,0.3);
+            border: 1px solid var(--border-gold);
+            background: #ffffff;
+            object-fit: fill;
+            transition: transform 0.5s ease;
+        }
+        .card-display-img.pop {
+            animation: cardPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes cardPop {
+            0% { transform: scale(0.85) rotateY(90deg); opacity: 0.3; }
+            100% { transform: scale(1) rotateY(0deg); opacity: 1; }
+        }
+
+        /* Desglose Fonético */
+        .phonetic-breakdown {
+            width: 100%;
+            background: rgba(18, 12, 28, 0.75);
+            border: 1px stroke var(--border-gold);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 12px;
+            color: var(--text-dim);
+            text-align: center;
+            line-height: 1.6;
+        }
+        .phonetic-breakdown span {
+            color: var(--gold-bright);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>🎙️ RECONOCIMIENTO DE VOZ</h1>
+        <div class="subtitle">Detección continua por palabra clave fonética</div>
+
+        <!-- Panel de Control: Micrófono y Palabra Clave -->
+        <div class="controls-box">
+            <div class="kw-group">
+                <label for="keywordInput">🔑 PALABRA CLAVE:</label>
+                <input type="text" id="keywordInput" class="kw-input" value="vale">
+            </div>
+            <button id="btnMic" class="btn-mic">
+                <span id="micIcon">🔴</span>
+                <span id="micText">ACTIVAR ESCUCHA CONTINUA</span>
+            </button>
+        </div>
+
+        <!-- Alerta de Palabra Clave Activada -->
+        <div id="kwAlert" class="kw-alert">
+            🟢 PALABRA CLAVE "<span id="kwDetectedName">VALE</span>" DETECTADA — Analizando frase fonética...
+        </div>
+
+        <!-- Caja de Transcripción Hablada en Vivo -->
+        <div class="feed-box">
+            <div class="feed-label">TRANSCRIPCIÓN HABLADA EN VIVO:</div>
+            <div class="feed-text" id="speechFeed">Haz clic en 'Activar Escucha' y pronuncia: "vale, de otro sitio cabría esperar"...</div>
+        </div>
+
+        <!-- CARTA RECONOCIDA EN PRIMER PLANO -->
+        <div class="card-result-section">
+            <div class="result-badge" id="cardTitle">Aún no se ha detectado ninguna carta</div>
+
+            <div class="card-display-box">
+                <img id="cardImg" class="card-display-img" src="/cartas_svg/dorso.svg" alt="Carta reconocible">
+            </div>
+
+            <div class="phonetic-breakdown" id="phoneticDetail">
+                Esperando la palabra clave activa para iniciar el análisis de iniciales habladas...
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- MOTOR FONÉTICO JS LOCAL PARA DECODIFICAR PALABRA CLAVE Y CARTA ---
+        const VALUE_PATTERNS = {
+            "AS": "A", "DOS": "2", "TRE": "3", "CUA": "4", "CIN": "5", "SEI": "6",
+            "SIE": "7", "OCH": "8", "NUE": "9", "DIE": "10", "ONC": "J", "DOC": "Q", "REI": "K"
+        };
+        const SUIT_PATTERNS = { "P": "picas", "C": "corazones", "D": "diamantes", "T": "tréboles" };
+        const PALO_NOMBRES = { "picas": "Picas ♠", "corazones": "Corazones ♥", "diamantes": "Diamantes ♦", "treboles": "Tréboles ♣" };
+
+        function normalizeSpeech(text) {
+            if (!text) return [];
+            let t = text.lower ? text.lower() : text.toLowerCase();
+            t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            t = t.replace(/[^a-z0-9\s]/g, " ");
+            return t.split(/\s+/).filter(w => w.length > 0);
+        }
+
+        function getPhoneticInitial(word) {
+            if (!word) return [];
+            let w = word.toLowerCase();
+            let candidates = [];
+            if (w.startsWith("h") && w.length > 1) {
+                let v = w[1];
+                if ("aeiou".includes(v)) candidates.push(v.toUpperCase());
+                candidates.push("H");
+                return candidates;
+            }
+            let c0 = w[0];
+            if ("aeiou".includes(c0)) {
+                candidates.push(c0.toUpperCase());
+                return candidates;
+            }
+            if (c0 === "y") candidates.push("I");
+            if ("ckq".includes(c0)) {
+                candidates.push("C");
+                if (w.length > 1 && w[1] === "o") candidates.push("O");
+            } else if ("sz".includes(c0)) {
+                candidates.push("S");
+            } else if ("bv".includes(c0)) {
+                candidates.push("B");
+            } else {
+                candidates.push(c0.toUpperCase());
+            }
+            return [...new Set(candidates)];
+        }
+
+        function detectCardFromWords(words) {
+            if (!words || words.length === 0) return null;
+            let phonetics = words.map(w => getPhoneticInitial(w));
+            let n = words.length;
+            let matches = [];
+
+            for (let i = 0; i < n; i++) {
+                // Caso AS
+                if (i + 1 < n) {
+                    if (phonetics[i].includes("A") && phonetics[i+1].includes("S")) {
+                        if (i + 2 < n) {
+                            for (let sCode of ["P", "C", "D", "T"]) {
+                                if (phonetics[i+2].includes(sCode)) {
+                                    matches.push({
+                                        value: "A",
+                                        suit: SUIT_PATTERNS[sCode],
+                                        suitCode: sCode,
+                                        pattern: "AS",
+                                        matchedWords: words.slice(i, i+3)
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+                // Patrón estándar (3 palabras valor + 1 palabra palo)
+                if (i + 2 < n) {
+                    for (let c1 of phonetics[i]) {
+                        for (let c2 of phonetics[i+1]) {
+                            for (let c3 of phonetics[i+2]) {
+                                let pat = c1 + c2 + c3;
+                                if (VALUE_PATTERNS[pat]) {
+                                    let val = VALUE_PATTERNS[pat];
+                                    if (i + 3 < n) {
+                                        for (let sCode of ["P", "C", "D", "T"]) {
+                                            if (phonetics[i+3].includes(sCode)) {
+                                                matches.push({
+                                                    value: val,
+                                                    suit: SUIT_PATTERNS[sCode],
+                                                    suitCode: sCode,
+                                                    pattern: pat,
+                                                    matchedWords: words.slice(i, i+4)
+                                                });
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return matches.length > 0 ? matches[matches.length - 1] : null;
+        }
+
+        // --- LÓGICA DE RECONOCIMIENTO DE VOZ Y UI ---
+        const btnMic = document.getElementById('btnMic');
+        const micIcon = document.getElementById('micIcon');
+        const micText = document.getElementById('micText');
+        const keywordInput = document.getElementById('keywordInput');
+        const kwAlert = document.getElementById('kwAlert');
+        const kwDetectedName = document.getElementById('kwDetectedName');
+        const speechFeed = document.getElementById('speechFeed');
+        const cardTitle = document.getElementById('cardTitle');
+        const cardImg = document.getElementById('cardImg');
+        const phoneticDetail = document.getElementById('phoneticDetail');
+
+        let isListening = false;
+        let recognition = null;
+
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            recognition = new SpeechRec();
+            recognition.continuous = true;
+            recognition.interimResults = true;
+            recognition.lang = 'es-ES';
+
+            recognition.onresult = (event) => {
+                let fullTranscript = '';
+                for (let i = 0; i < event.results.length; i++) {
+                    fullTranscript += event.results[i][0].transcript + ' ';
+                }
+                processSpeechText(fullTranscript);
+            };
+
+            recognition.onerror = (err) => {
+                console.log('Error de micrófono:', err);
+            };
+
+            recognition.onend = () => {
+                if (isListening) {
+                    try { recognition.start(); } catch(e) {}
+                }
+            };
+        } else {
+            alert('Tu navegador no soporta Web Speech API. Usa Chrome o Edge.');
+        }
+
+        btnMic.addEventListener('click', () => {
+            if (!recognition) return;
+            if (!isListening) {
+                isListening = true;
+                btnMic.classList.add('listening');
+                micIcon.textContent = '🟢';
+                micText.textContent = 'ESCUCHANDO EN CONTINUO...';
+                try { recognition.start(); } catch(e) {}
+            } else {
+                isListening = false;
+                btnMic.classList.remove('listening');
+                micIcon.textContent = '🔴';
+                micText.textContent = 'ACTIVAR ESCUCHA CONTINUA';
+                try { recognition.stop(); } catch(e) {}
+            }
+        });
+
+        function processSpeechText(transcript) {
+            let kw = keywordInput.value.trim().toLowerCase() || 'vale';
+            let words = normalizeSpeech(transcript);
+            speechFeed.textContent = transcript || 'Escuchando...';
+
+            let kwIdx = words.lastIndexOf(kw);
+            if (kwIdx !== -1) {
+                kwAlert.classList.add('active');
+                kwDetectedName.textContent = kw.toUpperCase();
+
+                let afterWords = words.slice(kwIdx + 1);
+                let match = detectCardFromWords(afterWords);
+
+                if (!match) {
+                    match = detectCardFromWords(words.slice(kwIdx));
+                }
+
+                if (match) {
+                    renderRecognizedCard(match, transcript, kw, afterWords);
+                }
+            } else {
+                kwAlert.classList.remove('active');
+            }
+        }
+
+        async function renderRecognizedCard(cardMatch, fullTranscript, kw, afterWords) {
+            let val = cardMatch.value;
+            let suit = cardMatch.suit;
+            let suitName = PALO_NOMBRES[suit];
+            
+            // RENDERIZAR CARTA EN PRIMER PLANO EN LA PANTALLA DE PRUEBAS
+            cardTitle.textContent = `✨ ${val} de ${suitName}`;
+            cardImg.src = `/cartas_svg/${val}_${suit}.svg`;
+            cardImg.classList.remove('pop');
+            void cardImg.offsetWidth; // Force reflow
+            cardImg.classList.add('pop');
+
+            let wordsJoined = cardMatch.matchedWords.join(" — ");
+            phoneticDetail.innerHTML = `
+                Palabra Clave: <span>"${kw.toUpperCase()}"</span> | Frase Posterior: <span>"${afterWords.join(' ')}"</span><br>
+                Palabras Clave Identificadas: <span>${wordsJoined}</span><br>
+                Patrón Fonético: <span>${cardMatch.pattern}</span> + Coletilla Palo: <span>${cardMatch.suitCode}</span>
+            `;
+
+            // ENVIAR AL SERVIDOR PARA ACTUALIZAR TAMBIÉN /visualizar SIMULTÁNEAMENTE
+            try {
+                await fetch('/api/decodificar_palabra_clave', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        texto: fullTranscript,
+                        palabra_clave: kw
+                    })
+                });
+            } catch (err) {
+                console.log('Sync API err:', err);
+            }
+        }
+    </script>
+</body>
+</html>

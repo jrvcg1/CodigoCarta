@@ -207,3 +207,45 @@ def texto_resultado(frase: str) -> str:
         return f"⚠ {r['error']}"
     return (f"{r['valor']} de {r['palo']['nombre']} {r['palo']['simbolo']}  "
             f"(Patrón {r['valuePattern']} + {r['coletilla']})")
+
+
+def detectCardWithKeyword(text: str, keyword: str = "vale") -> dict:
+    """
+    Busca la palabra clave (ej. 'vale') dentro del texto hablado.
+    Si la encuentra, analiza el texto posterior para detectar la carta.
+    """
+    if not text or not keyword:
+        return {"keywordFound": False, "detected": False}
+
+    words = normalizeSpeech(text)
+    kw_words = normalizeSpeech(keyword)
+
+    if not kw_words:
+        kw = "vale"
+    else:
+        kw = kw_words[0]
+
+    # Buscar la última aparición de la palabra clave
+    kw_idx = -1
+    for idx, w in enumerate(words):
+        if w == kw:
+            kw_idx = idx
+
+    if kw_idx == -1:
+        return {"keywordFound": False, "detected": False, "keyword": kw}
+
+    # Palabras después de la palabra clave
+    after_words = words[kw_idx + 1:]
+    after_text = " ".join(after_words)
+
+    card_res = detectCardFromSpeech(after_text)
+    if not card_res.get("detected"):
+        # Intentar también con todo el texto posterior desde la palabra clave
+        card_res = detectCardFromSpeech(" ".join(words[kw_idx:]))
+
+    card_res["keywordFound"] = True
+    card_res["keyword"] = kw
+    card_res["afterWords"] = after_words
+    card_res["fullText"] = text
+    return card_res
+
