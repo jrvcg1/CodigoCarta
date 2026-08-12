@@ -623,9 +623,9 @@
                 Patrón Decodificado: <span style="color:var(--gold-bright); font-weight:700;">${cardMatch.pattern}</span> + <span style="color:var(--cyan-glow); font-weight:700;">${cardMatch.suitCode}</span> => <strong>${val} de ${suitName}</strong>
             `;
 
-            // ENVIAR AL SERVIDOR PARA ACTUALIZAR TAMBIÉN /visualizar SIMULTÁNEAMENTE
+            // ENVIAR AL SERVIDOR PARA ACTUALIZAR TAMBIÉN /visualizar SIMULTÁNEAMENTE DE FORMA GARANTIZADA
             try {
-                await fetch('/api/decodificar_palabra_clave', {
+                const response = await fetch('/api/decodificar_palabra_clave', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -633,6 +633,11 @@
                         palabra_clave: kw
                     })
                 });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    lockStatusBadge.innerHTML = `🔒 CARTA FIJADA — 🌐 <strong>API REST Sincronizada con /visualizar (${data.valor} de ${data.palo.nombre})</strong>`;
+                }
             } catch (err) {
                 console.log('Sync API err:', err);
             }
