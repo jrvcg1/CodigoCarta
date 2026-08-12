@@ -37,13 +37,21 @@
             -webkit-user-select: none;
         }
 
-        /* MODO SIGILOSO: OCULTAR TODO */
+        /* MODO SIGILOSO NEGRO */
         body.stealth-mode {
             background: #000000 !important;
             cursor: pointer;
         }
         body.stealth-mode .container {
             display: none !important;
+        }
+
+        /* MODO QR ESPECTADOR */
+        body.qr-mode .container {
+            display: none !important;
+        }
+        body.qr-mode #qrScreenMode {
+            display: flex !important;
         }
 
         .container {
@@ -81,7 +89,7 @@
             text-align: center;
         }
 
-        /* Configuración de Palabra Clave y Micrófono */
+        /* Configuración de Palabra Clave y Botones de Control */
         .controls-box {
             width: 100%;
             background: rgba(10, 6, 18, 0.7);
@@ -93,7 +101,7 @@
             flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            gap: 14px;
+            gap: 12px;
         }
 
         .kw-group {
@@ -135,14 +143,14 @@
             border: 1px solid var(--gold);
             color: #ffffff;
             font-family: 'Montserrat', sans-serif;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 700;
-            padding: 12px 24px;
+            padding: 10px 20px;
             border-radius: 30px;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             transition: all 0.3s ease;
             box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
@@ -163,6 +171,27 @@
             font-family: 'Montserrat', sans-serif;
             font-size: 13px;
             font-weight: 600;
+            padding: 10px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .btn-hide:hover {
+            color: var(--text-light);
+            border-color: var(--gold);
+            background: rgba(60, 45, 90, 0.9);
+        }
+
+        .btn-qr {
+            background: linear-gradient(135deg, #1b3a4b 0%, #061a23 100%);
+            border: 1px solid var(--cyan-glow);
+            color: var(--cyan-glow);
+            font-family: 'Montserrat', sans-serif;
+            font-size: 13px;
+            font-weight: 700;
             padding: 10px 18px;
             border-radius: 20px;
             cursor: pointer;
@@ -170,11 +199,12 @@
             align-items: center;
             gap: 8px;
             transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(0, 229, 255, 0.2);
         }
-        .btn-hide:hover {
-            color: var(--text-light);
-            border-color: var(--gold);
-            background: rgba(60, 45, 90, 0.9);
+        .btn-qr:hover {
+            background: linear-gradient(135deg, #2c5d79 0%, #0c2d3e 100%);
+            box-shadow: 0 0 22px rgba(0, 229, 255, 0.4);
+            transform: translateY(-2px);
         }
 
         @keyframes pulseMic {
@@ -206,6 +236,109 @@
         }
         .stealth-toast.show {
             opacity: 1;
+        }
+
+        /* PUNTO VERDE PARPADEANTE DE MICRÓFONO ACTIVO */
+        .mic-pulse-dot {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #2ecc71;
+            box-shadow: 0 0 12px #2ecc71;
+            opacity: 0;
+            transition: opacity 0.4s ease;
+            z-index: 999999;
+            pointer-events: none;
+        }
+        .mic-pulse-dot.active {
+            opacity: 0.95;
+            animation: pulseDot 1.5s infinite;
+        }
+
+        @keyframes pulseDot {
+            0% { transform: scale(0.9); box-shadow: 0 0 4px #2ecc71; }
+            50% { transform: scale(1.35); box-shadow: 0 0 16px #2ecc71; }
+            100% { transform: scale(0.9); box-shadow: 0 0 4px #2ecc71; }
+        }
+
+        /* PANTALLA COMPLETA QR ESPECTADOR */
+        .qr-screen-mode {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 50% 35%, #180e2b 0%, #090512 70%, #000000 100%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 99990;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .qr-title {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(20px, 4vw, 32px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--gold-bright);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(212,175,55,0.4);
+        }
+
+        .qr-subtitle {
+            font-size: 13px;
+            color: var(--text-dim);
+            letter-spacing: 1.5px;
+            margin-bottom: 24px;
+            text-transform: uppercase;
+        }
+
+        .qr-box {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: 20px;
+            border: 3px solid var(--gold);
+            box-shadow: 0 0 50px rgba(212, 175, 55, 0.4), 0 20px 60px rgba(0,0,0,0.9);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-img {
+            width: min(70vw, 280px);
+            height: min(70vw, 280px);
+            display: block;
+            border-radius: 8px;
+        }
+
+        .qr-url-text {
+            font-family: monospace;
+            font-size: 13px;
+            color: var(--cyan-glow);
+            letter-spacing: 1px;
+            margin-bottom: 30px;
+        }
+
+        /* TEXTO DISCRETO ABAJO CON VALOR Y PALO RECONOCIDO EN TIEMPO REAL */
+        .qr-secret-peek {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'Cinzel', monospace, sans-serif;
+            font-size: 16px;
+            font-weight: 800;
+            color: rgba(212, 175, 55, 0.35);
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+            letter-spacing: 2.5px;
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
 
         /* Banner de Detección y Estado Bloqueado de Palabra Clave */
@@ -433,14 +566,32 @@
 </head>
 <body>
 
+    <!-- PUNTO VERDE PARPADEANTE DE ESCUCHA ACTIVA DE MICRÓFONO -->
+    <div id="micPulseDot" class="mic-pulse-dot"></div>
+
     <!-- Toast Emergente de Modo Sigiloso -->
     <div id="stealthToast" class="stealth-toast">🙈 MODO SIGILOSO: Doble toque en cualquier lugar para mostrar</div>
+
+    <!-- PANTALLA COMPLETA QR ESPECTADOR -->
+    <div id="qrScreenMode" class="qr-screen-mode">
+        <div class="qr-title">EL GRAN ORÁCULO</div>
+        <div class="qr-subtitle">Escanea el código para ingresar al espectáculo</div>
+
+        <div class="qr-box">
+            <img id="qrCodeImg" class="qr-img" src="https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=https://codigo-carta.vercel.app/visualizar" alt="Código QR Espectador">
+        </div>
+
+        <div class="qr-url-text">https://codigo-carta.vercel.app/visualizar</div>
+
+        <!-- Indicador secreto discreto abajo para el mago -->
+        <div id="qrSecretPeek" class="qr-secret-peek">--</div>
+    </div>
 
     <div class="container">
         <h1>🎙️ RECONOCIMIENTO DE VOZ</h1>
         <div class="subtitle">Detección continua por palabra clave fonética</div>
 
-        <!-- Panel de Control: Micrófono, Palabra Clave y Botón Ocultar -->
+        <!-- Panel de Control: Micrófono, Palabra Clave y Botones de Pantalla -->
         <div class="controls-box">
             <div class="kw-group">
                 <label for="keywordInput">🔑 PALABRA CLAVE:</label>
@@ -452,9 +603,14 @@
                 <span id="micText">ACTIVAR ESCUCHA CONTINUA</span>
             </button>
 
-            <button id="btnHideUI" class="btn-hide" title="Ocultar la pantalla en modo sigiloso (Doble toque en cualquier lugar para restaurar)">
+            <button id="btnHideUI" class="btn-hide" title="Ocultar la pantalla en negro (Doble toque en cualquier lugar para restaurar)">
                 <span>👁️</span>
                 <span>OCULTAR</span>
+            </button>
+
+            <button id="btnQRUI" class="btn-qr" title="Mostrar QR Espectador con indicador discreto de carta (Doble toque para restaurar)">
+                <span>📱</span>
+                <span>MOSTRAR QR</span>
             </button>
         </div>
 
@@ -496,21 +652,29 @@
     </div>
 
     <script>
-        // --- LÓGICA MODO SIGILOSO (OCULTAR Y MOSTRAR CON DOBLE TAP / DOBLE CLICK) ---
+        // --- LÓGICA DE MODOS DE PANTALLA (NORMAL, MODO SIGILOSO NEGRO, MODO QR) ---
         const btnHideUI = document.getElementById('btnHideUI');
+        const btnQRUI = document.getElementById('btnQRUI');
         const stealthToast = document.getElementById('stealthToast');
+        const qrScreenMode = document.getElementById('qrScreenMode');
+        const qrSecretPeek = document.getElementById('qrSecretPeek');
+        const micPulseDot = document.getElementById('micPulseDot');
 
-        function toggleStealthUI(hide) {
-            if (hide === undefined) {
-                hide = !document.body.classList.contains('stealth-mode');
-            }
+        // Modos: 'normal', 'black', 'qr'
+        let currentScreenMode = 'normal';
 
-            if (hide) {
+        function setScreenMode(mode) {
+            currentScreenMode = mode;
+            document.body.classList.remove('stealth-mode', 'qr-mode');
+
+            if (mode === 'black') {
                 document.body.classList.add('stealth-mode');
-                showStealthToast('🙈 MODO SIGILOSO ACTIVADO: Doble toque en cualquier lugar para mostrar');
+                showStealthToast('🙈 MODO SIGILOSO (FONDO NEGRO): Doble toque para restaurar');
+            } else if (mode === 'qr') {
+                document.body.classList.add('qr-mode');
+                showStealthToast('📱 MODO QR ESPECTADOR: Doble toque para restaurar');
             } else {
-                document.body.classList.remove('stealth-mode');
-                showStealthToast('👁️ INTERFAZ RESTAURADA');
+                showStealthToast('👁️ INTERFAZ DE PRUEBAS RESTAURADA');
             }
         }
 
@@ -519,21 +683,25 @@
             stealthToast.classList.add('show');
             setTimeout(() => {
                 stealthToast.classList.remove('show');
-            }, 2500);
+            }, 2400);
         }
 
-        btnHideUI.addEventListener('click', () => toggleStealthUI(true));
+        btnHideUI.addEventListener('click', () => setScreenMode('black'));
+        btnQRUI.addEventListener('click', () => setScreenMode('qr'));
 
         // Detectar doble toque táctil (mobile) y doble clic (desktop) en cualquier lugar de la pantalla
         let lastTapTime = 0;
         document.addEventListener('touchend', (e) => {
-            // Evitar activar el toggle si el usuario está interactuando con el input de texto
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-
             const currentTime = new Date().getTime();
             const tapLength = currentTime - lastTapTime;
             if (tapLength < 380 && tapLength > 0) {
-                toggleStealthUI();
+                // Si estamos en black o qr -> volver a normal. Si estamos en normal -> volver a black.
+                if (currentScreenMode !== 'normal') {
+                    setScreenMode('normal');
+                } else {
+                    setScreenMode('black');
+                }
                 e.preventDefault();
             }
             lastTapTime = currentTime;
@@ -541,7 +709,11 @@
 
         document.addEventListener('dblclick', (e) => {
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-            toggleStealthUI();
+            if (currentScreenMode !== 'normal') {
+                setScreenMode('normal');
+            } else {
+                setScreenMode('black');
+            }
         });
 
         // --- MOTOR FONÉTICO JS LOCAL PARA DECODIFICAR PALABRA CLAVE Y CARTA ---
@@ -551,6 +723,7 @@
         };
         const SUIT_PATTERNS = { "P": "picas", "C": "corazones", "D": "diamantes", "T": "treboles" };
         const PALO_NOMBRES = { "picas": "Picas ♠", "corazones": "Corazones ♥", "diamantes": "Diamantes ♦", "treboles": "Tréboles ♣" };
+        const PALO_SIMBOLOS = { "picas": "♠", "corazones": "♥", "diamantes": "♦", "treboles": "♣" };
 
         function normalizeSpeech(text) {
             if (!text) return [];
@@ -703,12 +876,14 @@
             if (!isListening) {
                 isListening = true;
                 btnMic.classList.add('listening');
+                micPulseDot.classList.add('active'); // Activar punto verde parpadeante de escucha continua
                 micIcon.textContent = '🟢';
                 micText.textContent = 'ESCUCHANDO EN CONTINUO...';
                 try { recognition.start(); } catch(e) {}
             } else {
                 isListening = false;
                 btnMic.classList.remove('listening');
+                micPulseDot.classList.remove('active');
                 micIcon.textContent = '🔴';
                 micText.textContent = 'ACTIVAR ESCUCHA CONTINUA';
                 try { recognition.stop(); } catch(e) {}
@@ -778,7 +953,11 @@
             let val = cardMatch.value;
             let suit = cardMatch.suit;
             let suitName = PALO_NOMBRES[suit];
+            let suitSymbol = PALO_SIMBOLOS[suit] || "";
             window.lastMatchedWords = cardMatch.matchedWords;
+
+            // ACTUALIZAR INDICADOR SECRETO DISCRETO EN LA PANTALLA QR
+            qrSecretPeek.textContent = `${val}${suitSymbol}`;
 
             // RENDERIZAR CARTA EN PRIMER PLANO EN LA PANTALLA DE PRUEBAS
             cardTitle.textContent = `✨ ${val} de ${suitName}`;
