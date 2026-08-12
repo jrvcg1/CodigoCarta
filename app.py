@@ -410,9 +410,9 @@ def visualizar_carta(
             .card-scene {{
                 perspective: 1200px;
                 -webkit-perspective: 1200px;
-                width: 44.5%;
-                height: 45.2%;
-                margin-top: 4.8%;
+                width: 45.7%;
+                height: 47.4%;
+                margin-top: 4.1%;
                 position: relative;
                 cursor: pointer;
                 z-index: 10;
@@ -429,7 +429,7 @@ def visualizar_carta(
             }}
 
             .card-scene:hover .card-object {{
-                box-shadow: 0 0 30px rgba(212,175,55,0.45);
+                box-shadow: 0 0 35px rgba(212,175,55,0.45);
             }}
 
             .card-scene.volteada .card-object {{
@@ -444,9 +444,9 @@ def visualizar_carta(
                 height: 100%;
                 -webkit-backface-visibility: hidden;
                 backface-visibility: hidden;
-                border-radius: 4.5%;
+                border-radius: 2.2%;
                 overflow: hidden;
-                border: 1px solid rgba(212,175,55,0.4);
+                border: 1px solid rgba(212,175,55,0.45);
                 box-shadow: 0 10px 30px rgba(0,0,0,0.85);
             }}
 
