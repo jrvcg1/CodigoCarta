@@ -387,26 +387,50 @@ def visualizar_carta(
             }}
             * {{ box-sizing: border-box; }}
             body {{
-                background: radial-gradient(circle at 50% 50%, #1a1928 0%, #0a0910 100%);
+                background: radial-gradient(circle at 50% -10%, #201f30 0%, var(--bg) 60%);
+                color: var(--text);
+                font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
                 display: flex;
+                flex-direction: column;
                 align-items: center;
                 justify-content: center;
                 min-height: 100vh;
                 margin: 0;
-                padding: 0;
-                overflow: hidden;
+                padding: 20px;
+            }}
+            h1 {{ font-size: 26px; margin: 0 0 6px; font-weight: 600; text-align: center; }}
+            .sub {{ color: var(--text-dim); margin-bottom: 18px; font-size: 14px; text-align: center; max-width: 500px; word-break: break-word; }}
+            .hint {{
+                font-size: 13px; color: var(--accent); margin-bottom: 20px;
+                background: rgba(201,162,39,0.12); border: 1px solid rgba(201,162,39,0.3);
+                padding: 8px 18px; border-radius: 20px; display: inline-flex; align-items: center; gap: 8px;
+                cursor: pointer;
                 user-select: none;
-                -webkit-user-select: none;
+            }}
+            .card-box {{
+                background: var(--panel);
+                border: 1px solid var(--line);
+                border-radius: 20px;
+                padding: 32px 28px;
+                box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+                text-align: center;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                max-width: 540px;
+                width: 100%;
             }}
             
-            /* --- Animación 3D de Volteo de Carta a Tamaño Real --- */
+            /* --- Animación 3D de Volteo de Carta --- */
             .card-scene {{
-                perspective: 1400px;
-                -webkit-perspective: 1400px;
-                width: min(85vw, 420px);
-                height: min(80vh, 588px);
-                aspect-ratio: 2.5 / 3.5;
+                perspective: 1200px;
+                -webkit-perspective: 1200px;
+                width: 220px;
+                height: 310px;
+                margin: 10px auto 24px;
                 cursor: pointer;
+                user-select: none;
+                -webkit-user-select: none;
             }}
             .card-object {{
                 width: 100%;
@@ -418,7 +442,7 @@ def visualizar_carta(
                 -webkit-transition: -webkit-transform 0.7s cubic-bezier(0.3, 1, 0.3, 1);
             }}
             .card-scene:hover .card-object {{
-                box-shadow: 0 0 35px rgba(255, 255, 255, 0.15);
+                box-shadow: 0 0 25px rgba(201,162,39,0.3);
             }}
             .card-scene.volteada .card-object {{
                 -webkit-transform: rotateY(180deg);
@@ -431,10 +455,10 @@ def visualizar_carta(
                 height: 100%;
                 -webkit-backface-visibility: hidden;
                 backface-visibility: hidden;
-                border-radius: min(3vw, 16px);
+                border-radius: 14px;
                 overflow: hidden;
-                border: 1px solid rgba(255,255,255,0.15);
-                box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+                border: 1px solid rgba(255,255,255,0.1);
+                box-shadow: 0 12px 36px rgba(0,0,0,0.5);
             }}
             .card-front {{
                 background: #ffffff;
@@ -453,33 +477,66 @@ def visualizar_carta(
                 display: block;
                 pointer-events: none;
             }}
+
+            .badge {{
+                background: rgba(201,162,39,0.15);
+                color: var(--accent);
+                border: 1px solid rgba(201,162,39,0.3);
+                padding: 8px 18px;
+                border-radius: 20px;
+                font-family: monospace;
+                font-size: 14px;
+                display: inline-block;
+                margin-top: 4px;
+            }}
+            .sync-dot {{
+                width: 8px; height: 8px; border-radius: 50%; background: #6fae7f;
+                display: inline-block; margin-right: 6px;
+            }}
         </style>
     </head>
     <body>
-        <!-- Objeto de Carta Interactiva 3D (Sin texto alrededor) -->
-        <div class="card-scene" id="cardScene">
-            <div class="card-object">
-                <!-- Frente de la Carta (Oculto inicialmente) -->
-                <div class="card-face card-front">
-                    <img id="imgFront" src="/cartas_svg/{card_valor}_{card_palo_id}.svg" alt="Frente de la carta" />
+        <div class="card-box">
+            <h1>Pantalla en Directo</h1>
+            <div class="sub" id="fraseSub"><span class="sync-dot"></span>Escuchando peticiones silenciosas de la API...</div>
+            
+            <div class="hint" id="hintBtn">
+                <span>🔄</span> Haz clic en la carta para voltear y revelar
+            </div>
+
+            <!-- Objeto de Carta Interactiva 3D (Inicialmente en Dorso) -->
+            <div class="card-scene" id="cardScene">
+                <div class="card-object">
+                    <!-- Frente de la Carta (Oculto inicialmente hasta que se gira) -->
+                    <div class="card-face card-front">
+                        <img id="imgFront" src="/cartas_svg/{card_valor}_{card_palo_id}.svg" alt="Frente de la carta" />
+                    </div>
+                    <!-- Dorso de la Carta (Visible inicialmente) -->
+                    <div class="card-face card-back">
+                        <img src="/cartas_svg/dorso.svg" alt="Dorso de la Carta" />
+                    </div>
                 </div>
-                <!-- Dorso de la Carta Bicycle Azul (Visible inicialmente) -->
-                <div class="card-face card-back">
-                    <img src="/cartas_svg/dorso.svg" alt="Dorso de la Carta" />
-                </div>
+            </div>
+
+            <div class="badge" id="badgeCarta">
+                Carta preparada · Haz clic para revelar
             </div>
         </div>
 
         <script>
             let currentVersion = -1;
             const cardScene = document.getElementById('cardScene');
+            const hintBtn = document.getElementById('hintBtn');
             const imgFront = document.getElementById('imgFront');
+            const badgeCarta = document.getElementById('badgeCarta');
+            const fraseSub = document.getElementById('fraseSub');
 
             function toggleCard() {{
                 cardScene.classList.toggle('volteada');
             }}
 
             cardScene.addEventListener('click', toggleCard);
+            hintBtn.addEventListener('click', toggleCard);
 
             // Polling silencioso en segundo plano sin recargar la pantalla
             async function consultarEstadoSilencioso() {{
@@ -489,8 +546,10 @@ def visualizar_carta(
                         const data = await res.json();
                         if (data.version && data.version !== currentVersion) {{
                             currentVersion = data.version;
-                            // Actualizar la imagen del frente en segundo plano
+                            // Actualizar la imagen del frente y la info en segundo plano
                             imgFront.src = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
+                            badgeCarta.textContent = `${{data.valor}} de ${{data.palo_nombre}} ${{data.simbolo}} (${{data.n_palabras}} palabras + "${{data.coletilla}}")`;
+                            fraseSub.innerHTML = `<span class="sync-dot"></span>Frase API: "${{data.frase}}"`;
                             
                             // Si estaba volteada mostrando el frente anterior, volver a ponerla boca abajo lista para la nueva revelación
                             if (cardScene.classList.contains('volteada')) {{
