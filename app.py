@@ -479,20 +479,17 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador Secreto del Mago en Primer Plano (Elevado 2x su altura) */
+            /* Indicador Secreto del Mago Discreto a la Izquierda */
             .secret-peek {{
                 position: absolute;
-                bottom: 36px;
-                left: 50%;
-                transform: translateX(-50%);
-                -webkit-transform: translateX(-50%);
+                bottom: 30px;
+                left: 35px;
                 font-family: 'Cinzel', monospace, sans-serif;
                 font-size: 11px;
-                font-weight: 800;
-                color: #ffe066;
-                opacity: 0.90;
-                text-shadow: 0 0 8px #000000, 0 1px 3px #000000;
-                letter-spacing: 2px;
+                font-weight: 700;
+                color: rgba(230, 195, 95, 0.45);
+                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
+                letter-spacing: 1.5px;
                 pointer-events: none;
                 user-select: none;
                 -webkit-user-select: none;
