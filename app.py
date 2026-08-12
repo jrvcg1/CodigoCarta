@@ -375,284 +375,49 @@ def visualizar_carta(
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Pantalla de Mentalismo — Carta Interactiva</title>
+        <title>Pantalla de Mentalismo</title>
         <style>
-            @import url('https://fonts.googleapis.com/css2?family=Rye&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;900&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
-
-            :root {{
-                --bg-deep: #050308;
-                --maroon-dark: #2a080d;
-                --maroon: #4a0d17;
-                --gold-bright: #fbe394;
-                --gold: #d4af37;
-                --gold-dark: #8c6d17;
-                --gold-shadow: rgba(212, 175, 55, 0.25);
-                --text-ivory: #f7f1e3;
-                --text-muted: #b8a6c9;
-                --border-filigree: rgba(212, 175, 55, 0.4);
-            }}
             * {{ box-sizing: border-box; }}
             html, body {{
                 margin: 0;
                 padding: 0;
                 width: 100%;
-                min-height: 100vh;
-                background-color: var(--bg-deep);
-                color: var(--text-ivory);
-                font-family: 'Playfair Display', serif;
-                overflow-x: hidden;
-            }}
-
-            /* --- Animación de Entrada Teatral --- */
-            @keyframes stageEntrance {{
-                0% {{ opacity: 0; transform: scale(0.98); }}
-                100% {{ opacity: 1; transform: scale(1); }}
-            }}
-            @keyframes floatEmbers {{
-                0% {{ transform: translateY(0) rotate(0deg); opacity: 0; }}
-                50% {{ opacity: 0.6; }}
-                100% {{ transform: translateY(-80px) rotate(45deg); opacity: 0; }}
-            }}
-            @keyframes bulbFlicker {{
-                0%, 100% {{ opacity: 1; box-shadow: 0 0 10px #ffb300, 0 0 20px #ff8f00; }}
-                92% {{ opacity: 1; }}
-                93% {{ opacity: 0.4; box-shadow: 0 0 2px #ff8f00; }}
-                94% {{ opacity: 1; }}
-            }}
-
-            .stage-wrapper {{
-                min-height: 100vh;
-                position: relative;
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                justify-content: center;
-                padding: 12px 10px;
-                animation: stageEntrance 1.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-                background: 
-                    radial-gradient(ellipse at 50% 45%, rgba(212, 175, 55, 0.12) 0%, rgba(74, 13, 23, 0.35) 45%, rgba(5, 3, 8, 0.95) 85%),
-                    linear-gradient(to bottom, rgba(5, 3, 8, 0.6), rgba(5, 3, 8, 0.9));
-            }}
-
-            /* Cortinas de Terciopelo Rojo Oscuro en los Laterales */
-            .curtains-left, .curtains-right {{
-                position: fixed;
-                top: 0;
-                bottom: 0;
-                width: min(120px, 12vw);
-                pointer-events: none;
-                z-index: 2;
-            }}
-            .curtains-left {{
-                left: 0;
-                background: linear-gradient(to right, #38070e 0%, #1f0307 70%, transparent 100%);
-                border-right: 1px solid rgba(212, 175, 55, 0.15);
-            }}
-            .curtains-right {{
-                right: 0;
-                background: linear-gradient(to left, #38070e 0%, #1f0307 70%, transparent 100%);
-                border-left: 1px solid rgba(212, 175, 55, 0.15);
-            }}
-
-            /* Marco Ornamental Vaudeville / Gran Circo */
-            .theater-poster {{
-                width: 100%;
-                max-width: 820px;
-                position: relative;
-                border: 2px solid var(--gold);
-                outline: 1px solid var(--gold-dark);
-                outline-offset: 3px;
-                border-radius: 12px;
-                background: rgba(10, 6, 18, 0.88);
-                backdrop-filter: blur(8px);
-                padding: 20px 16px;
-                box-shadow: 0 0 60px rgba(0,0,0,0.95), inset 0 0 40px rgba(0,0,0,0.8), 0 0 25px var(--gold-shadow);
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-                z-index: 5;
-            }}
-
-            /* Esquinas Ornamentales Victorianas en SVG */
-            .corner-filigree {{
-                position: absolute;
-                width: 26px;
-                height: 26px;
-                color: var(--gold);
-                opacity: 0.85;
-                pointer-events: none;
-            }}
-            .corner-tl {{ top: 6px; left: 6px; }}
-            .corner-tr {{ top: 6px; right: 6px; transform: scaleX(-1); }}
-            .corner-bl {{ bottom: 6px; left: 6px; transform: scaleY(-1); }}
-            .corner-br {{ bottom: 6px; right: 6px; transform: scale(-1); }}
-
-            /* Ojo del Oráculo Superior */
-            .oracle-eye {{
-                font-size: 18px;
-                color: var(--gold);
-                margin-bottom: 4px;
-                text-shadow: 0 0 12px var(--gold);
-                opacity: 0.9;
-            }}
-
-            /* Marquesina con Bombillas (El Gran Oráculo) */
-            .marquee-box {{
-                position: relative;
-                border: 2px double var(--gold);
-                border-radius: 40px;
-                padding: 10px 28px;
-                background: linear-gradient(180deg, #24070d 0%, #120306 100%);
-                box-shadow: inset 0 0 15px rgba(0,0,0,0.9), 0 4px 18px rgba(0,0,0,0.8);
-                margin-bottom: 12px;
-                text-align: center;
-            }}
-            .marquee-bulbs {{
-                position: absolute;
-                inset: -6px;
-                border-radius: 44px;
-                pointer-events: none;
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0 8px;
-            }}
-            .bulb {{
-                width: 7px;
-                height: 7px;
-                border-radius: 50%;
-                background: #fff4cc;
-                box-shadow: 0 0 6px #ffb300, 0 0 12px #ff8f00;
-                animation: bulbFlicker 4s infinite;
-            }}
-            .bulb:nth-child(2n) {{ animation-delay: 0.7s; }}
-            .bulb:nth-child(3n) {{ animation-delay: 1.5s; }}
-
-            .title-main {{
-                font-family: 'Cinzel Decorative', 'Rye', serif;
-                font-size: clamp(20px, 4vw, 32px);
-                font-weight: 900;
-                letter-spacing: 2px;
-                margin: 0;
-                background: linear-gradient(180deg, var(--gold-bright) 0%, var(--gold) 60%, var(--gold-dark) 100%);
-                -webkit-background-clip: text;
-                -webkit-text-fill-color: transparent;
-                text-transform: uppercase;
-                text-shadow: 0 2px 8px rgba(0,0,0,0.9);
-            }}
-            .title-sub {{
-                font-family: 'Cinzel', serif;
-                font-size: 10px;
-                letter-spacing: 2px;
-                color: var(--gold-bright);
-                margin-top: 4px;
-                text-transform: uppercase;
-                opacity: 0.9;
-            }}
-
-            /* Mensaje del Misterio con Manos Apuntando */
-            .mystery-header {{
-                text-align: center;
-                margin-bottom: 12px;
-            }}
-            .mystery-title {{
-                font-family: 'Cinzel', serif;
-                font-size: clamp(12px, 2.5vw, 16px);
-                font-weight: 700;
-                color: var(--gold-bright);
-                letter-spacing: 1.5px;
-                text-transform: uppercase;
-                margin: 0 0 4px;
+                height: 100%;
+                background-color: #050308;
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                gap: 8px;
-            }}
-            .mystery-title span {{ color: var(--gold); font-size: 14px; }}
-            .mystery-instruction {{
-                font-family: 'Playfair Display', serif;
-                font-style: italic;
-                font-size: 11px;
-                color: var(--text-muted);
-                letter-spacing: 0.8px;
-                margin: 0;
-            }}
-            .mystery-instruction span {{ color: var(--gold); margin: 0 4px; }}
-
-            /* Layout Escénico con Carteles Laterales en Desktop */
-            .stage-layout {{
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 20px;
-                width: 100%;
-                margin: 4px 0 10px;
-            }}
-
-            .side-panel {{
-                width: 150px;
-                border: 1px solid var(--border-filigree);
-                border-radius: 8px;
-                background: rgba(18, 9, 24, 0.6);
-                padding: 12px 10px;
-                text-align: center;
-                font-family: 'Cinzel', serif;
-                color: var(--gold-bright);
-                box-shadow: inset 0 0 12px rgba(0,0,0,0.8);
-            }}
-            .side-panel h4 {{
-                font-size: 10px;
-                letter-spacing: 1.5px;
-                margin: 0 0 6px;
-                color: var(--gold);
-                border-bottom: 1px stroke var(--gold-dark);
-                padding-bottom: 2px;
-            }}
-            .side-panel p {{
-                font-size: 9px;
-                line-height: 1.5;
-                letter-spacing: 1px;
-                color: var(--text-muted);
-                margin: 0;
-                text-transform: uppercase;
-            }}
-            .side-icon {{
-                font-size: 16px;
-                margin-top: 6px;
-                opacity: 0.8;
-                color: var(--gold);
-            }}
-
-            /* Halo de Luz Teatral detrás de la Carta */
-            .spotlight-halo {{
-                position: relative;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-            }}
-            .spotlight-halo::before {{
-                content: "";
-                position: absolute;
-                width: 240px;
-                height: 320px;
-                background: radial-gradient(circle, rgba(212,175,55,0.2) 0%, rgba(74,13,23,0.12) 50%, transparent 75%);
-                border-radius: 50%;
-                pointer-events: none;
-                z-index: 0;
-            }}
-
-            /* --- Animación 3D de Volteo de Carta (CARTA INTOCABLE) --- */
-            .card-scene {{
-                perspective: 1200px;
-                -webkit-perspective: 1200px;
-                width: 196px;
-                height: 274px;
-                position: relative;
-                z-index: 1;
-                cursor: pointer;
+                overflow: hidden;
                 user-select: none;
                 -webkit-user-select: none;
             }}
+
+            /* Contenedor del Cartel que escala manteniendo la proporción nativa del Póster (2:3) */
+            .poster-container {{
+                position: relative;
+                width: min(96vw, 620px);
+                height: min(96vh, 930px);
+                aspect-ratio: 2 / 3;
+                background: url('/cartas_svg/fondo_oraculo.jpg') no-repeat center center;
+                background-size: 100% 100%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 0 50px rgba(0,0,0,0.95);
+            }}
+
+            /* Posicionamiento exacto de la Carta 3D dentro del marco del póster */
+            .card-scene {{
+                perspective: 1200px;
+                -webkit-perspective: 1200px;
+                width: 44.5%;
+                height: 45.2%;
+                margin-top: 4.8%;
+                position: relative;
+                cursor: pointer;
+                z-index: 10;
+            }}
+
             .card-object {{
                 width: 100%;
                 height: 100%;
@@ -662,13 +427,16 @@ def visualizar_carta(
                 transition: transform 0.8s cubic-bezier(0.3, 1, 0.3, 1);
                 -webkit-transition: -webkit-transform 0.8s cubic-bezier(0.3, 1, 0.3, 1);
             }}
+
             .card-scene:hover .card-object {{
                 box-shadow: 0 0 30px rgba(212,175,55,0.45);
             }}
+
             .card-scene.volteada .card-object {{
                 -webkit-transform: rotateY(180deg);
                 transform: rotateY(180deg);
             }}
+
             .card-face {{
                 position: absolute;
                 inset: 0;
@@ -676,48 +444,30 @@ def visualizar_carta(
                 height: 100%;
                 -webkit-backface-visibility: hidden;
                 backface-visibility: hidden;
-                border-radius: 12px;
+                border-radius: 4.5%;
                 overflow: hidden;
                 border: 1px solid rgba(212,175,55,0.4);
-                box-shadow: 0 12px 36px rgba(0,0,0,0.9);
+                box-shadow: 0 10px 30px rgba(0,0,0,0.85);
             }}
+
             .card-front {{
                 background: #ffffff;
                 -webkit-transform: rotateY(180deg);
                 transform: rotateY(180deg);
             }}
+
             .card-back {{
                 background: #ffffff;
                 -webkit-transform: rotateY(0deg);
                 transform: rotateY(0deg);
             }}
+
             .card-face img {{
                 width: 100%;
                 height: 100%;
                 object-fit: fill;
                 display: block;
                 pointer-events: none;
-            }}
-
-            /* Texto Inferior Teatral */
-            .truth-footer {{
-                text-align: center;
-                margin-top: 8px;
-            }}
-            .truth-question {{
-                font-family: 'Cinzel Decorative', 'Cinzel', serif;
-                font-size: clamp(12px, 2.5vw, 15px);
-                color: var(--gold-bright);
-                letter-spacing: 1.5px;
-                margin: 0 0 4px;
-                text-transform: uppercase;
-            }}
-            .truth-destiny {{
-                font-family: 'Playfair Display', serif;
-                font-style: italic;
-                font-size: 11px;
-                color: var(--text-muted);
-                margin: 0;
             }}
 
             /* Indicador Secreto Discreto solo para el Mago en Esquina */
@@ -727,95 +477,27 @@ def visualizar_carta(
                 right: 12px;
                 font-family: monospace;
                 font-size: 10px;
-                color: rgba(212, 175, 55, 0.18);
+                color: rgba(212, 175, 55, 0.2);
                 letter-spacing: 1px;
                 user-select: none;
                 pointer-events: none;
                 z-index: 99;
             }}
-
-            /* Adaptación Responsiva para Móviles */
-            @media (max-width: 768px) {{
-                .side-panel {{ display: none; }}
-                .curtains-left, .curtains-right {{ width: 16px; }}
-                .theater-poster {{ padding: 14px 10px; border-width: 1px; }}
-                .marquee-box {{ padding: 8px 18px; margin-bottom: 8px; }}
-                .card-scene {{ width: min(52vw, 180px); height: min(73vw, 252px); }}
-                .stage-wrapper {{ padding: 6px 4px; }}
-            }}
         </style>
     </head>
     <body>
-        <div class="curtains-left"></div>
-        <div class="curtains-right"></div>
-
-        <div class="stage-wrapper">
-            <div class="theater-poster">
-                <!-- Esquinas Filigrana Victoriana -->
-                <svg class="corner-filigree corner-tl" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v2H4v4H2V2zm0 14h2v4h4v2H2v-6zM20 2h-6v2h4v4h2V2zm0 14h-2v4h-4v2h6v-6z"/></svg>
-                <svg class="corner-filigree corner-tr" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v2H4v4H2V2zm0 14h2v4h4v2H2v-6zM20 2h-6v2h4v4h2V2zm0 14h-2v4h-4v2h6v-6z"/></svg>
-                <svg class="corner-filigree corner-bl" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v2H4v4H2V2zm0 14h2v4h4v2H2v-6zM20 2h-6v2h4v4h2V2zm0 14h-2v4h-4v2h6v-6z"/></svg>
-                <svg class="corner-filigree corner-br" viewBox="0 0 24 24" fill="currentColor"><path d="M2 2h6v2H4v4H2V2zm0 14h2v4h4v2H2v-6zM20 2h-6v2h4v4h2V2zm0 14h-2v4h-4v2h6v-6z"/></svg>
-
-                <div class="oracle-eye">👁</div>
-
-                <!-- Marquesina con Bombillas Iluminadas -->
-                <div class="marquee-box">
-                    <div class="marquee-bulbs">
-                        <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
-                        <div class="bulb"></div><div class="bulb"></div><div class="bulb"></div>
+        <div class="poster-container">
+            <!-- Objeto de Carta Interactiva 3D encajado en el marco del cartel -->
+            <div class="card-scene" id="cardScene">
+                <div class="card-object">
+                    <!-- Frente de la Carta (SVG) -->
+                    <div class="card-face card-front">
+                        <img id="imgFront" src="/cartas_svg/{card_valor}_{card_palo_id}.svg" alt="Frente de la carta" />
                     </div>
-                    <h1 class="title-main">EL GRAN ORÁCULO</h1>
-                    <div class="title-sub">UNA EXPERIENCIA DE MENTALISMO EN DIRECTO</div>
-                </div>
-
-                <!-- Mensaje Principal -->
-                <div class="mystery-header">
-                    <div class="mystery-title">
-                        <span>✦</span> EL MISTERIO ESTÁ A PUNTO DE SER REVELADO <span>✦</span>
+                    <!-- Dorso de la Carta Bicycle Azul -->
+                    <div class="card-face card-back">
+                        <img src="/cartas_svg/dorso.svg" alt="Dorso de la Carta" />
                     </div>
-                    <div class="mystery-instruction">
-                        <span>⤗</span> Toca la carta y descubre lo que el destino ha ocultado <span>⤝</span>
-                    </div>
-                </div>
-
-                <!-- Disposición Escénica Teatral -->
-                <div class="stage-layout">
-                    <!-- Cartel Lateral Izquierdo (Desktop) -->
-                    <div class="side-panel">
-                        <h4>MENTALISTA</h4>
-                        <p>Lectura<br>de la Mente<br>—<br>Destino<br>y Suerte</p>
-                        <div class="side-icon">🧠</div>
-                    </div>
-
-                    <!-- Foco Teatral y Carta (CARTA INTOCABLE) -->
-                    <div class="spotlight-halo">
-                        <div class="card-scene" id="cardScene">
-                            <div class="card-object">
-                                <!-- Frente de la Carta (SVG) -->
-                                <div class="card-face card-front">
-                                    <img id="imgFront" src="/cartas_svg/{card_valor}_{card_palo_id}.svg" alt="Frente de la carta" />
-                                </div>
-                                <!-- Dorso de la Carta Bicycle Azul -->
-                                <div class="card-face card-back">
-                                    <img src="/cartas_svg/dorso.svg" alt="Dorso de la Carta" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Cartel Lateral Derecho (Desktop) -->
-                    <div class="side-panel">
-                        <h4>EL IMPOSIBLE</h4>
-                        <p>No existe<br>para quien<br>—<br>realmente<br>cree</p>
-                        <div class="side-icon">🔮</div>
-                    </div>
-                </div>
-
-                <!-- Mensaje Inferior Teatral -->
-                <div class="truth-footer">
-                    <div class="truth-question">¿TE ATREVES A DESCUBRIR LA VERDAD?</div>
-                    <div class="truth-destiny">El destino ya ha elegido.</div>
                 </div>
             </div>
         </div>
