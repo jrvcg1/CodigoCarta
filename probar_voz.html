@@ -845,6 +845,20 @@
 
         let cardLocked = false;
         let lastKwWordCount = -1;
+        let isRestarting = false;
+
+        function safeRestartRecognition() {
+            if (!isListening || isRestarting) return;
+            isRestarting = true;
+            try { recognition.stop(); } catch (e) {}
+
+            setTimeout(() => {
+                isRestarting = false;
+                if (isListening) {
+                    try { recognition.start(); } catch (e) {}
+                }
+            }, 180);
+        }
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -855,7 +869,9 @@
 
             recognition.onresult = (event) => {
                 let fullTranscript = '';
-                for (let i = 0; i < event.results.length; i++) {
+                // Limitar la acumulación de resultados para evitar saturación del búfer de voz
+                let startIdx = Math.max(0, event.results.length - 20);
+                for (let i = startIdx; i < event.results.length; i++) {
                     fullTranscript += event.results[i][0].transcript + ' ';
                 }
                 processSpeechText(fullTranscript);
@@ -863,11 +879,14 @@
 
             recognition.onerror = (err) => {
                 console.log('Error de canal:', err);
+                if (err.error !== 'no-speech' && err.error !== 'aborted') {
+                    safeRestartRecognition();
+                }
             };
 
             recognition.onend = () => {
                 if (isListening) {
-                    try { recognition.start(); } catch(e) {}
+                    safeRestartRecognition();
                 }
             };
         } else {
