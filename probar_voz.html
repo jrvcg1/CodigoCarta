@@ -1006,14 +1006,20 @@
             recognition.interimResults = true;
             recognition.lang = 'es-ES';
 
+            let pendingCardTimer = null;
+            let pendingCardMatch = null;
+
             recognition.onresult = (event) => {
                 let fullTranscript = '';
-                // Limitar la acumulación de resultados para evitar saturación del búfer de voz
+                let isFinal = false;
                 let startIdx = Math.max(0, event.results.length - 20);
                 for (let i = startIdx; i < event.results.length; i++) {
                     fullTranscript += event.results[i][0].transcript + ' ';
+                    if (event.results[i].isFinal) {
+                        isFinal = true;
+                    }
                 }
-                processSpeechText(fullTranscript);
+                processSpeechText(fullTranscript, isFinal);
             };
 
             recognition.onerror = (err) => {
@@ -1051,7 +1057,7 @@
             }
         });
 
-        // RELOJ GUARDIÁN (WATCHDOG TIMER): Garantiza que el micrófono nunca se quede inactivo si isListening es verdades
+        // RELOJ GUARDIÁN (WATCHDOG TIMER): Garantiza que el micrófono nunca se quede inactivo si isListening es verdadero
         setInterval(() => {
             if (isListening && recognition) {
                 try {
@@ -1082,7 +1088,9 @@
             return -1;
         }
 
-        function processSpeechText(transcript) {
+        let pendingCardTimer = null;
+
+        function processSpeechText(transcript, isFinal = false) {
             let kw = keywordInput.value.trim().toLowerCase() || 'vale';
             let words = normalizeSpeech(transcript);
             if (words.length === 0) return;
@@ -1093,6 +1101,7 @@
             if (cardLocked && currentKwIdx !== -1) {
                 cardLocked = false;
                 lastKwWordCount = currentKwIdx;
+                if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
                 kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
@@ -1100,6 +1109,7 @@
             } else if (currentKwIdx !== -1 && (lastKwWordCount === -1 || currentKwIdx > lastKwWordCount)) {
                 lastKwWordCount = currentKwIdx;
                 cardLocked = false;
+                if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
                 kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
@@ -1120,17 +1130,42 @@
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + afterText;
 
                 if (match) {
-                    cardLocked = true;
+                    // Si el resultado es final o la coincidencia persiste durante el temporizador de 450ms
+                    if (isFinal) {
+                        if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                        cardLocked = true;
+                        lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
+                        kwAlert.className = 'kw-alert locked';
+                        kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
 
-                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
-                    kwAlert.className = 'kw-alert locked';
-                    kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
+                        renderRecognizedCard(match, transcript, kw, wordsAfterKw);
 
-                    renderRecognizedCard(match, transcript, kw, wordsAfterKw);
+                        setTimeout(() => {
+                            safeRestartRecognition();
+                        }, 600);
+                    } else {
+                        // Coincidencia provisional interina: programar temporizador antirruido de 450ms
+                        if (!pendingCardTimer) {
+                            pendingCardTimer = setTimeout(() => {
+                                pendingCardTimer = null;
+                                if (!cardLocked) {
+                                    cardLocked = true;
+                                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
+                                    kwAlert.className = 'kw-alert locked';
+                                    kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
 
-                    setTimeout(() => {
-                        safeRestartRecognition();
-                    }, 600);
+                                    renderRecognizedCard(match, transcript, kw, wordsAfterKw);
+                                    setTimeout(() => { safeRestartRecognition(); }, 600);
+                                }
+                            }, 450);
+                        }
+                    }
+                } else {
+                    // Si la actualización del dictado eliminó la coincidencia ruidosa, cancelar el temporizador provisional
+                    if (pendingCardTimer) {
+                        clearTimeout(pendingCardTimer);
+                        pendingCardTimer = null;
+                    }
                 }
             } else {
                 let matchedWordsSet = new Set(window.lastMatchedWords || []);
