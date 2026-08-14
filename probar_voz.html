@@ -327,18 +327,16 @@
 
         /* INDICADOR SECRETO DE CARTA RECONOCIDA EN LA PANTALLA QR PARA EL MAGO */
         .qr-secret-peek {
-            position: absolute;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
+            margin-top: 10px;
             font-family: 'Cinzel', monospace, sans-serif;
-            font-size: 12px;
+            font-size: 16px;
             font-weight: 700;
-            color: rgba(235, 210, 140, 0.85);
+            color: rgba(235, 210, 140, 0.9);
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
-            letter-spacing: 2px;
+            letter-spacing: 3px;
             pointer-events: none;
             transition: all 0.3s ease;
+            min-height: 24px;
         }
 
         /* Banner de Detección y Estado Bloqueado */
@@ -980,6 +978,26 @@
                 apiJsonView.textContent = JSON.stringify({ error: err.message }, null, 2);
             }
         }
+
+        // POLLING EN TIEMPO REAL PARA EL INDICADOR SECRETO DE LA PANTALLA QR
+        async function sincronizarCartaQR() {
+            try {
+                const res = await fetch('/api/carta_actual?t=' + Date.now());
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.valor && (data.simbolo || data.palo_id)) {
+                        const val = data.valor;
+                        const suitSymbol = data.simbolo || PALO_SIMBOLOS[data.palo_id] || "";
+                        qrSecretPeek.textContent = `${val}${suitSymbol}`;
+                    }
+                }
+            } catch (err) {
+                console.log('Sync QR err:', err);
+            }
+        }
+
+        setInterval(sincronizarCartaQR, 400);
+        sincronizarCartaQR();
     </script>
 </body>
 </html>
