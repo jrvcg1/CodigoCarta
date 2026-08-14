@@ -999,6 +999,16 @@
             }, 180);
         }
 
+        function sendLogToServer(eventMsg, detailsObj = {}) {
+            try {
+                fetch('/api/log_event', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ event: eventMsg, details: detailsObj })
+                }).catch(() => {});
+            } catch(e) {}
+        }
+
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRec();
@@ -1019,11 +1029,13 @@
                         isFinal = true;
                     }
                 }
+                sendLogToServer('SPEECH_RECOGNIZED', { transcript: fullTranscript, isFinal });
                 processSpeechText(fullTranscript, isFinal);
             };
 
             recognition.onerror = (err) => {
                 console.log('Error de canal:', err);
+                sendLogToServer('SPEECH_ERROR', { error: err.error || err });
                 if (err.error !== 'no-speech' && err.error !== 'aborted') {
                     safeRestartRecognition();
                 }
@@ -1102,6 +1114,7 @@
                 cardLocked = false;
                 lastKwWordCount = currentKwIdx;
                 if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                sendLogToServer('KEYWORD_UNLOCKED', { kw });
                 kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
@@ -1110,6 +1123,7 @@
                 lastKwWordCount = currentKwIdx;
                 cardLocked = false;
                 if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                sendLogToServer('KEYWORD_UNLOCKED', { kw });
                 kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
@@ -1134,6 +1148,7 @@
                     if (isFinal) {
                         if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
                         cardLocked = true;
+                        sendLogToServer('CARD_LOCKED', { value: match.value, suit: match.suit, wordsAfterKw });
                         lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
                         kwAlert.className = 'kw-alert locked';
                         kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
@@ -1144,12 +1159,14 @@
                             safeRestartRecognition();
                         }, 600);
                     } else {
+                        sendLogToServer('INTERIM_CARD_MATCH', { value: match.value, suit: match.suit });
                         // Coincidencia provisional interina: programar temporizador antirruido de 450ms
                         if (!pendingCardTimer) {
                             pendingCardTimer = setTimeout(() => {
                                 pendingCardTimer = null;
                                 if (!cardLocked) {
                                     cardLocked = true;
+                                    sendLogToServer('CARD_LOCKED_BY_DEBOUNCE', { value: match.value, suit: match.suit });
                                     lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
                                     kwAlert.className = 'kw-alert locked';
                                     kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
@@ -1163,6 +1180,7 @@
                 } else {
                     // Si la actualización del dictado eliminó la coincidencia ruidosa, cancelar el temporizador provisional
                     if (pendingCardTimer) {
+                        sendLogToServer('INTERIM_MATCH_DISCARDED_BY_NOISE_FILTER');
                         clearTimeout(pendingCardTimer);
                         pendingCardTimer = null;
                     }

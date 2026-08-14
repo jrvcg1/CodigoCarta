@@ -109,6 +109,42 @@ def health_check():
     return {"status": "ok", "service": "API REST Código Verbal"}
 
 
+# Historial de logs en tiempo real para monitoreo durante pruebas
+EVENT_LOGS = []
+
+class LogPayload(BaseModel):
+    event: str
+    details: Optional[dict] = None
+
+@app.post("/api/log_event", tags=["Monitoreo"])
+def registrar_evento_log(payload: LogPayload):
+    """Registra eventos de voz y decodificación para monitoreo en vivo."""
+    import datetime
+    timestamp = datetime.datetime.now().strftime("%H:%M:%S.%f")[:-3]
+    entry = {
+        "time": timestamp,
+        "event": payload.event,
+        "details": payload.details or {}
+    }
+    EVENT_LOGS.append(entry)
+    if len(EVENT_LOGS) > 200:
+        EVENT_LOGS.pop(0)
+
+    try:
+        with open("live_events.log", "a", encoding="utf-8") as f:
+            f.write(f"[{timestamp}] {payload.event}: {payload.details}\n")
+    except Exception:
+        pass
+
+    return {"status": "ok", "total_logs": len(EVENT_LOGS)}
+
+
+@app.get("/api/logs", tags=["Monitoreo"])
+def obtener_logs(limit: int = 50):
+    """Retorna los últimos eventos registrados para monitoreo."""
+    return {"logs": EVENT_LOGS[-limit:]}
+
+
 # Estado en memoria de la carta activa en el servidor (por defecto As de Corazones)
 CARTA_ACTUAL = {
     "valor": "A",
