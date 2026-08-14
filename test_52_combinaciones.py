@@ -1,99 +1,89 @@
 import sys
-from test_fonetico import detectCardFromSpeech, VALUE_PATTERNS, SUIT_PATTERNS, VALUE_NAMES, PALO_NOMBRES
+from codigo_carta import detectCardFromSpeech, detectCardWithKeyword
 
-# 1. Matriz de frases de prueba para las 52 combinaciones (13 valores x 4 palos)
-VALOR_BASES = {
-    'AS': "Ahora sí",
-    'DOS': "De otro sitio",
-    'TRE': "Tiene respuesta evidente",
-    'CUA': "Cada uno adivina",
-    'CIN': "Cada instante noto",
-    'SEI': "Siempre encuentra indicios",
-    'SIE': "Siempre intenta estar",
-    'OCH': "O como hoy",
-    'NUE': "Nunca uso explicaciones",
-    'DIE': "De inmediato encaja",
-    'ONC': "Hombre no creo",
-    'DOC': "Dos cosas coinciden",
-    'REI': "Realmente es increíble",
+VALORES_TEST = {
+    "A": "antes",
+    "2": "ahora",
+    "3": "luego",
+    "4": "después",
+    "5": "nada",
+    "6": "poco",
+    "7": "mucho",
+    "8": "demasiado",
+    "9": "todo",
+    "10": "mal",
+    "J": "regular",
+    "Q": "bien",
+    "K": "perfecto"
 }
 
-PALO_PALABRAS = {
-    'picas': "perfecto",
-    'corazones': "correcto",
-    'diamantes': "donde",
-    'treboles': "tranquilo"
+PALOS_TEST = {
+    "treboles": "cogido",
+    "picas": "sacado",
+    "diamantes": "elegido",
+    "corazones": "tomado"
 }
 
 def test_52_combinaciones():
     total = 0
     exitos = 0
-    for pat, val in VALUE_PATTERNS.items():
-        val_name = VALUE_NAMES[val]
-        base_phrase = VALOR_BASES[pat]
-        for suit_id, suit_word in PALO_PALABRAS.items():
+    for val, val_word in VALORES_TEST.items():
+        for suit_id, suit_word in PALOS_TEST.items():
             total += 1
-            frase = f"{base_phrase} {suit_word}."
-            res = detectCardFromSpeech(frase)
+            # Probar Orden 1: valor + palo
+            frase1 = f"Vale, hemos visto que {val_word} está {suit_word} aquí."
+            res1 = detectCardWithKeyword(frase1, "vale")
             
-            esperado_val = val
-            esperado_suit = suit_id
+            # Probar Orden 2: palo + valor
+            frase2 = f"Vale, el elemento {suit_word} era {val_word} en el juego."
+            res2 = detectCardWithKeyword(frase2, "vale")
             
-            ok = (res.get('detected') is True and 
-                  res.get('value') == esperado_val and 
-                  res.get('suit') == esperado_suit)
+            ok1 = (res1.get('detected') is True and 
+                   str(res1.get('value')) == val and 
+                   res1.get('suit') == suit_id)
+
+            ok2 = (res2.get('detected') is True and 
+                   str(res2.get('value')) == val and 
+                   res2.get('suit') == suit_id)
             
-            if ok:
+            if ok1 and ok2:
                 exitos += 1
             else:
-                print(f"[ERROR 52] Frase: '{frase}' -> Obtenido: {res}")
+                print(f"[ERROR 52] val={val}, suit={suit_id} -> r1={res1}, r2={res2}")
                 
-    print(f"Prueba de 52 combinaciones: {exitos} / {total} pasadas correctamente.")
+    print(f"Prueba de 52 combinaciones (ambos órdenes): {exitos} / {total} pasadas correctamente.")
     assert exitos == total
 
 def test_casos_borde():
     casos = [
         # Mayúsculas y minúsculas mixtas
-        ("HOMBRE NO CREO PROBABLE", True, "J", "picas"),
-        ("hombre, NO creo PROBABLEMENTE", True, "J", "picas"),
+        ("VALE lo que AHORA hemos TOMADO de la mesa", True, "2", "corazones"),
+        ("vale, el objeto SACADO ANTES era tuyo", True, "A", "picas"),
         
         # Tildes y puntuación compleja
-        ("¡Hombre! ¿No creo probable que sea correcto?", True, "J", "picas"),
-        ("¡¡¡SIEMPRE INTENTA ESTAR TRANQUILO!!!", True, 7, "treboles"),
+        ("¡Vale! ¿Se ha ELEGIDO bien el elemento?", True, "Q", "diamantes"),
+        ("¡¡¡VALE, NADA ESTÁ COGIDO AÚN!!!", True, "5", "treboles"),
         
-        # Frase larga con patrón en el medio de la conversación
-        ("Hola a todos, bienvenido al show. Hombre no creo probable que ocurra nada raro hoy.", True, "J", "picas"),
+        # Frase larga de magia / mentalismo
+        ("Hola a todos, bienvenido al show. Vale lo que hemos visto ahora está completamente tomado por la mente del espectador.", True, "2", "corazones"),
         
-        # Palabras anteriores y posteriores al patrón
-        ("Palabras de relleno antes del truco de otro sitio perfecto y mas palabras de relleno despues.", True, 2, "picas"),
+        # Palabras de palo y valor en orden inverso
+        ("Vale, el papel cogido fue perfecto para el experimento.", True, "K", "treboles"),
         
-        # Patrón incompleto o sin palo -> Debe retornar detected: False
-        ("De otro sitio", False, None, None),
-        ("Hombre no creo", False, None, None),
-        ("Tiene respuesta evidente", False, None, None),
+        # Sin palabra clave -> detected False
+        ("lo que ahora hemos tomado", False, None, None),
         
-        # Múltiples patrones -> Debe elegir el más reciente completo
-        ("De otro sitio perfecto... tiempo despues hombre no creo probable", True, "J", "picas"),
-        
-        # H muda y variaciones fonéticas
-        ("Ha sido perfecto hoy", True, "A", "picas"),
-        ("O como hoy parece evidente", True, 8, "picas"),
-        
-        # Variación de palabras de palo con la misma inicial fonética
-        ("Hombre no creo precisamente...", True, "J", "picas"),  # precisamente -> P
-        ("Hombre no creo posiblemente...", True, "J", "picas"),   # posiblemente -> P
-        ("Hombre no creo cosas...", True, "J", "corazones"),     # cosas -> C
-        ("Hombre no creo dado...", True, "J", "diamantes"),       # dado -> D
-        ("Hombre no creo todo...", True, "J", "treboles"),        # todo -> T
+        # Con palabra clave pero incompleto
+        ("Vale, lo que ahora estamos viendo...", False, None, None),
     ]
 
     total = len(casos)
     exitos = 0
     for frase, exp_detected, exp_val, exp_suit in casos:
-        res = detectCardFromSpeech(frase)
+        res = detectCardWithKeyword(frase, "vale")
         if exp_detected:
             ok = (res.get('detected') is True and 
-                  res.get('value') == exp_val and 
+                  str(res.get('value')) == exp_val and 
                   res.get('suit') == exp_suit)
         else:
             ok = (res.get('detected') is False)
@@ -101,12 +91,11 @@ def test_casos_borde():
         if ok:
             exitos += 1
         else:
-            print(f"[ERROR CASO BORDE] Frase: '{frase}' -> Obtenido: {res}")
+            print(f"[ERROR BORDE] Frase: '{frase}' -> Obtenido: {res}")
 
-    print(f"Prueba de Casos Borde: {exitos} / {total} pasadas correctamente.")
+    print(f"Prueba de casos borde: {exitos} / {total} pasados correctamente.")
     assert exitos == total
 
 if __name__ == "__main__":
     test_52_combinaciones()
     test_casos_borde()
-    print("\n[OK] TODOS LOS TESTS OBLIGATORIOS PASARON CON EXITO (52 combinaciones + casos borde).")

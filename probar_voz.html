@@ -714,12 +714,31 @@
             }
         });
 
-        // --- MOTOR FONÉTICO JS LOCAL PARA DECODIFICAR PALABRA CLAVE Y CARTA ---
-        const VALUE_PATTERNS = {
-            "AS": "A", "DOS": "2", "TRE": "3", "CUA": "4", "CIN": "5", "SEI": "6",
-            "SIE": "7", "OCH": "8", "NUE": "9", "DIE": "10", "ONC": "J", "DOC": "Q", "REI": "K"
+        // --- MOTOR DE DECODIFICACIÓN LOCAL POR PALABRAS CLAVE DE VALOR Y PALO ---
+        const VALOR_PALABRAS = {
+            "antes":     { valor: "A",  nombre: "As",       num: 1 },
+            "ahora":     { valor: "2",  nombre: "2",        num: 2 },
+            "luego":     { valor: "3",  nombre: "3",        num: 3 },
+            "despues":   { valor: "4",  nombre: "4",        num: 4 },
+            "despue":    { valor: "4",  nombre: "4",        num: 4 },
+            "nada":      { valor: "5",  nombre: "5",        num: 5 },
+            "poco":      { valor: "6",  nombre: "6",        num: 6 },
+            "mucho":     { valor: "7",  nombre: "7",        num: 7 },
+            "demasiado": { valor: "8",  nombre: "8",        num: 8 },
+            "todo":      { valor: "9",  nombre: "9",        num: 9 },
+            "mal":       { valor: "10", nombre: "10",       num: 10 },
+            "regular":   { valor: "J",  nombre: "J",        num: 11 },
+            "bien":      { valor: "Q",  nombre: "Q",        num: 12 },
+            "perfecto":  { valor: "K",  nombre: "K",        num: 13 }
         };
-        const SUIT_PATTERNS = { "P": "picas", "C": "corazones", "D": "diamantes", "T": "treboles" };
+
+        const PALO_PALABRAS = {
+            "cogido":  "treboles",
+            "sacado":  "picas",
+            "elegido": "diamantes",
+            "tomado":  "corazones"
+        };
+
         const PALO_NOMBRES = { "picas": "Picas ♠", "corazones": "Corazones ♥", "diamantes": "Diamantes ♦", "treboles": "Tréboles ♣" };
         const PALO_SIMBOLOS = { "picas": "♠", "corazones": "♥", "diamantes": "♦", "treboles": "♣" };
 
@@ -731,92 +750,38 @@
             return t.split(/\s+/).filter(w => w.length > 0);
         }
 
-        function getPhoneticInitial(word) {
-            if (!word) return [];
-            let w = word.toLowerCase();
-            let candidates = [];
-            if (w.startsWith("h")) {
-                if (w.length > 1 && "aeiou".includes(w[1])) candidates.push(w[1].toUpperCase());
-                candidates.push("H");
-                return candidates;
-            }
-            let c0 = w[0];
-            if ("aeiou".includes(c0)) {
-                candidates.push(c0.toUpperCase());
-                return candidates;
-            }
-            if (c0 === "y") candidates.push("I");
-            if ("ckq".includes(c0)) {
-                candidates.push("C");
-                if (w.length > 1 && w[1] === "o") candidates.push("O");
-            } else if ("sz".includes(c0)) {
-                candidates.push("S");
-            } else if ("bv".includes(c0)) {
-                candidates.push("B");
-            } else {
-                candidates.push(c0.toUpperCase());
-            }
-            return [...new Set(candidates)];
-        }
-
         function detectCardFromWords(words) {
             if (!words || words.length === 0) return null;
-            let phonetics = words.map(w => getPhoneticInitial(w));
-            let n = words.length;
-            let matches = [];
 
-            for (let i = 0; i < n; i++) {
-                // Caso AS
-                if (i + 1 < n) {
-                    if (phonetics[i].includes("A") && phonetics[i+1].includes("S")) {
-                        if (i + 2 < n) {
-                            for (let sCode of ["P", "C", "D", "T"]) {
-                                if (phonetics[i+2].includes(sCode)) {
-                                    matches.push({
-                                        value: "A",
-                                        suit: SUIT_PATTERNS[sCode],
-                                        suitCode: sCode,
-                                        pattern: "AS",
-                                        matchedWords: words.slice(i, i+3),
-                                        startIdx: i,
-                                        endIdx: i+3
-                                    });
-                                }
-                            }
-                        }
-                    }
-                }
-                // Patrón estándar (3 palabras valor + 1 palabra palo)
-                if (i + 2 < n) {
-                    for (let c1 of phonetics[i]) {
-                        for (let c2 of phonetics[i+1]) {
-                            for (let c3 of phonetics[i+2]) {
-                                let pat = c1 + c2 + c3;
-                                if (VALUE_PATTERNS[pat]) {
-                                    let val = VALUE_PATTERNS[pat];
-                                    if (i + 3 < n) {
-                                        for (let sCode of ["P", "C", "D", "T"]) {
-                                            if (phonetics[i+3].includes(sCode)) {
-                                                matches.push({
-                                                    value: val,
-                                                    suit: SUIT_PATTERNS[sCode],
-                                                    suitCode: sCode,
-                                                    pattern: pat,
-                                                    matchedWords: words.slice(i, i+4),
-                                                    startIdx: i,
-                                                    endIdx: i+4
-                                                });
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
+            let detectedVal = null;
+            let detectedPalo = null;
+            let valWord = null;
+            let paloWord = null;
+            let matchedWords = [];
+
+            for (let w of words) {
+                if (!detectedVal && VALOR_PALABRAS[w]) {
+                    detectedVal = VALOR_PALABRAS[w];
+                    valWord = w;
+                    matchedWords.push(w);
+                } else if (!detectedPalo && PALO_PALABRAS[w]) {
+                    detectedPalo = PALO_PALABRAS[w];
+                    paloWord = w;
+                    matchedWords.push(w);
                 }
             }
 
-            return matches.length > 0 ? matches[matches.length - 1] : null;
+            if (detectedVal && detectedPalo) {
+                return {
+                    value: detectedVal.valor,
+                    suit: detectedPalo,
+                    suitCode: paloWord.toUpperCase(),
+                    pattern: valWord.toUpperCase(),
+                    matchedWords: matchedWords
+                };
+            }
+
+            return null;
         }
 
         // --- ESTADO DE PROCESAMIENTO ---
@@ -971,19 +936,15 @@
 
             speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + highlightedTranscript;
 
-            // FRECUENCIAS DETECTADAS EN COLOR
-            let initBadges = cardMatch.matchedWords.slice(0, 3).map(w => {
-                let init = getPhoneticInitial(w)[0] || w[0].toUpperCase();
-                return `<span class="init-badge">${w} (${init})</span>`;
+            // PALABRAS DETECTADAS EN COLOR
+            let wordBadges = cardMatch.matchedWords.map(w => {
+                return `<span class="init-badge">${w.toUpperCase()}</span>`;
             }).join(' + ');
-
-            let suitWord = cardMatch.matchedWords[cardMatch.matchedWords.length - 1];
-            let suitBadge = `<span class="suit-badge">${suitWord} (${cardMatch.suitCode} -> ${suitName})</span>`;
 
             phoneticDetail.innerHTML = `
                 Clave Oracular: <span class="kw-tag">${kw.toUpperCase()}</span><br>
-                Frecuencias Detectadas: ${initBadges} | Matriz: ${suitBadge}<br>
-                Sintonización Confirmada: <span style="color:var(--gold-bright); font-weight:700;">${cardMatch.pattern}</span> + <span style="color:var(--cyan-glow); font-weight:700;">${cardMatch.suitCode}</span> => <strong>${val} de ${suitName}</strong>
+                Palabras Clave Identificadas: ${wordBadges}<br>
+                Sintonización Confirmada: <strong>${val} de ${suitName}</strong>
             `;
 
             // TRANSMISIÓN AL SERVIDOR

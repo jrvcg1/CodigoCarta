@@ -383,32 +383,28 @@ function tokenizar(frase){
   return crudos.map(t => t.replace(/[¿¡?!.,;:]/g, "")).filter(Boolean);
 }
 
-const VALUE_PATTERNS = {
-  "AS": "A",
-  "DOS": "2",
-  "TRE": "3",
-  "CUA": "4",
-  "CIN": "5",
-  "SEI": "6",
-  "SIE": "7",
-  "OCH": "8",
-  "NUE": "9",
-  "DIE": "10",
-  "ONC": "J",
-  "DOC": "Q",
-  "REI": "K"
+const VALOR_PALABRAS = {
+  "antes":     { valor: "A",  nombre: "As",       num: 1 },
+  "ahora":     { valor: "2",  nombre: "2",        num: 2 },
+  "luego":     { valor: "3",  nombre: "3",        num: 3 },
+  "despues":   { valor: "4",  nombre: "4",        num: 4 },
+  "despue":    { valor: "4",  nombre: "4",        num: 4 },
+  "nada":      { valor: "5",  nombre: "5",        num: 5 },
+  "poco":      { valor: "6",  nombre: "6",        num: 6 },
+  "mucho":     { valor: "7",  nombre: "7",        num: 7 },
+  "demasiado": { valor: "8",  nombre: "8",        num: 8 },
+  "todo":      { valor: "9",  nombre: "9",        num: 9 },
+  "mal":       { valor: "10", nombre: "10",       num: 10 },
+  "regular":   { valor: "J",  nombre: "J",        num: 11 },
+  "bien":      { valor: "Q",  nombre: "Q",        num: 12 },
+  "perfecto":  { valor: "K",  nombre: "K",        num: 13 }
 };
 
-const SUIT_PATTERNS = {
-  "P": "picas",
-  "C": "corazones",
-  "D": "diamantes",
-  "T": "treboles"
-};
-
-const VALUE_NAMES = {
-  "A": "As", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7",
-  "8": "8", "9": "9", "10": "10", "J": "J", "Q": "Q", "K": "K"
+const PALO_PALABRAS = {
+  "cogido":  "treboles",
+  "sacado":  "picas",
+  "elegido": "diamantes",
+  "tomado":  "corazones"
 };
 
 function normalizeSpeech(text) {
@@ -419,121 +415,47 @@ function normalizeSpeech(text) {
   return t.split(/\s+/).filter(Boolean);
 }
 
-function getPhoneticInitial(word) {
-  if (!word) return [];
-  const w = word.toLowerCase();
-  const candidates = [];
-
-  if (w.startsWith("h") && w.length > 1) {
-    const vowel = w[1];
-    if ("aeiou".includes(vowel)) candidates.push(vowel.toUpperCase());
-    candidates.push("H");
-    return [...new Set(candidates)];
-  }
-
-  const c0 = w[0];
-  if ("aeiou".includes(c0)) {
-    candidates.push(c0.toUpperCase());
-    return candidates;
-  }
-  if (c0 === "y") candidates.push("I");
-
-  if ("ckq".includes(c0)) {
-    candidates.push("C");
-    if (w.length > 1 && w[1] === "o") candidates.push("O");
-  } else if ("sz".includes(c0)) {
-    candidates.push("S");
-  } else if ("bv".includes(c0)) {
-    candidates.push("B");
-  } else {
-    candidates.push(c0.toUpperCase());
-  }
-
-  return [...new Set(candidates)];
-}
-
 function detectCardFromSpeech(text) {
   const words = normalizeSpeech(text);
   if (words.length === 0) return { detected: false };
 
-  const phonetics = words.map(w => getPhoneticInitial(w));
-  const n = words.length;
-  const matches = [];
+  let detectedVal = null;
+  let detectedPalo = null;
+  let valWord = null;
+  let paloWord = null;
+  let matchedWords = [];
 
-  for (let i = 0; i < n; i++) {
-    // Especial AS (2 palabras + palo)
-    if (i + 1 < n) {
-      if (phonetics[i].includes("A") && phonetics[i+1].includes("S")) {
-        if (i + 2 < n) {
-          const suitCand = phonetics[i+2];
-          for (const sCode of ["P", "C", "D", "T"]) {
-            if (suitCand.includes(sCode)) {
-              matches.push({
-                detected: true,
-                value: "A",
-                valueName: "As",
-                suit: SUIT_PATTERNS[sCode],
-                suitCode: sCode,
-                valuePattern: "AS",
-                matchedWords: words.slice(i, i+3),
-                startIdx: i,
-                endIdx: i+3,
-                confidence: 1
-              });
-            }
-          }
-        }
-      }
-    }
-
-    // Patrón Estándar (3 palabras + 1 palo)
-    if (i + 2 < n) {
-      for (const c1 of phonetics[i]) {
-        for (const c2 of phonetics[i+1]) {
-          for (const c3 of phonetics[i+2]) {
-            const pat = c1 + c2 + c3;
-            if (VALUE_PATTERNS[pat]) {
-              const val = VALUE_PATTERNS[pat];
-              const valName = VALUE_NAMES[val];
-              if (i + 3 < n) {
-                const suitCand = phonetics[i+3];
-                for (const sCode of ["P", "C", "D", "T"]) {
-                  if (suitCand.includes(sCode)) {
-                    matches.push({
-                      detected: true,
-                      value: String(val),
-                      valueName: String(valName),
-                      suit: SUIT_PATTERNS[sCode],
-                      suitCode: sCode,
-                      valuePattern: pat,
-                      matchedWords: words.slice(i, i+4),
-                      startIdx: i,
-                      endIdx: i+4,
-                      confidence: 1
-                    });
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+  for (const w of words) {
+    if (!detectedVal && VALOR_PALABRAS[w]) {
+      detectedVal = VALOR_PALABRAS[w];
+      valWord = w;
+      matchedWords.push(w);
+    } else if (!detectedPalo && PALO_PALABRAS[w]) {
+      detectedPalo = PALO_PALABRAS[w];
+      paloWord = w;
+      matchedWords.push(w);
     }
   }
 
-  if (matches.length === 0) return { detected: false };
+  if (detectedVal && detectedPalo) {
+    return {
+      detected: true,
+      value: detectedVal.valor,
+      valueName: detectedVal.nombre,
+      suit: detectedPalo,
+      suitCode: paloWord.toUpperCase(),
+      valuePattern: valWord.toUpperCase(),
+      matchedWords: matchedWords
+    };
+  }
 
-  matches.sort((a, b) => b.endIdx - a.endIdx || b.startIdx - a.startIdx);
-  const best = matches[0];
-  delete best.startIdx;
-  delete best.endIdx;
-  return best;
+  return { detected: false };
 }
 
 function analizarFrase(frase) {
   const res = detectCardFromSpeech(frase);
   if (!res.detected) {
-    return { error: "no se detectó ningún patrón fonético de valor + palo" };
+    return { error: "no se detectó ninguna combinación válida de palabra de valor + palabra de palo" };
   }
   return {
     valor: res.value,
@@ -542,6 +464,9 @@ function analizarFrase(frase) {
     n: res.matchedWords.length,
     coletilla: res.suitCode,
     matchedWords: res.matchedWords,
+    valuePattern: res.valuePattern
+  };
+}ds: res.matchedWords,
     valuePattern: res.valuePattern
   };
 }

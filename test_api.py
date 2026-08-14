@@ -1,5 +1,5 @@
 """
-Pruebas de la API REST de Decodificación de Cartas usando el nuevo motor fonético
+Pruebas de la API REST de Decodificación de Cartas usando el nuevo motor de palabras clave directas
 """
 
 from fastapi.testclient import TestClient
@@ -14,30 +14,29 @@ def test_health():
     print("[OK] GET /health funcionando correctamente.")
 
 def test_decodificar_get_exito():
-    # Hombre (O) + no (N) + creo (C) + probable (P) -> J de Picas
-    response = client.get("/api/decodificar?frase=Hombre no creo probable")
+    # regular (J) + sacado (picas) -> J de Picas
+    response = client.get("/api/decodificar?frase=Hablando del elemento regular que fue sacado")
     assert response.status_code == 200
     data = response.json()
     assert data["exito"] is True
     assert data["valor"] == "J"
     assert data["palo_id"] == "picas"
     assert data["palo"]["simbolo"] == "♠"
-    assert data["coletilla"] == "P"
-    print("[OK] GET /api/decodificar exito: J de Picas fonetico verificado.")
+    print("[OK] GET /api/decodificar exito: J de Picas verificado.")
 
 def test_decodificar_get_error_sin_palo():
-    # De otro sitio (DOS sin palo) -> No confirma carta (error)
-    response = client.get("/api/decodificar?frase=De otro sitio")
+    # ahora (2 sin palabra de palo) -> No confirma carta (error)
+    response = client.get("/api/decodificar?frase=Hola ahora estamos viendo")
     assert response.status_code == 200
     data = response.json()
     assert data["exito"] is False
     assert "error" in data
     print("[OK] GET /api/decodificar sin palabra de palo verificado.")
 
-def test_decodificar_post_fonetico():
-    # De (D) + otro (O) + sitio (S) + perfecto (P) -> 2 de Picas
+def test_decodificar_post_kw():
+    # ahora (2) + sacado (picas) -> 2 de Picas
     payload = {
-        "frase": "De otro sitio perfecto que va ocurriendo"
+        "frase": "Viendo que ahora fue sacado de la baraja"
     }
     response = client.post("/api/decodificar", json=payload)
     assert response.status_code == 200
@@ -45,13 +44,11 @@ def test_decodificar_post_fonetico():
     assert data["exito"] is True
     assert data["valor"] == "2"
     assert data["palo_id"] == "picas"
-    assert data["coletilla"] == "P"
-    print("[OK] POST /api/decodificar fonetico verificado.")
+    print("[OK] POST /api/decodificar verificado.")
 
 def test_obtener_configuracion():
     get_res = client.get("/api/config")
     assert get_res.status_code == 200
-    assert "coletillas" in get_res.json()
     print("[OK] GET /api/config verificado.")
 
 def test_endpoints_visuales():
@@ -76,10 +73,9 @@ def test_endpoints_visuales():
     print("[OK] GET /probar_voz (Prueba de Voz con Palabra Clave HTML) verificado.")
 
 def test_decodificar_palabra_clave():
-    # Frase del usuario: "estaba hablando normal y dije vale de otro sitio cabria esperar"
-    # Palabra clave: "vale" -> de (D) + otro (O) + sitio (S) + cabria (C) = 2 de Corazones (2♥)
+    # Palabra clave: "vale" -> ahora (2) + tomado (corazones) = 2 de Corazones (2♥)
     payload = {
-        "texto": "estaba hablando normal y dije vale de otro sitio cabria esperar",
+        "texto": "estaba hablando normal y dije vale ahora hemos tomado el elemento",
         "palabra_clave": "vale"
     }
     response = client.post("/api/decodificar_palabra_clave", json=payload)
@@ -97,7 +93,7 @@ if __name__ == "__main__":
     test_health()
     test_decodificar_get_exito()
     test_decodificar_get_error_sin_palo()
-    test_decodificar_post_fonetico()
+    test_decodificar_post_kw()
     test_obtener_configuracion()
     test_endpoints_visuales()
     test_decodificar_palabra_clave()

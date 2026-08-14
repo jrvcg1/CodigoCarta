@@ -1,13 +1,16 @@
 """
-CÓDIGO VERBAL FONÉTICO PARA MENTALISMO — Baraja de póker (52 cartas)
+CÓDIGO VERBAL PARA MENTALISMO — Baraja de póker (52 cartas)
 =====================================================================
-Motor de detección fonética basado en patrones de iniciales habladas consecutivas:
-- PALABRA 1 + PALABRA 2 + PALABRA 3 = VALOR (Patrones: AS, DOS, TRE, CUA, CIN, SEI, SIE, OCH, NUE, DIE, ONC, DOC, REI)
-- PALABRA 4 = PALO (P = Picas, C = Corazones, D = Diamantes, T = Tréboles)
+Motor de detección por palabras clave de Valor y Palo:
+- PALABRA CLAVE DE ACTIVACIÓN: "vale" (o la configurada)
+- VALORES (1 a 13):
+  1=antes, 2=ahora, 3=luego, 4=después, 5=nada, 6=poco, 7=mucho,
+  8=demasiado, 9=todo, 10=mal, 11=regular (J), 12=bien (Q), 13=perfecto (K)
+- PALOS:
+  treboles=cogido, picas=sacado, diamantes=elegido, corazones=tomado
 """
 
 import re
-import random
 import unicodedata
 
 RANGOS = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
@@ -19,44 +22,38 @@ PALOS = {
     "picas":     {"simbolo": "♠", "nombre": "Picas"},
 }
 
-VALUE_PATTERNS = {
-    "AS":  "A",
-    "DOS": 2,
-    "TRE": 3,
-    "CUA": 4,
-    "CIN": 5,
-    "SEI": 6,
-    "SIE": 7,
-    "OCH": 8,
-    "NUE": 9,
-    "DIE": 10,
-    "ONC": "J",
-    "DOC": "Q",
-    "REI": "K"
+VALOR_PALABRAS = {
+    "antes":     {"valor": "A",  "nombre": "As",       "num": 1},
+    "ahora":     {"valor": "2",  "nombre": "2",        "num": 2},
+    "luego":     {"valor": "3",  "nombre": "3",        "num": 3},
+    "despues":   {"valor": "4",  "nombre": "4",        "num": 4},
+    "despue":    {"valor": "4",  "nombre": "4",        "num": 4},
+    "nada":      {"valor": "5",  "nombre": "5",        "num": 5},
+    "poco":      {"valor": "6",  "nombre": "6",        "num": 6},
+    "mucho":     {"valor": "7",  "nombre": "7",        "num": 7},
+    "demasiado": {"valor": "8",  "nombre": "8",        "num": 8},
+    "todo":      {"valor": "9",  "nombre": "9",        "num": 9},
+    "mal":       {"valor": "10", "nombre": "10",       "num": 10},
+    "regular":   {"valor": "J",  "nombre": "J",        "num": 11},
+    "bien":      {"valor": "Q",  "nombre": "Q",        "num": 12},
+    "perfecto":  {"valor": "K",  "nombre": "K",        "num": 13},
 }
 
-SUIT_PATTERNS = {
-    "P": "picas",
-    "C": "corazones",
-    "D": "diamantes",
-    "T": "treboles"
+PALO_PALABRAS = {
+    "cogido":  "treboles",
+    "sacado":  "picas",
+    "elegido": "diamantes",
+    "tomado":  "corazones",
 }
 
 VALUE_NAMES = {
-    "A": "As", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7",
-    8: "8", 9: "9", 10: "10", "J": "J", "Q": "Q", "K": "K"
-}
-
-COLETILLAS = {
-    "diamantes": ["D"],
-    "corazones": ["C"],
-    "picas":     ["P"],
-    "treboles":  ["T"],
+    "A": "As", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7",
+    "8": "8", "9": "9", "10": "10", "J": "J", "Q": "Q", "K": "K"
 }
 
 
 def normalizeSpeech(text: str) -> list:
-    """Normaliza el texto manteniendo palabras consecutivas limpias."""
+    """Normaliza el texto quitando acentos y signos de puntuación."""
     if not text:
         return []
     t = text.lower()
@@ -66,127 +63,53 @@ def normalizeSpeech(text: str) -> list:
     return [w for w in t.split() if w]
 
 
-def getPhoneticInitial(word: str) -> list:
-    """
-    Retorna los símbolos de iniciales fonéticas candidatas para una palabra en español,
-    gestionando H muda, vocales acentuadas y peculiaridades del habla.
-    """
-    if not word:
-        return []
-    w = word.lower()
-    candidates = []
-
-    # H muda al inicio -> vocal siguiente + H (ej: 'hombre' -> O y H, 'hoy' -> O y H)
-    if w.startswith("h") and len(w) > 1:
-        vowel = w[1]
-        if vowel in "aeiou":
-            candidates.append(vowel.upper())
-        candidates.append("H")
-        return candidates
-
-    c0 = w[0]
-
-    # Vocales
-    if c0 in "aeiou":
-        candidates.append(c0.upper())
-        return candidates
-    if c0 == "y":
-        candidates.append("I")
-
-    # Consonantes y peculiaridades
-    if c0 in "ckq":
-        candidates.append("C")
-        if len(w) > 1 and w[1] == "o":
-            candidates.append("O")
-    elif c0 in "sz":
-        candidates.append("S")
-    elif c0 in "bv":
-        candidates.append("B")
-    else:
-        candidates.append(c0.upper())
-
-    return list(dict.fromkeys(candidates))
-
-
 def detectCardFromSpeech(text: str) -> dict:
     """
-    Función principal de detección fonética:
-    Busca patrones fonéticos consecutivos (3 palabras de valor + 1 palabra de palo).
+    Escanea las palabras de la frase para identificar la palabra de valor
+    y la palabra de palo, independientemente del orden en que aparezcan.
     """
     words = normalizeSpeech(text)
     if not words:
         return {"detected": False}
 
-    phonetics = [getPhoneticInitial(w) for w in words]
-    n = len(words)
-    matches = []
+    detected_val = None
+    detected_palo = None
+    val_word = None
+    palo_word = None
+    matched_words = []
 
-    for i in range(n):
-        # --- Caso Especial AS (2 palabras + palo) ---
-        if i + 1 < n:
-            c1_list = phonetics[i]
-            c2_list = phonetics[i+1]
-            if "A" in c1_list and "S" in c2_list:
-                if i + 2 < n:
-                    suit_candidates = phonetics[i+2]
-                    for s_code in ["P", "C", "D", "T"]:
-                        if s_code in suit_candidates:
-                            matches.append({
-                                "detected": True,
-                                "value": "A",
-                                "valueName": "As",
-                                "suit": SUIT_PATTERNS[s_code],
-                                "suitCode": s_code,
-                                "valuePattern": "AS",
-                                "matchedWords": words[i:i+3],
-                                "startIdx": i,
-                                "endIdx": i+3,
-                                "confidence": 1
-                            })
+    for w in words:
+        # Verificar si es palabra de valor
+        if not detected_val and w in VALOR_PALABRAS:
+            detected_val = VALOR_PALABRAS[w]
+            val_word = w
+            matched_words.append(w)
+        # Verificar si es palabra de palo
+        elif not detected_palo and w in PALO_PALABRAS:
+            detected_palo = PALO_PALABRAS[w]
+            palo_word = w
+            matched_words.append(w)
 
-        # --- Patrón Estándar de Valor (3 palabras + 1 palabra de palo) ---
-        if i + 2 < n:
-            for c1 in phonetics[i]:
-                for c2 in phonetics[i+1]:
-                    for c3 in phonetics[i+2]:
-                        pat = c1 + c2 + c3
-                        if pat in VALUE_PATTERNS:
-                            val = VALUE_PATTERNS[pat]
-                            val_name = VALUE_NAMES[val]
-                            
-                            if i + 3 < n:
-                                suit_candidates = phonetics[i+3]
-                                for s_code in ["P", "C", "D", "T"]:
-                                    if s_code in suit_candidates:
-                                        matches.append({
-                                            "detected": True,
-                                            "value": str(val),
-                                            "valueName": str(val_name),
-                                            "suit": SUIT_PATTERNS[s_code],
-                                            "suitCode": s_code,
-                                            "valuePattern": pat,
-                                            "matchedWords": words[i:i+4],
-                                            "startIdx": i,
-                                            "endIdx": i+4,
-                                            "confidence": 1
-                                        })
+    if detected_val and detected_palo:
+        return {
+            "detected": True,
+            "value": detected_val["valor"],
+            "valueName": detected_val["nombre"],
+            "suit": detected_palo,
+            "suitCode": palo_word.upper(),
+            "valuePattern": val_word.upper(),
+            "matchedWords": matched_words,
+            "confidence": 1
+        }
 
-    if not matches:
-        return {"detected": False}
-
-    # Preferir la coincidencia más reciente con valor + palo
-    matches.sort(key=lambda m: (m["endIdx"], m["startIdx"]), reverse=True)
-    best = matches[0]
-    del best["startIdx"]
-    del best["endIdx"]
-    return best
+    return {"detected": False}
 
 
 def analizar_frase(frase: str, coletillas: dict = None) -> dict:
-    """Mantiene compatibilidad con la estructura de respuesta de la aplicación existente."""
+    """Compatibilidad con la API REST."""
     res = detectCardFromSpeech(frase)
     if not res.get("detected"):
-        return {"error": "no se reconoció ningún patrón fonético válido de valor + palo"}
+        return {"error": "no se reconoció ninguna combinación válida de palabra de valor + palabra de palo"}
 
     palo_id = res["suit"]
     valor_str = str(res["value"])
@@ -206,24 +129,20 @@ def texto_resultado(frase: str) -> str:
     if "error" in r:
         return f"⚠ {r['error']}"
     return (f"{r['valor']} de {r['palo']['nombre']} {r['palo']['simbolo']}  "
-            f"(Patrón {r['valuePattern']} + {r['coletilla']})")
+            f"(Palabras: {r['valuePattern']} + {r['coletilla']})")
 
 
 def detectCardWithKeyword(text: str, keyword: str = "vale") -> dict:
     """
     Busca la palabra clave (ej. 'vale') dentro del texto hablado.
-    Si la encuentra, analiza el texto posterior para detectar la carta.
+    Si la encuentra, analiza las palabras posteriores para detectar valor y palo.
     """
     if not text or not keyword:
         return {"keywordFound": False, "detected": False}
 
     words = normalizeSpeech(text)
     kw_words = normalizeSpeech(keyword)
-
-    if not kw_words:
-        kw = "vale"
-    else:
-        kw = kw_words[0]
+    kw = kw_words[0] if kw_words else "vale"
 
     # Buscar la última aparición de la palabra clave
     kw_idx = -1
@@ -248,4 +167,3 @@ def detectCardWithKeyword(text: str, keyword: str = "vale") -> dict:
     card_res["afterWords"] = after_words
     card_res["fullText"] = text
     return card_res
-

@@ -13,14 +13,15 @@ from pydantic import BaseModel, Field
 
 from codigo_carta import (
     analizar_frase,
-    COLETILLAS,
+    VALOR_PALABRAS,
+    PALO_PALABRAS,
     PALOS,
     RANGOS
 )
 
 app = FastAPI(
     title="API REST — Código Verbal Mentalismo",
-    description="Servicio web para decodificar cartas de póker a partir de frases verbales y gestionar la configuración de coletillas por palo.",
+    description="Servicio web para decodificar cartas de póker a partir de frases verbales.",
     version="1.0.0",
 )
 
@@ -33,9 +34,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuración global en memoria de coletillas activas (inicializada desde codigo_carta.py)
-CONFIG_COLETILLAS: Dict[str, List[str]] = {
-    palo_id: list(expresiones) for palo_id, expresiones in COLETILLAS.items()
+CONFIG_PALABRAS = {
+    "valores": VALOR_PALABRAS,
+    "palos": PALO_PALABRAS
 }
 
 # Montar carpeta de cartas SVG realistas como estáticos
@@ -169,7 +170,7 @@ def decodificar_get(
     Interpreta una frase completa para determinar la carta de póker codificada (Valor + Palo).
     Actualiza silenciosamente el estado del servidor para la pantalla en directo.
     """
-    res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
+    res = analizar_frase(frase)
     if "error" in res:
         return ResultadoDecodificación(
             exito=False,
@@ -201,8 +202,7 @@ def decodificar_post(body: PeticionPostDecodificar):
     Interpreta una frase enviada por JSON POST.
     Actualiza silenciosamente el estado del servidor sin refrescar ninguna pantalla.
     """
-    coletillas_a_usar = body.coletillas if body.coletillas is not None else CONFIG_COLETILLAS
-    res = analizar_frase(body.frase, coletillas=coletillas_a_usar)
+    res = analizar_frase(body.frase)
 
     if "error" in res:
         return ResultadoDecodificación(
@@ -266,17 +266,16 @@ def decodificar_palabra_clave(body: PeticionDecodificacionPalabraClave):
 
 @app.get(
     "/api/config",
-    response_model=RespuestaConfiguracion,
-    summary="Obtener configuración de coletillas y palos",
-    tags=["Configuración de Palos"]
+    summary="Obtener configuración de palabras clave y palos",
+    tags=["Configuración"]
 )
 def obtener_configuracion():
-    """Retorna la lista actual de palabras/coletillas configuradas para cada palo."""
+    """Retorna las palabras clave configuradas para valores y palos."""
     palos_formatted = {palo_id: PaloInfo(**data) for palo_id, data in PALOS.items()}
-    return RespuestaConfiguracion(
-        coletillas=CONFIG_COLETILLAS,
-        palos_disponibles=palos_formatted
-    )
+    return {
+        "palabras": CONFIG_PALABRAS,
+        "palos_disponibles": palos_formatted
+    }
 
 
 @app.put(
@@ -397,8 +396,8 @@ def visualizar_carta(
         }
     else:
         # Carta por defecto: As de Corazones (A♥)
-        frase = "Ahora sí correcto"
-        res = analizar_frase(frase, coletillas=CONFIG_COLETILLAS)
+        frase = "antes tomado"
+        res = analizar_frase(frase)
 
     # Si hay error en la frase dada, recurrir a la carta activa actual o As de Corazones
     if "error" in res:
