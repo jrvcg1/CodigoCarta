@@ -18,6 +18,7 @@ public class MainActivity extends Activity {
 
     private static final int REQUEST_MIC_PERMISSION = 101;
     private WebView webView;
+    public float savedBrightness = -1.0f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -129,9 +130,9 @@ class GrantPermissionRunnable implements Runnable {
 }
 
 class WebAppInterface {
-    private final Activity activity;
+    private final MainActivity activity;
 
-    public WebAppInterface(Activity act) {
+    public WebAppInterface(MainActivity act) {
         this.activity = act;
     }
 
@@ -142,10 +143,10 @@ class WebAppInterface {
 }
 
 class SetBrightnessRunnable implements Runnable {
-    private final Activity activity;
+    private final MainActivity activity;
     private final float val;
 
-    public SetBrightnessRunnable(Activity act, float v) {
+    public SetBrightnessRunnable(MainActivity act, float v) {
         this.activity = act;
         this.val = v;
     }
@@ -154,9 +155,30 @@ class SetBrightnessRunnable implements Runnable {
     public void run() {
         WindowManager.LayoutParams lp = activity.getWindow().getAttributes();
         if (val <= 0.05f) {
+            // Guardar el brillo previo del dispositivo antes de bajarlo al mínimo
+            float currentBright = lp.screenBrightness;
+            if (currentBright > 0.05f) {
+                activity.savedBrightness = currentBright;
+            } else {
+                try {
+                    int sysBright = android.provider.Settings.System.getInt(
+                            activity.getContentResolver(),
+                            android.provider.Settings.System.SCREEN_BRIGHTNESS
+                    );
+                    activity.savedBrightness = sysBright / 255.0f;
+                } catch (Exception e) {
+                    activity.savedBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+                }
+            }
+            // Asignar brillo al 1% (mínimo)
             lp.screenBrightness = 0.01f;
         } else {
-            lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+            // Restaurar exactamente el nivel de brillo que tenía antes del modo oscuro
+            if (activity.savedBrightness > 0.05f) {
+                lp.screenBrightness = activity.savedBrightness;
+            } else {
+                lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+            }
         }
         activity.getWindow().setAttributes(lp);
     }
