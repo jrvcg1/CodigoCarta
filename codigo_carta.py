@@ -57,8 +57,6 @@ VALOR_PALABRAS = {
     "9":         {"valor": "9",  "nombre": "9",        "num": 9},
     "nueve":     {"valor": "9",  "nombre": "9",        "num": 9},
     "mal":       {"valor": "10", "nombre": "10",       "num": 10},
-    "mar":       {"valor": "10", "nombre": "10",       "num": 10},
-    "mas":       {"valor": "10", "nombre": "10",       "num": 10},
     "malo":      {"valor": "10", "nombre": "10",       "num": 10},
     "mala":      {"valor": "10", "nombre": "10",       "num": 10},
     "10":        {"valor": "10", "nombre": "10",       "num": 10},

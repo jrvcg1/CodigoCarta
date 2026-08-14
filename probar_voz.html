@@ -872,8 +872,6 @@
             "9":         { valor: "9",  nombre: "9",        num: 9 },
             "nueve":     { valor: "9",  nombre: "9",        num: 9 },
             "mal":       { valor: "10", nombre: "10",       num: 10 },
-            "mar":       { valor: "10", nombre: "10",       num: 10 },
-            "mas":       { valor: "10", nombre: "10",       num: 10 },
             "malo":      { valor: "10", nombre: "10",       num: 10 },
             "mala":      { valor: "10", nombre: "10",       num: 10 },
             "10":        { valor: "10", nombre: "10",       num: 10 },
@@ -1130,9 +1128,7 @@
 
                     renderRecognizedCard(match, transcript, kw, wordsAfterKw);
 
-                    // Vaciar el búfer de voz tras una revelación para que el siguiente "vale" inicie con búfer limpio
                     setTimeout(() => {
-                        lastKwWordCount = -1;
                         safeRestartRecognition();
                     }, 600);
                 }
@@ -1148,6 +1144,19 @@
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
             }
         }
+
+        function forceUnlockTransmission() {
+            cardLocked = false;
+            lastKwWordCount = -1;
+            let kw = keywordInput.value.trim().toUpperCase() || 'VALE';
+            kwAlert.className = 'kw-alert active';
+            kwAlert.innerHTML = `🟢 TRANSMISIÓN DESBLOQUEADA MANUALMENTE — Esperando clave "${kw}"`;
+            lockStatusBadge.innerHTML = `🟢 Transmitiendo (Desbloqueado libremente)`;
+            showStealthToast('🔓 Transmisión Desbloqueada Libremente');
+        }
+
+        if (kwAlert) kwAlert.addEventListener('click', forceUnlockTransmission);
+        if (lockStatusBadge) lockStatusBadge.addEventListener('click', forceUnlockTransmission);
 
         async function renderRecognizedCard(cardMatch, fullTranscript, kw, afterWords) {
             let val = cardMatch.value;
