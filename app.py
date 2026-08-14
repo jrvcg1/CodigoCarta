@@ -527,27 +527,6 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador Secreto del Mago Mimetizado (Aumentado 50% en tamaño y desplazado 50% a la derecha) */
-            .secret-peek {{
-                position: absolute;
-                bottom: 30px;
-                left: 38px;
-                font-family: 'Cinzel', monospace, sans-serif;
-                font-size: 11.5px;
-                font-weight: 700;
-                color: rgba(235, 210, 140, 0.85);
-                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
-                letter-spacing: 1.5px;
-                pointer-events: none;
-                user-select: none;
-                -webkit-user-select: none;
-                z-index: 99999;
-                transition: opacity 0.3s ease;
-            }}
-            .secret-peek.oculto {{
-                opacity: 0 !important;
-                visibility: hidden !important;
-            }}
         </style>
     </head>
     <body>
@@ -565,17 +544,12 @@ def visualizar_carta(
                     </div>
                 </div>
             </div>
-
-            <!-- Indicador Secreto del Mago en Primer Plano dentro del Escenario -->
-            <div class="secret-peek" id="secretPeek">{card_valor}{simbolo}</div>
         </div>
 
         <script>
             let currentVersion = -1;
-            let peekVisible = true;
             const cardScene = document.getElementById('cardScene');
             const imgFront = document.getElementById('imgFront');
-            const secretPeek = document.getElementById('secretPeek');
 
             function toggleCard(e) {{
                 if (e) e.stopPropagation();
@@ -584,33 +558,6 @@ def visualizar_carta(
 
             cardScene.addEventListener('click', toggleCard);
 
-            // --- DOBLE TAP (MÓVIL) / DOBLE CLICK (DESKTOP) FUERA DE LA CARTA PARA OCULTAR / MOSTRAR VALOR OCULTO ---
-            function toggleSecretPeek() {{
-                peekVisible = !peekVisible;
-                if (peekVisible) {{
-                    secretPeek.classList.remove('oculto');
-                }} else {{
-                    secretPeek.classList.add('oculto');
-                }}
-            }}
-
-            let lastTapTime = 0;
-            document.addEventListener('touchend', (e) => {{
-                if (cardScene.contains(e.target)) return;
-                const currentTime = new Date().getTime();
-                const tapLength = currentTime - lastTapTime;
-                if (tapLength < 380 && tapLength > 0) {{
-                    toggleSecretPeek();
-                    e.preventDefault();
-                }}
-                lastTapTime = currentTime;
-            }});
-
-            document.addEventListener('dblclick', (e) => {{
-                if (cardScene.contains(e.target)) return;
-                toggleSecretPeek();
-            }});
-
             // Polling silencioso en segundo plano y precarga inmediata para garantizar sincronización en móvil
             async function consultarEstadoSilencioso() {{
                 try {{
@@ -618,8 +565,6 @@ def visualizar_carta(
                     if (res.ok) {{
                         const data = await res.json();
                         if (data.valor && data.palo_id) {{
-                            secretPeek.textContent = `${{data.valor}}${{data.simbolo || ''}}`;
-                            
                             if (data.version !== currentVersion) {{
                                 currentVersion = data.version;
                                 const newSrc = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
