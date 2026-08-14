@@ -74,8 +74,8 @@
             font-family: 'Cinzel', monospace, sans-serif;
             font-size: 64px;
             font-weight: 900;
-            color: rgba(235, 210, 140, 0.70); /* Mayor contraste y legibilidad con el brillo al mínimo */
-            text-shadow: 0 0 10px rgba(212, 175, 55, 0.5);
+            color: rgba(255, 255, 255, 0.85); /* Blanco brillante de alto contraste */
+            text-shadow: 0 0 14px rgba(255, 255, 255, 0.8), 0 0 4px rgba(255, 255, 255, 0.9);
             letter-spacing: 5px;
             pointer-events: none;
             user-select: none;
@@ -729,69 +729,112 @@
         btnHideUI.addEventListener('click', () => setScreenMode('black'));
         btnQRUI.addEventListener('click', () => setScreenMode('qr'));
 
-        // --- GESTIÓN DE OPACIDAD DEL SECRET PEEK EN PANTALLA NEGRA MEDIANTE GESTO VERTICAL ---
-        let currentStealthOpacity = parseFloat(localStorage.getItem('stealth_opacity')) || 0.70;
+        // --- GESTIÓN UNIFICADA DE DOBLE TAP Y DESLIZAMIENTO VERTICAL DE OPACIDAD EN PANTALLA NEGRA ---
+        let currentStealthOpacity = parseFloat(localStorage.getItem('stealth_opacity')) || 0.85;
 
         function applyStealthOpacity(opacityVal) {
             currentStealthOpacity = Math.max(0.08, Math.min(1.0, opacityVal));
             if (stealthSecretPeek) {
-                stealthSecretPeek.style.color = `rgba(235, 210, 140, ${currentStealthOpacity})`;
-                stealthSecretPeek.style.textShadow = `0 0 ${currentStealthOpacity * 12}px rgba(212, 175, 55, ${currentStealthOpacity * 0.7})`;
+                stealthSecretPeek.style.color = `rgba(255, 255, 255, ${currentStealthOpacity})`;
+                stealthSecretPeek.style.textShadow = `0 0 ${currentStealthOpacity * 14}px rgba(255, 255, 255, ${currentStealthOpacity * 0.8}), 0 0 4px rgba(255, 255, 255, 0.9)`;
             }
         }
 
         applyStealthOpacity(currentStealthOpacity);
 
+        let lastTapTime = 0;
         let touchStartY = 0;
+        let touchEndY = 0;
         let opacityAtTouchStart = currentStealthOpacity;
-        let isDraggingStealth = false;
+        let isSwipingStealth = false;
 
-        if (stealthScreenMode) {
-            stealthScreenMode.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    touchStartY = e.touches[0].clientY;
-                    opacityAtTouchStart = currentStealthOpacity;
-                    isDraggingStealth = true;
-                }
-            }, { passive: true });
-
-            stealthScreenMode.addEventListener('touchmove', (e) => {
-                if (isDraggingStealth && e.touches.length === 1) {
-                    let currentY = e.touches[0].clientY;
-                    let deltaY = touchStartY - currentY; // Deslizar hacia arriba aumenta brillo/opacidad
-                    let calculatedOpacity = opacityAtTouchStart + (deltaY * 0.0035);
-                    applyStealthOpacity(calculatedOpacity);
-                }
-            }, { passive: true });
-
-            stealthScreenMode.addEventListener('touchend', () => {
-                if (isDraggingStealth) {
-                    isDraggingStealth = false;
-                    localStorage.setItem('stealth_opacity', currentStealthOpacity.toFixed(2));
-                }
-            });
-
-            stealthScreenMode.addEventListener('mousedown', (e) => {
-                touchStartY = e.clientY;
+        document.addEventListener('touchstart', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            if (e.touches.length === 1) {
+                touchStartY = e.touches[0].clientY;
+                touchEndY = touchStartY;
                 opacityAtTouchStart = currentStealthOpacity;
-                isDraggingStealth = true;
-            });
+                isSwipingStealth = (currentScreenMode === 'black');
+            }
+        }, { passive: true });
 
-            document.addEventListener('mousemove', (e) => {
-                if (isDraggingStealth && currentScreenMode === 'black') {
-                    let deltaY = touchStartY - e.clientY;
+        document.addEventListener('touchmove', (e) => {
+            if (isSwipingStealth && e.touches.length === 1) {
+                touchEndY = e.touches[0].clientY;
+                let deltaY = touchStartY - touchEndY;
+                if (Math.abs(deltaY) > 8) {
                     let calculatedOpacity = opacityAtTouchStart + (deltaY * 0.0035);
                     applyStealthOpacity(calculatedOpacity);
                 }
-            });
+            }
+        }, { passive: true });
 
-            document.addEventListener('mouseup', () => {
-                if (isDraggingStealth) {
-                    isDraggingStealth = false;
-                    localStorage.setItem('stealth_opacity', currentStealthOpacity.toFixed(2));
+        document.addEventListener('touchend', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+
+            let deltaY = touchStartY - touchEndY;
+
+            // Si fue un deslizamiento vertical significativo en pantalla negra, guardar opacidad
+            if (isSwipingStealth && Math.abs(deltaY) >= 12) {
+                isSwipingStealth = false;
+                localStorage.setItem('stealth_opacity', currentStealthOpacity.toFixed(2));
+                return;
+            }
+
+            isSwipingStealth = false;
+
+            // Detectar doble toque si la distancia de arrastre fue pequeña (< 12px)
+            if (Math.abs(deltaY) < 12) {
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                if (tapLength < 380 && tapLength > 0) {
+                    if (currentScreenMode !== 'normal') {
+                        setScreenMode('normal');
+                    } else {
+                        setScreenMode('black');
+                    }
+                    lastTapTime = 0;
+                    if (e.cancelable) e.preventDefault();
+                    return;
                 }
-            });
-        }
+                lastTapTime = currentTime;
+            }
+        });
+
+        // Soporte de ratón para doble clic y arrastre en escritorio
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            if (currentScreenMode !== 'normal') {
+                setScreenMode('normal');
+            } else {
+                setScreenMode('black');
+            }
+        });
+
+        document.addEventListener('mousedown', (e) => {
+            if (currentScreenMode === 'black') {
+                touchStartY = e.clientY;
+                touchEndY = touchStartY;
+                opacityAtTouchStart = currentStealthOpacity;
+                isSwipingStealth = true;
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (isSwipingStealth && currentScreenMode === 'black') {
+                touchEndY = e.clientY;
+                let deltaY = touchStartY - touchEndY;
+                let calculatedOpacity = opacityAtTouchStart + (deltaY * 0.0035);
+                applyStealthOpacity(calculatedOpacity);
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isSwipingStealth && currentScreenMode === 'black') {
+                isSwipingStealth = false;
+                localStorage.setItem('stealth_opacity', currentStealthOpacity.toFixed(2));
+            }
+        });
 
         // --- MOTOR DE DECODIFICACIÓN LOCAL POR PALABRAS CLAVE DE VALOR Y PALO ---
         const VALOR_PALABRAS = {
