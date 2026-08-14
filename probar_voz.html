@@ -912,19 +912,47 @@
             }
         });
 
+        function isKwMatch(w, kwInput) {
+            if (!w) return false;
+            let target = kwInput.trim().toLowerCase();
+            if (w === target) return true;
+            if (target === 'vale') {
+                const variants = ['vale', 'bale', 'vales', 'bales', 'val', 'bal', 'valles', 'balle'];
+                return variants.includes(w);
+            }
+            return false;
+        }
+
+        function findLastKwIndex(words, kwInput) {
+            for (let i = words.length - 1; i >= 0; i--) {
+                if (isKwMatch(words[i], kwInput)) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         function processSpeechText(transcript) {
             let kw = keywordInput.value.trim().toLowerCase() || 'vale';
             let words = normalizeSpeech(transcript);
-            let currentKwIdx = words.lastIndexOf(kw);
+            if (words.length === 0) return;
 
-            if (currentKwIdx !== -1 && currentKwIdx > lastKwWordCount) {
-                lastKwWordCount = currentKwIdx;
+            let currentKwIdx = findLastKwIndex(words, kw);
+
+            // Si la carta estaba bloqueada y volvemos a escuchar la palabra clave (ej. "vale"), desbloqueamos la sintonización
+            if (cardLocked && currentKwIdx !== -1) {
                 cardLocked = false;
-
+                lastKwWordCount = currentKwIdx;
                 kwAlert.className = 'kw-alert active';
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
-
+                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+            } else if (currentKwIdx !== -1 && (lastKwWordCount === -1 || currentKwIdx > lastKwWordCount)) {
+                lastKwWordCount = currentKwIdx;
+                cardLocked = false;
+                kwAlert.className = 'kw-alert active';
+                kwDetectedName.textContent = kw.toUpperCase();
+                lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
             }
 
@@ -949,6 +977,12 @@
                     kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
 
                     renderRecognizedCard(match, transcript, kw, wordsAfterKw);
+
+                    // Vaciar el búfer de voz tras una revelación para que el siguiente "vale" inicie con búfer limpio
+                    setTimeout(() => {
+                        lastKwWordCount = -1;
+                        safeRestartRecognition();
+                    }, 600);
                 }
             } else {
                 let matchedWordsSet = new Set(window.lastMatchedWords || []);
