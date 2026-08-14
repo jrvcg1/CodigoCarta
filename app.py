@@ -87,6 +87,8 @@ class ConfiguracionColetillas(BaseModel):
 class PeticionDecodificacionPalabraClave(BaseModel):
     texto: str = Field(..., description="Texto reconocido por voz", example="estaba hablando y dije vale de otro sitio cabría esperar")
     palabra_clave: str = Field("vale", description="Palabra clave activadora (ej. 'vale')", example="vale")
+    valor: Optional[str] = Field(None, description="Valor explícito detectado por el cliente", example="9")
+    palo_id: Optional[str] = Field(None, description="Palo ID explícito detectado por el cliente", example="corazones")
 
 class RespuestaConfiguracion(BaseModel):
     coletillas: Dict[str, List[str]]
@@ -174,8 +176,8 @@ def actualizar_estado_carta(res: dict, frase: str):
                 "simbolo": palo_info.get("simbolo", ""),
                 "frase": frase,
                 "coletilla": res.get("coletilla", res.get("suitCode", "")),
-                "n_palabras": res.get("n_palabras", len(res.get("matchedWords", []))),
-                "version": CARTA_ACTUAL.get("version", 0) + 1
+                "n_palabras": res.get("n_palabras", 2),
+                "version": CARTA_ACTUAL.get("version", 1) + 1
             }
 
 

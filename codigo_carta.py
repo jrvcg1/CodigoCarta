@@ -190,26 +190,37 @@ def texto_resultado(frase: str) -> str:
             f"(Palabras: {r['valuePattern']} + {r['coletilla']})")
 
 
+def isKwMatch(w: str, keyword: str = "vale") -> bool:
+    if not w:
+        return False
+    target = keyword.strip().lower()
+    if w == target:
+        return True
+    if target == "vale":
+        variants = ["vale", "bale", "vales", "bales", "val", "bal", "valles", "balle"]
+        return w in variants
+    return False
+
+
 def detectCardWithKeyword(text: str, keyword: str = "vale") -> dict:
     """
-    Busca la palabra clave (ej. 'vale') dentro del texto hablado.
+    Busca la palabra clave (ej. 'vale' o variantes fonéticas) dentro del texto hablado.
     Si la encuentra, analiza las palabras posteriores para detectar valor y palo.
     """
-    if not text or not keyword:
+    if not text:
         return {"keywordFound": False, "detected": False}
 
     words = normalizeSpeech(text)
-    kw_words = normalizeSpeech(keyword)
-    kw = kw_words[0] if kw_words else "vale"
+    kw_target = keyword.strip().lower() if keyword else "vale"
 
-    # Buscar la última aparición de la palabra clave
+    # Buscar la última aparición de la palabra clave o sus variantes fonéticas
     kw_idx = -1
     for idx, w in enumerate(words):
-        if w == kw:
+        if isKwMatch(w, kw_target):
             kw_idx = idx
 
     if kw_idx == -1:
-        return {"keywordFound": False, "detected": False, "keyword": kw}
+        return {"keywordFound": False, "detected": False, "keyword": kw_target, "afterWords": words, "fullText": text}
 
     # Palabras después de la palabra clave
     after_words = words[kw_idx + 1:]
@@ -221,7 +232,7 @@ def detectCardWithKeyword(text: str, keyword: str = "vale") -> dict:
         card_res = detectCardFromSpeech(" ".join(words[kw_idx:]))
 
     card_res["keywordFound"] = True
-    card_res["keyword"] = kw
+    card_res["keyword"] = kw_target
     card_res["afterWords"] = after_words
     card_res["fullText"] = text
     return card_res
