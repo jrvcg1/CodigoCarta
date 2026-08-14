@@ -729,55 +729,153 @@
         btnHideUI.addEventListener('click', () => setScreenMode('black'));
         btnQRUI.addEventListener('click', () => setScreenMode('qr'));
 
-        // Detectar doble toque táctil (mobile) y doble clic (desktop) en cualquier lugar de la pantalla
-        let lastTapTime = 0;
-        document.addEventListener('touchend', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-            const currentTime = new Date().getTime();
-            const tapLength = currentTime - lastTapTime;
-            if (tapLength < 380 && tapLength > 0) {
-                if (currentScreenMode !== 'normal') {
-                    setScreenMode('normal');
-                } else {
-                    setScreenMode('black');
-                }
-                e.preventDefault();
-            }
-            lastTapTime = currentTime;
-        });
+        // --- GESTIÓN DE OPACIDAD DEL SECRET PEEK EN PANTALLA NEGRA MEDIANTE GESTO VERTICAL ---
+        let currentStealthOpacity = parseFloat(localStorage.getItem('stealth_opacity')) || 0.70;
 
-        document.addEventListener('dblclick', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
-            if (currentScreenMode !== 'normal') {
-                setScreenMode('normal');
-            } else {
-                setScreenMode('black');
+        function applyStealthOpacity(opacityVal) {
+            currentStealthOpacity = Math.max(0.08, Math.min(1.0, opacityVal));
+            if (stealthSecretPeek) {
+                stealthSecretPeek.style.color = `rgba(235, 210, 140, ${currentStealthOpacity})`;
+                stealthSecretPeek.style.textShadow = `0 0 ${currentStealthOpacity * 12}px rgba(212, 175, 55, ${currentStealthOpacity * 0.7})`;
             }
-        });
+        }
+
+        applyStealthOpacity(currentStealthOpacity);
+
+        let touchStartY = 0;
+        let opacityAtTouchStart = currentStealthOpacity;
+        let isDraggingStealth = false;
+
+        if (stealthScreenMode) {
+            stealthScreenMode.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    touchStartY = e.touches[0].clientY;
+                    opacityAtTouchStart = currentStealthOpacity;
+                    isDraggingStealth = true;
+                }
+            }, { passive: true });
+
+            stealthScreenMode.addEventListener('touchmove', (e) => {
+                if (isDraggingStealth && e.touches.length === 1) {
+                    let currentY = e.touches[0].clientY;
+                    let deltaY = touchStartY - currentY; // Deslizar hacia arriba aumenta brillo/opacidad
+                    let calculatedOpacity = opacityAtTouchStart + (deltaY * 0.0035);
+                    applyStealthOpacity(calculatedOpacity);
+                }
+            }, { passive: true });
+
+            stealthScreenMode.addEventListener('touchend', () => {
+                if (isDraggingStealth) {
+                    isDraggingStealth = false;
+                    localStorage.setItem('stealth_opacity', currentStealthOpacity.toFixed(2));
+                }
+            });
+
+            stealthScreenMode.addEventListener('mousedown', (e) => {
+                touchStartY = e.clientY;
+                opacityAtTouchStart = currentStealthOpacity;
+                isDraggingStealth = true;
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDraggingStealth && currentScreenMode === 'black') {
+                    let deltaY = touchStartY - e.clientY;
+                    let calculatedOpacity = opacityAtTouchStart + (deltaY * 0.0035);
+                    applyStealthOpacity(calculatedOpacity);
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                if (isDraggingStealth) {
+                    isDraggingStealth = false;
+                    localStorage.setItem('stealth_opacity', currentStealthOpacity.toFixed(2));
+                }
+            });
+        }
 
         // --- MOTOR DE DECODIFICACIÓN LOCAL POR PALABRAS CLAVE DE VALOR Y PALO ---
         const VALOR_PALABRAS = {
             "antes":     { valor: "A",  nombre: "As",       num: 1 },
+            "ante":      { valor: "A",  nombre: "As",       num: 1 },
+            "1":         { valor: "A",  nombre: "As",       num: 1 },
+            "uno":       { valor: "A",  nombre: "As",       num: 1 },
             "ahora":     { valor: "2",  nombre: "2",        num: 2 },
+            "2":         { valor: "2",  nombre: "2",        num: 2 },
+            "dos":       { valor: "2",  nombre: "2",        num: 2 },
             "luego":     { valor: "3",  nombre: "3",        num: 3 },
+            "3":         { valor: "3",  nombre: "3",        num: 3 },
+            "tres":      { valor: "3",  nombre: "3",        num: 3 },
             "despues":   { valor: "4",  nombre: "4",        num: 4 },
             "despue":    { valor: "4",  nombre: "4",        num: 4 },
+            "4":         { valor: "4",  nombre: "4",        num: 4 },
+            "cuatro":    { valor: "4",  nombre: "4",        num: 4 },
             "nada":      { valor: "5",  nombre: "5",        num: 5 },
+            "5":         { valor: "5",  nombre: "5",        num: 5 },
+            "cinco":     { valor: "5",  nombre: "5",        num: 5 },
             "poco":      { valor: "6",  nombre: "6",        num: 6 },
+            "poca":      { valor: "6",  nombre: "6",        num: 6 },
+            "6":         { valor: "6",  nombre: "6",        num: 6 },
+            "seis":      { valor: "6",  nombre: "6",        num: 6 },
             "mucho":     { valor: "7",  nombre: "7",        num: 7 },
+            "mucha":     { valor: "7",  nombre: "7",        num: 7 },
+            "7":         { valor: "7",  nombre: "7",        num: 7 },
+            "siete":     { valor: "7",  nombre: "7",        num: 7 },
             "demasiado": { valor: "8",  nombre: "8",        num: 8 },
+            "demasiada": { valor: "8",  nombre: "8",        num: 8 },
+            "8":         { valor: "8",  nombre: "8",        num: 8 },
+            "ocho":      { valor: "8",  nombre: "8",        num: 8 },
             "todo":      { valor: "9",  nombre: "9",        num: 9 },
+            "toda":      { valor: "9",  nombre: "9",        num: 9 },
+            "9":         { valor: "9",  nombre: "9",        num: 9 },
+            "nueve":     { valor: "9",  nombre: "9",        num: 9 },
             "mal":       { valor: "10", nombre: "10",       num: 10 },
+            "mar":       { valor: "10", nombre: "10",       num: 10 },
+            "mas":       { valor: "10", nombre: "10",       num: 10 },
+            "malo":      { valor: "10", nombre: "10",       num: 10 },
+            "mala":      { valor: "10", nombre: "10",       num: 10 },
+            "10":        { valor: "10", nombre: "10",       num: 10 },
+            "diez":      { valor: "10", nombre: "10",       num: 10 },
             "regular":   { valor: "J",  nombre: "J",        num: 11 },
+            "11":        { valor: "J",  nombre: "J",        num: 11 },
+            "once":      { valor: "J",  nombre: "J",        num: 11 },
+            "jota":      { valor: "J",  nombre: "J",        num: 11 },
             "bien":      { valor: "Q",  nombre: "Q",        num: 12 },
-            "perfecto":  { valor: "K",  nombre: "K",        num: 13 }
+            "12":        { valor: "Q",  nombre: "Q",        num: 12 },
+            "doce":      { valor: "Q",  nombre: "Q",        num: 12 },
+            "reina":     { valor: "Q",  nombre: "Q",        num: 12 },
+            "dama":      { valor: "Q",  nombre: "Q",        num: 12 },
+            "perfecto":  { valor: "K",  nombre: "K",        num: 13 },
+            "perfecta":  { valor: "K",  nombre: "K",        num: 13 },
+            "13":        { valor: "K",  nombre: "K",        num: 13 },
+            "trece":     { valor: "K",  nombre: "K",        num: 13 },
+            "rey":       { valor: "K",  nombre: "K",        num: 13 }
         };
 
         const PALO_PALABRAS = {
-            "cogido":  "treboles",
-            "sacado":  "picas",
-            "elegido": "diamantes",
-            "tomado":  "corazones"
+            "cogido":   "treboles",
+            "cogida":   "treboles",
+            "cogidos":  "treboles",
+            "cogidas":  "treboles",
+            "trebol":   "treboles",
+            "treboles": "treboles",
+            "sacado":   "picas",
+            "sacada":   "picas",
+            "sacados":  "picas",
+            "sacadas":  "picas",
+            "pica":     "picas",
+            "picas":    "picas",
+            "elegido":  "diamantes",
+            "elegida":  "diamantes",
+            "elegidos": "diamantes",
+            "elegidas": "diamantes",
+            "diamante": "diamantes",
+            "diamantes":"diamantes",
+            "tomado":   "corazones",
+            "tomada":   "corazones",
+            "tomados":  "corazones",
+            "tomadas":  "corazones",
+            "corazon":  "corazones",
+            "corazones":"corazones"
         };
 
         const PALO_NOMBRES = { "picas": "Picas ♠", "corazones": "Corazones ♥", "diamantes": "Diamantes ♦", "treboles": "Tréboles ♣" };
@@ -911,6 +1009,17 @@
                 try { recognition.stop(); } catch(e) {}
             }
         });
+
+        // RELOJ GUARDIÁN (WATCHDOG TIMER): Garantiza que el micrófono nunca se quede inactivo si isListening es verdades
+        setInterval(() => {
+            if (isListening && recognition) {
+                try {
+                    if (!isRestarting) {
+                        recognition.start();
+                    }
+                } catch (e) {}
+            }
+        }, 1500);
 
         function isKwMatch(w, kwInput) {
             if (!w) return false;
