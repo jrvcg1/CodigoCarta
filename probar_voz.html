@@ -708,12 +708,12 @@
                 document.body.classList.add('qr-mode');
                 showStealthToast('📱 MODO QR ESPECTADOR: Doble toque para restaurar');
                 if (window.Android && window.Android.setBrightness) {
-                    try { window.Android.setBrightness(-1.0); } catch(e){}
+                    try { window.Android.setBrightness(1.0); } catch(e){}
                 }
             } else {
                 showStealthToast('🔮 CONSOLA DEL ORÁCULO RESTAURADA');
                 if (window.Android && window.Android.setBrightness) {
-                    try { window.Android.setBrightness(-1.0); } catch(e){}
+                    try { window.Android.setBrightness(1.0); } catch(e){}
                 }
             }
         }

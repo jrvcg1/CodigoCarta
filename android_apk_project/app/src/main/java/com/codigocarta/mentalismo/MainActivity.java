@@ -153,33 +153,42 @@ class SetBrightnessRunnable implements Runnable {
 
     @Override
     public void run() {
-        WindowManager.LayoutParams lp = activity.getWindow().getAttributes();
-        if (val <= 0.05f) {
-            // Guardar el brillo previo del dispositivo antes de bajarlo al mínimo
-            float currentBright = lp.screenBrightness;
-            if (currentBright > 0.05f) {
-                activity.savedBrightness = currentBright;
-            } else {
-                try {
-                    int sysBright = android.provider.Settings.System.getInt(
-                            activity.getContentResolver(),
-                            android.provider.Settings.System.SCREEN_BRIGHTNESS
-                    );
-                    activity.savedBrightness = sysBright / 255.0f;
-                } catch (Exception e) {
-                    activity.savedBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+        try {
+            WindowManager.LayoutParams lp = activity.getWindow().getAttributes();
+            if (val <= 0.05f) {
+                // Guardar el brillo previo del dispositivo antes de bajarlo al mínimo
+                float currentBright = lp.screenBrightness;
+                if (currentBright > 0.05f) {
+                    activity.savedBrightness = currentBright;
+                } else {
+                    try {
+                        int sysBright = android.provider.Settings.System.getInt(
+                                activity.getContentResolver(),
+                                android.provider.Settings.System.SCREEN_BRIGHTNESS
+                        );
+                        activity.savedBrightness = sysBright / 255.0f;
+                    } catch (Exception e) {
+                        activity.savedBrightness = 0.85f;
+                    }
                 }
-            }
-            // Asignar brillo al 1% (mínimo)
-            lp.screenBrightness = 0.01f;
-        } else {
-            // Restaurar exactamente el nivel de brillo que tenía antes del modo oscuro
-            if (activity.savedBrightness > 0.05f) {
-                lp.screenBrightness = activity.savedBrightness;
+
+                if (activity.savedBrightness < 0.2f) {
+                    activity.savedBrightness = 0.85f;
+                }
+
+                // Asignar brillo al 1% (mínimo)
+                lp.screenBrightness = 0.01f;
             } else {
-                lp.screenBrightness = WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE;
+                // RESTAURAR EL BRILLO DE PANTALLA
+                float restoreVal = activity.savedBrightness;
+                if (restoreVal <= 0.05f) {
+                    restoreVal = 0.85f; // Brillo normal por defecto si no existía valor guardado
+                }
+                lp.screenBrightness = restoreVal;
             }
+            activity.getWindow().setAttributes(lp);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        activity.getWindow().setAttributes(lp);
     }
 }
