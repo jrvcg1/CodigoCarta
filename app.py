@@ -527,21 +527,26 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
-            /* Indicador Secreto del Mago Mimetizado con el Marco Cromado */
+            /* Indicador Secreto del Mago Mimetizado (Aumentado 50% en tamaño y desplazado 50% a la derecha) */
             .secret-peek {{
                 position: absolute;
                 bottom: 30px;
-                left: 25px;
+                left: 38px;
                 font-family: 'Cinzel', monospace, sans-serif;
-                font-size: 7.5px;
-                font-weight: 400;
-                color: rgba(168, 143, 88, 0.45);
-                text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
-                letter-spacing: 1px;
+                font-size: 11.5px;
+                font-weight: 700;
+                color: rgba(235, 210, 140, 0.85);
+                text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+                letter-spacing: 1.5px;
                 pointer-events: none;
                 user-select: none;
                 -webkit-user-select: none;
                 z-index: 99999;
+                transition: opacity 0.3s ease;
+            }}
+            .secret-peek.oculto {{
+                opacity: 0 !important;
+                visibility: hidden !important;
             }}
         </style>
     </head>
@@ -567,27 +572,61 @@ def visualizar_carta(
 
         <script>
             let currentVersion = -1;
+            let peekVisible = true;
             const cardScene = document.getElementById('cardScene');
             const imgFront = document.getElementById('imgFront');
             const secretPeek = document.getElementById('secretPeek');
 
-            function toggleCard() {{
+            function toggleCard(e) {{
+                if (e) e.stopPropagation();
                 cardScene.classList.toggle('volteada');
             }}
 
             cardScene.addEventListener('click', toggleCard);
 
-            // Polling silencioso en segundo plano sin recargar ni girar la carta automáticamente
+            // --- DOBLE TAP (MÓVIL) / DOBLE CLICK (DESKTOP) FUERA DE LA CARTA PARA OCULTAR / MOSTRAR VALOR OCULTO ---
+            function toggleSecretPeek() {{
+                peekVisible = !peekVisible;
+                if (peekVisible) {{
+                    secretPeek.classList.remove('oculto');
+                }} else {{
+                    secretPeek.classList.add('oculto');
+                }}
+            }}
+
+            let lastTapTime = 0;
+            document.addEventListener('touchend', (e) => {{
+                if (cardScene.contains(e.target)) return;
+                const currentTime = new Date().getTime();
+                const tapLength = currentTime - lastTapTime;
+                if (tapLength < 380 && tapLength > 0) {{
+                    toggleSecretPeek();
+                    e.preventDefault();
+                }}
+                lastTapTime = currentTime;
+            }});
+
+            document.addEventListener('dblclick', (e) => {{
+                if (cardScene.contains(e.target)) return;
+                toggleSecretPeek();
+            }});
+
+            // Polling silencioso en segundo plano y precarga inmediata para garantizar sincronización en móvil
             async function consultarEstadoSilencioso() {{
                 try {{
-                    const res = await fetch('/api/carta_actual');
+                    const res = await fetch('/api/carta_actual?t=' + Date.now());
                     if (res.ok) {{
                         const data = await res.json();
-                        if (data.version && data.version !== currentVersion) {{
-                            currentVersion = data.version;
-                            // Actualizar la carta de frente y el indicador sutil del mago en silencio
-                            imgFront.src = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
-                            secretPeek.textContent = `${{data.valor}}${{data.simbolo}}`;
+                        if (data.valor && data.palo_id) {{
+                            secretPeek.textContent = `${{data.valor}}${{data.simbolo || ''}}`;
+                            
+                            if (data.version !== currentVersion) {{
+                                currentVersion = data.version;
+                                const newSrc = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
+                                const tempImg = new Image();
+                                tempImg.onload = () => {{ imgFront.src = newSrc; }};
+                                tempImg.src = newSrc;
+                            }}
                         }}
                     }}
                 }} catch (err) {{
@@ -595,7 +634,7 @@ def visualizar_carta(
                 }}
             }}
 
-            setInterval(consultarEstadoSilencioso, 1000);
+            setInterval(consultarEstadoSilencioso, 400);
             consultarEstadoSilencioso();
         </script>
     </body>
