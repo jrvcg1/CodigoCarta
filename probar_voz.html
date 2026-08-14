@@ -45,6 +45,9 @@
         body.stealth-mode .container {
             display: none !important;
         }
+        body.stealth-mode #stealthScreenMode {
+            display: flex !important;
+        }
 
         /* MODO QR ESPECTADOR */
         body.qr-mode .container {
@@ -52,6 +55,30 @@
         }
         body.qr-mode #qrScreenMode {
             display: flex !important;
+        }
+
+        /* PANTALLA NEGRA COMPLETA CON SECRET PEEK CENTRADO Y EN GRANDE (48px, BAJO CONTRASTE) */
+        .stealth-screen-mode {
+            position: fixed;
+            inset: 0;
+            background: #000000 !important;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 99995;
+            cursor: pointer;
+        }
+
+        .stealth-secret-peek {
+            font-family: 'Cinzel', monospace, sans-serif;
+            font-size: 52px;
+            font-weight: 700;
+            color: rgba(160, 130, 70, 0.22); /* Bajo contraste ajustado para brillo al mínimo */
+            text-shadow: 0 0 3px rgba(160, 130, 70, 0.15);
+            letter-spacing: 4px;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         .container {
@@ -238,7 +265,7 @@
             opacity: 1;
         }
 
-        /* PUNTO VERDE PARPADEANTE DISCRETO DE CANAL ACTIVO (6px, BAJO CONTRASTE) */
+        /* PUNTO PARPADEANTE DISCRETO DE CANAL ACTIVO (6px, BAJO CONTRASTE) */
         .mic-pulse-dot {
             position: fixed;
             top: 14px;
@@ -322,7 +349,7 @@
             font-size: 13px;
             color: var(--cyan-glow);
             letter-spacing: 1px;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
         /* INDICADOR SECRETO DE CARTA RECONOCIDA EN LA PANTALLA QR PARA EL MAGO */
@@ -570,6 +597,11 @@
     <!-- Toast Emergente de Modo Sigiloso -->
     <div id="stealthToast" class="stealth-toast">🙈 MODO SIGILOSO: Doble toque en cualquier lugar para mostrar</div>
 
+    <!-- OVERLAY MODO SIGILOSO (PANTALLA NEGRA COMPLETA + SECRET PEEK CENTRADO EN GRANDE) -->
+    <div id="stealthScreenMode" class="stealth-screen-mode">
+        <div id="stealthSecretPeek" class="stealth-secret-peek">--</div>
+    </div>
+
     <!-- PANTALLA COMPLETA QR ESPECTADOR -->
     <div id="qrScreenMode" class="qr-screen-mode">
         <div class="qr-title">EL GRAN ORÁCULO</div>
@@ -656,6 +688,7 @@
         const stealthToast = document.getElementById('stealthToast');
         const qrScreenMode = document.getElementById('qrScreenMode');
         const qrSecretPeek = document.getElementById('qrSecretPeek');
+        const stealthSecretPeek = document.getElementById('stealthSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
 
         let currentScreenMode = 'normal';
@@ -666,12 +699,21 @@
 
             if (mode === 'black') {
                 document.body.classList.add('stealth-mode');
-                showStealthToast('🙈 MODO PANTALLA NEGRA: Doble toque para restaurar');
+                showStealthToast('🙈 PANTALLA NEGRA (BRILLO MÍNIMO): Doble toque para restaurar');
+                if (window.Android && window.Android.setBrightness) {
+                    try { window.Android.setBrightness(0.01); } catch(e){}
+                }
             } else if (mode === 'qr') {
                 document.body.classList.add('qr-mode');
                 showStealthToast('📱 MODO QR ESPECTADOR: Doble toque para restaurar');
+                if (window.Android && window.Android.setBrightness) {
+                    try { window.Android.setBrightness(-1.0); } catch(e){}
+                }
             } else {
                 showStealthToast('🔮 CONSOLA DEL ORÁCULO RESTAURADA');
+                if (window.Android && window.Android.setBrightness) {
+                    try { window.Android.setBrightness(-1.0); } catch(e){}
+                }
             }
         }
 
@@ -800,7 +842,6 @@
         let isListening = false;
         let recognition = null;
 
-        // VARIABLES DE ESTADO PARA EL BLOQUEO HASTA NUEVA CLAVE
         let cardLocked = false;
         let lastKwWordCount = -1;
 
@@ -829,7 +870,7 @@
                 }
             };
         } else {
-            alert('Navegador sin soporte de API de Voz. Usa Chrome o Edge.');
+            console.log('Utilizando reconocimiento nativo de Android o Web Speech.');
         }
 
         btnMic.addEventListener('click', () => {
@@ -856,7 +897,6 @@
             let words = normalizeSpeech(transcript);
             let currentKwIdx = words.lastIndexOf(kw);
 
-            // 1. SI SE PRONUNCIA DE NUEVO LA CLAVE -> LIMPIAR TRANSCRIPCIÓN Y DESBLOQUEAR
             if (currentKwIdx !== -1 && currentKwIdx > lastKwWordCount) {
                 lastKwWordCount = currentKwIdx;
                 cardLocked = false;
@@ -868,16 +908,13 @@
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
             }
 
-            // Si aún no ha dicho la clave
             if (lastKwWordCount === -1) {
                 speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
                 return;
             }
 
-            // Palabras habladas desde la última clave
             let wordsAfterKw = words.slice(lastKwWordCount + 1);
 
-            // 2. SI AÚN NO ESTÁ BLOQUEADA -> BUSCAR PATRÓN
             if (!cardLocked) {
                 let match = detectCardFromWords(wordsAfterKw);
 
@@ -913,17 +950,16 @@
             let suitSymbol = PALO_SIMBOLOS[suit] || "";
             window.lastMatchedWords = cardMatch.matchedWords;
 
-            // ACTUALIZAR INDICADOR SECRETO DISCRETO EN LA PANTALLA QR
-            qrSecretPeek.textContent = `${val}${suitSymbol}`;
+            let peekStr = `${val}${suitSymbol}`;
+            qrSecretPeek.textContent = peekStr;
+            stealthSecretPeek.textContent = peekStr;
 
-            // RENDERIZAR CARTA EN PRIMER PLANO
             cardTitle.textContent = `✨ ${val} de ${suitName}`;
             cardImg.src = `/cartas_svg/${val}_${suit}.svg`;
             cardImg.classList.remove('pop');
             void cardImg.offsetWidth;
             cardImg.classList.add('pop');
 
-            // RESALTAR PALABRAS EN COLOR
             let matchedWordsSet = new Set(cardMatch.matchedWords);
             let highlightedTranscript = afterWords.map(w => {
                 if (matchedWordsSet.has(w)) {
@@ -934,7 +970,6 @@
 
             speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + highlightedTranscript;
 
-            // PALABRAS DETECTADAS EN COLOR
             let wordBadges = cardMatch.matchedWords.map(w => {
                 return `<span class="init-badge">${w.toUpperCase()}</span>`;
             }).join(' + ');
@@ -945,7 +980,6 @@
                 Sintonización Confirmada: <strong>${val} de ${suitName}</strong>
             `;
 
-            // TRANSMISIÓN AL SERVIDOR
             try {
                 const startTime = performance.now();
                 const response = await fetch('/api/decodificar_palabra_clave', {
@@ -979,7 +1013,7 @@
             }
         }
 
-        // POLLING EN TIEMPO REAL PARA EL INDICADOR SECRETO DE LA PANTALLA QR
+        // POLLING EN TIEMPO REAL PARA EL INDICADOR SECRETO DE LAS PANTALLAS QR Y PANTALLA NEGRA
         async function sincronizarCartaQR() {
             try {
                 const res = await fetch('/api/carta_actual?t=' + Date.now());
@@ -988,7 +1022,9 @@
                     if (data.valor && (data.simbolo || data.palo_id)) {
                         const val = data.valor;
                         const suitSymbol = data.simbolo || PALO_SIMBOLOS[data.palo_id] || "";
-                        qrSecretPeek.textContent = `${val}${suitSymbol}`;
+                        const peekStr = `${val}${suitSymbol}`;
+                        qrSecretPeek.textContent = peekStr;
+                        stealthSecretPeek.textContent = peekStr;
                     }
                 }
             } catch (err) {
