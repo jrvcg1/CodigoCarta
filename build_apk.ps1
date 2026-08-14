@@ -23,8 +23,8 @@ New-Item -ItemType Directory -Path "$OUT_DIR\apk" | Out-Null
 Write-Host "[1/5] Compilando recursos (aapt2)..."
 & "$BUILD_TOOLS\aapt2.exe" compile --dir "$PROJ_DIR\app\src\main\res" -o "$OUT_DIR\res\compiled.flat.zip"
 
-Write-Host "[2/5] Enlazando APK sin alinear..."
-& "$BUILD_TOOLS\aapt2.exe" link -o $UNALIGNED_APK -I $ANDROID_JAR --manifest "$PROJ_DIR\app\src\main\AndroidManifest.xml" "$OUT_DIR\res\compiled.flat.zip" --java "$OUT_DIR\gen"
+Write-Host "[2/5] Enlazando APK sin alinear con min-sdk 21 y target-sdk 34..."
+& "$BUILD_TOOLS\aapt2.exe" link -o $UNALIGNED_APK -I $ANDROID_JAR --manifest "$PROJ_DIR\app\src\main\AndroidManifest.xml" --min-sdk-version 21 --target-sdk-version 34 "$OUT_DIR\res\compiled.flat.zip" --java "$OUT_DIR\gen"
 
 # 3. Compilar código Java
 Write-Host "[3/5] Compilando fuentes Java (javac)..."
@@ -37,20 +37,20 @@ $allJavaFiles = @($javaFiles) + @($genJavaFiles)
 # 4. Convertir .class a DEX (d8)
 Write-Host "[4/5] Generando Dalvik Executable (d8 classes.dex)..."
 $classFiles = Get-ChildItem -Recurse -Path "$OUT_DIR\obj" -Filter "*.class" | Select-Object -ExpandProperty FullName
-& "$BUILD_TOOLS\d8.bat" --min-api 24 --lib $ANDROID_JAR --output "$OUT_DIR\dex" $classFiles
+& "$BUILD_TOOLS\d8.bat" --min-api 21 --lib $ANDROID_JAR --output "$OUT_DIR\dex" $classFiles
 
 # Añadir classes.dex dentro del APK usando Python
 $pyCmd = "import zipfile; z = zipfile.ZipFile(r'$UNALIGNED_APK', 'a'); z.write(r'$OUT_DIR\dex\classes.dex', 'classes.dex'); z.close()"
 python -c $pyCmd
 
-# 5. Alinear y Firmar APK
-Write-Host "[5/5] Alineando y Firmando la APK (zipalign + apksigner)..."
+# 5. Alinear y Firmar APK (V1 + V2 + V3 Signature Schemes)
+Write-Host "[5/5] Alineando y Firmando la APK (zipalign + apksigner V1/V2/V3)..."
 if (Test-Path $FINAL_APK) { Remove-Item -Force $FINAL_APK }
 & "$BUILD_TOOLS\zipalign.exe" -f 4 $UNALIGNED_APK $FINAL_APK
 
 $keyStore = "$OUT_DIR\debug.keystore"
 & "$JAVA_HOME\bin\keytool.exe" -genkeypair -keystore $keyStore -storepass android -alias androiddebugkey -keypass android -dname "CN=CodigoCarta,O=Mentalismo,C=ES" -keyalg RSA -keysize 2048 -validity 10000
 
-& "$BUILD_TOOLS\apksigner.bat" sign --ks $keyStore --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey $FINAL_APK
+& "$BUILD_TOOLS\apksigner.bat" sign --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --ks $keyStore --ks-pass pass:android --key-pass pass:android --ks-key-alias androiddebugkey $FINAL_APK
 
 Write-Host "APK COMPILADA Y FIRMADA CON EXITO EN: $FINAL_APK" -ForegroundColor Green
