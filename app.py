@@ -437,19 +437,32 @@ def decodificar_palabra_clave(body: PeticionDecodificacionPalabraClave):
     from codigo_carta import detectCardWithKeyword
     res = detectCardWithKeyword(body.texto, body.palabra_clave)
 
+    # Si Python no detectó la carta pero el cliente JS sí pasó valor y palo_id válidos
+    if not res.get("detected") and body.valor and body.palo_id:
+        res["detected"] = True
+        res["value"] = body.valor
+        res["suit"] = body.palo_id
+        res["matchedWords"] = []
+        res["suitCode"] = body.palo_id.upper()
+        res["valuePattern"] = body.valor
+
     if res.get("detected"):
         actualizar_estado_carta(res, body.texto)
+        suit_id = res.get("suit") or body.palo_id or "corazones"
+        val_str = res.get("value") or body.valor or "A"
+        palo_info = PALOS.get(suit_id, {"nombre": suit_id, "simbolo": ""})
+
         return {
             "exito": True,
             "keywordFound": True,
-            "keyword": res.get("keyword"),
+            "keyword": res.get("keyword", body.palabra_clave),
             "fullText": body.texto,
-            "afterWords": res.get("afterWords"),
-            "matchedWords": res.get("matchedWords"),
-            "valor": res.get("value"),
-            "palo_id": res.get("suit"),
-            "palo": PALOS[res.get("suit")],
-            "coletilla": res.get("suitCode"),
+            "afterWords": res.get("afterWords", []),
+            "matchedWords": res.get("matchedWords", []),
+            "valor": str(val_str),
+            "palo_id": suit_id,
+            "palo": palo_info,
+            "coletilla": res.get("coletilla", res.get("suitCode", "")),
             "valuePattern": res.get("valuePattern")
         }
 

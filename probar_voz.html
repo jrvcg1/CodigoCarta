@@ -1299,11 +1299,13 @@
                 const data = await response.json();
                 const nowStr = new Date().toLocaleTimeString();
 
-                if (response.ok) {
+                if (response.ok && data.exito) {
                     apiStatusTag.className = 'api-tag-success';
                     apiStatusTag.textContent = `HTTP 200 OK (${duration}ms) — ${nowStr}`;
                     apiJsonView.textContent = JSON.stringify(data, null, 2);
-                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — 🌐 <strong>Servidor Oracular Sincronizado con /visualizar (${data.valor} de ${data.palo.nombre})</strong>`;
+                    const paloNombre = (data.palo && data.palo.nombre) ? data.palo.nombre : (data.palo_id || suitName);
+                    const cardVal = data.valor || val;
+                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — 🌐 <strong>Servidor Oracular Sincronizado con /visualizar (${cardVal} de ${paloNombre})</strong>`;
                 } else {
                     apiStatusTag.className = 'api-tag-error';
                     apiStatusTag.textContent = `HTTP ${response.status} Error — ${nowStr}`;
