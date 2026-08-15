@@ -141,6 +141,8 @@ def registrar_evento_log(payload: LogPayload):
     return {"status": "ok", "total_logs": len(EVENT_LOGS)}
 
 
+LAST_REDIS_ERROR = None
+
 @app.get("/api/redis_status", tags=["Estado"])
 def check_redis_status():
     """Diagnóstico del estado de conexión a Redis en Vercel."""
@@ -157,6 +159,7 @@ def check_redis_status():
         "has_rest_token": has_rest_token,
         "redis_configured": bool(redis_url_effective),
         "redis_value_read": redis_val,
+        "last_redis_error": LAST_REDIS_ERROR,
         "memory_value": CARTA_ACTUAL
     }
 
@@ -189,21 +192,22 @@ def get_redis_client():
     if not redis_url:
         return None
 def upstash_redis_get(key: str) -> Optional[str]:
+    global LAST_REDIS_ERROR
     rest_url = os.environ.get("UPSTASH_REDIS_REST_URL")
     rest_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
     redis_url = os.environ.get("REDIS_URL")
 
     if not (rest_url and rest_token) and redis_url:
         try:
-            clean_url = redis_url.replace("rediss://", "").replace("redis://", "")
+            clean_url = redis_url.strip().strip('"').strip("'").replace("rediss://", "").replace("redis://", "")
             if "@" in clean_url:
                 user_pass, host_port = clean_url.split("@", 1)
                 token = user_pass.split(":")[-1] if ":" in user_pass else user_pass
                 host = host_port.split(":")[0].strip("/")
                 rest_url = f"https://{host}"
                 rest_token = token
-        except Exception:
-            pass
+        except Exception as e:
+            LAST_REDIS_ERROR = f"Parse URL err: {e}"
 
     if rest_url and rest_token:
         try:
@@ -218,21 +222,27 @@ def upstash_redis_get(key: str) -> Optional[str]:
                     "Content-Type": "application/json"
                 }
             )
-            with urllib.request.urlopen(req, timeout=3.5) as resp:
+            with urllib.request.urlopen(req, timeout=4.0) as resp:
                 if resp.status == 200:
                     data = json.loads(resp.read().decode('utf-8'))
-                    return data.get("result")
+                    res_val = data.get("result")
+                    if res_val is None:
+                        LAST_REDIS_ERROR = f"HTTP 200 returned result=null for key={key}"
+                    return res_val
         except Exception as e:
-            print(f"[UPSTASH REST GET ERROR] {e}")
+            LAST_REDIS_ERROR = f"HTTP REST GET err: {e}"
 
     try:
         import redis
         url = redis_url or get_redis_url()
         if url:
             r = redis.from_url(url, decode_responses=True, socket_timeout=3.0)
-            return r.get(key)
+            res_val = r.get(key)
+            if res_val is None:
+                LAST_REDIS_ERROR = f"Redis-py returned None for key={key}"
+            return res_val
     except Exception as e:
-        print(f"[REDIS GET ERROR] {e}")
+        LAST_REDIS_ERROR = f"Redis-py err: {e}"
 
     return None
 
