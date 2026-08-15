@@ -104,13 +104,13 @@ def test_redis_y_errores():
     assert "valor" in res_actual.json()
     print("[OK] GET /api/carta_actual sin REDIS_URL recupera el estado de desarrollo local.")
 
-    # Test 2: Simular error de conexión a Redis y verificar respuesta HTTP 503
+    # Test 2: Simular error de conexión a Redis y verificar fallback transparente a CARTA_ACTUAL (HTTP 200)
     with patch.dict(os.environ, {"REDIS_URL": "redis://fake_invalid_host:6379"}):
         with patch("app.upstash_redis_get", return_value=None):
-            res_503 = client.get("/api/carta_actual")
-            assert res_503.status_code == 503
-            assert "detail" in res_503.json()
-            print("[OK] GET /api/carta_actual con Redis no disponible devuelve HTTP 503 correctamente.")
+            res_fb = client.get("/api/carta_actual")
+            assert res_fb.status_code == 200
+            assert "valor" in res_fb.json()
+            print("[OK] GET /api/carta_actual con Redis no disponible realiza fallback transparente sin romper el servicio (HTTP 200).")
 
     # Test 3: Simular Redis funcional y verificar lectura/escritura de clave 'codigo-carta:current-card'
     mock_json = '{"valor": "K", "palo_id": "picas", "palo_nombre": "Picas", "simbolo": "♠"}'

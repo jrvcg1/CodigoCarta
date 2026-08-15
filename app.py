@@ -290,20 +290,12 @@ def actualizar_estado_carta(res: dict, frase: str):
 )
 def obtener_carta_actual():
     """Retorna la última carta decodificada almacenada en Redis o en memoria."""
-    has_redis_cfg = os.environ.get("REDIS_URL") or (os.environ.get("UPSTASH_REDIS_REST_URL") and os.environ.get("UPSTASH_REDIS_REST_TOKEN"))
-    
-    if has_redis_cfg:
+    try:
         data_str = upstash_redis_get(REDIS_KEY_CURRENT_CARD)
         if data_str:
-            try:
-                return json.loads(data_str)
-            except Exception:
-                pass
-        
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Servicio Redis no disponible"
-        )
+            return json.loads(data_str)
+    except Exception as e:
+        print(f"[CARTA ACTUAL ERROR] {e}")
 
     return CARTA_ACTUAL
 
