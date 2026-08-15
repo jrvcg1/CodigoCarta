@@ -168,12 +168,80 @@ def get_redis_client():
     redis_url = get_redis_url()
     if not redis_url:
         return None
+def upstash_redis_get(key: str) -> Optional[str]:
+    rest_url = os.environ.get("UPSTASH_REDIS_REST_URL")
+    rest_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+    redis_url = os.environ.get("REDIS_URL")
+
+    if not (rest_url and rest_token) and redis_url and "rediss://default:" in redis_url:
+        try:
+            parts = redis_url.replace("rediss://default:", "").split("@")
+            rest_token = parts[0]
+            host_port = parts[1].split(":")[0]
+            rest_url = f"https://{host_port}"
+        except Exception:
+            pass
+
+    if rest_url and rest_token:
+        try:
+            import urllib.request, urllib.parse
+            url = f"{rest_url.rstrip('/')}/get/{urllib.parse.quote(key)}"
+            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {rest_token}"})
+            with urllib.request.urlopen(req, timeout=3.5) as resp:
+                if resp.status == 200:
+                    data = json.loads(resp.read().decode('utf-8'))
+                    return data.get("result")
+        except Exception as e:
+            print(f"[UPSTASH REST GET ERROR] {e}")
+
     try:
         import redis
-        return redis.from_url(redis_url, decode_responses=True, socket_timeout=3.0)
+        url = redis_url or get_redis_url()
+        if url:
+            r = redis.from_url(url, decode_responses=True, socket_timeout=3.0)
+            return r.get(key)
     except Exception as e:
-        print(f"[REDIS CLIENT ERROR] {e}")
-        return None
+        print(f"[REDIS GET ERROR] {e}")
+
+    return None
+
+
+def upstash_redis_set(key: str, value_str: str) -> bool:
+    rest_url = os.environ.get("UPSTASH_REDIS_REST_URL")
+    rest_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+    redis_url = os.environ.get("REDIS_URL")
+
+    if not (rest_url and rest_token) and redis_url and "rediss://default:" in redis_url:
+        try:
+            parts = redis_url.replace("rediss://default:", "").split("@")
+            rest_token = parts[0]
+            host_port = parts[1].split(":")[0]
+            rest_url = f"https://{host_port}"
+        except Exception:
+            pass
+
+    if rest_url and rest_token:
+        try:
+            import urllib.request, urllib.parse
+            url = f"{rest_url.rstrip('/')}/set/{urllib.parse.quote(key)}/{urllib.parse.quote(value_str)}"
+            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {rest_token}"})
+            with urllib.request.urlopen(req, timeout=3.5) as resp:
+                if resp.status == 200:
+                    return True
+        except Exception as e:
+            print(f"[UPSTASH REST SET ERROR] {e}")
+
+    try:
+        import redis
+        url = redis_url or get_redis_url()
+        if url:
+            r = redis.from_url(url, decode_responses=True, socket_timeout=3.0)
+            r.set(key, value_str)
+            return True
+    except Exception as e:
+        print(f"[REDIS SET ERROR] {e}")
+
+    return False
 
 
 # Estado en memoria de la carta activa en el servidor (por defecto As de Corazones)
@@ -211,12 +279,8 @@ def actualizar_estado_carta(res: dict, frase: str):
                 "updated_at": datetime.datetime.now().isoformat()
             }
             # Persistencia en Redis (clave 'codigo-carta:current-card')
-            r = get_redis_client()
-            if r:
-                try:
-                    r.set(REDIS_KEY_CURRENT_CARD, json.dumps(CARTA_ACTUAL, ensure_ascii=False))
-                except Exception as e:
-                    print(f"[REDIS PERSISTENCE ERROR] No se pudo guardar en Redis: {e}")
+            val_json = json.dumps(CARTA_ACTUAL, ensure_ascii=False)
+            upstash_redis_set(REDIS_KEY_CURRENT_CARD, val_json)
 
 
 @app.get(
@@ -226,26 +290,20 @@ def actualizar_estado_carta(res: dict, frase: str):
 )
 def obtener_carta_actual():
     """Retorna la última carta decodificada almacenada en Redis o en memoria."""
-    redis_url = get_redis_url()
-    if redis_url:
-        r = get_redis_client()
-        if r is None:
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Servicio Redis no disponible"
-            )
-        try:
-            data_str = r.get(REDIS_KEY_CURRENT_CARD)
-            if data_str:
+    has_redis_cfg = os.environ.get("REDIS_URL") or (os.environ.get("UPSTASH_REDIS_REST_URL") and os.environ.get("UPSTASH_REDIS_REST_TOKEN"))
+    
+    if has_redis_cfg:
+        data_str = upstash_redis_get(REDIS_KEY_CURRENT_CARD)
+        if data_str:
+            try:
                 return json.loads(data_str)
-            else:
-                return CARTA_ACTUAL
-        except Exception as e:
-            print(f"[REDIS READ ERROR] {e}")
-            raise HTTPException(
-                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Servicio Redis no disponible"
-            )
+            except Exception:
+                pass
+        
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Servicio Redis no disponible"
+        )
 
     return CARTA_ACTUAL
 

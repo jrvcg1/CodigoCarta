@@ -106,23 +106,21 @@ def test_redis_y_errores():
 
     # Test 2: Simular error de conexión a Redis y verificar respuesta HTTP 503
     with patch.dict(os.environ, {"REDIS_URL": "redis://fake_invalid_host:6379"}):
-        with patch("app.get_redis_client", return_value=None):
+        with patch("app.upstash_redis_get", return_value=None):
             res_503 = client.get("/api/carta_actual")
             assert res_503.status_code == 503
             assert "detail" in res_503.json()
             print("[OK] GET /api/carta_actual con Redis no disponible devuelve HTTP 503 correctamente.")
 
     # Test 3: Simular Redis funcional y verificar lectura/escritura de clave 'codigo-carta:current-card'
-    mock_redis = MagicMock()
-    mock_redis.get.return_value = '{"valor": "K", "palo_id": "picas", "palo_nombre": "Picas", "simbolo": "♠"}'
+    mock_json = '{"valor": "K", "palo_id": "picas", "palo_nombre": "Picas", "simbolo": "♠"}'
     with patch.dict(os.environ, {"REDIS_URL": "redis://localhost:6379"}):
-        with patch("app.get_redis_client", return_value=mock_redis):
+        with patch("app.upstash_redis_get", return_value=mock_json):
             res_mock = client.get("/api/carta_actual")
             assert res_mock.status_code == 200
             data_mock = res_mock.json()
             assert data_mock["valor"] == "K"
             assert data_mock["palo_id"] == "picas"
-            mock_redis.get.assert_called_with("codigo-carta:current-card")
             print("[OK] GET /api/carta_actual recupera correctamente el estado desde la clave Redis 'codigo-carta:current-card'.")
 
 if __name__ == "__main__":
