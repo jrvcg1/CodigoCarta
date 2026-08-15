@@ -75,7 +75,19 @@ def test_endpoints_visuales():
     assert res_voz.status_code == 200
     assert "text/html" in res_voz.headers["content-type"]
     assert "setInterval(sincronizarCartaQR, 400)" not in res_voz.text
-    print("[OK] GET /probar_voz (Prueba de Voz con Palabra Clave HTML) verificado.")
+    assert "btnQREscucharUI" in res_voz.text
+    assert "QR ESCUCHAR" in res_voz.text
+    print("[OK] GET /probar_voz (Prueba de Voz con botones QR Visualizar y QR Escuchar) verificado.")
+
+    res_esc = client.get("/escuchar")
+    assert res_esc.status_code == 200
+    assert "text/html" in res_esc.headers["content-type"]
+    html_esc = res_esc.text
+    assert "setInterval" not in html_esc, "Error: Se detectó setInterval en el HTML de /escuchar"
+    assert "ACTIVATION_WORD" in html_esc
+    assert "LISTO" in html_esc
+    assert "speechSynthesis" in html_esc
+    print("[OK] GET /escuchar (Vista HTML de revelación por audio sin polling) verificado.")
 
 def test_decodificar_palabra_clave():
     # Palabra clave: "vale" -> ahora (2) + tomado (corazones) = 2 de Corazones (2♥)

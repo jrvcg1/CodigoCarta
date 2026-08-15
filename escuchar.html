@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Oráculo por Audio - Revelación Sonora</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            background-color: #050308;
+            color: #ffffff;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .audio-card-container {
+            width: min(92vw, 480px);
+            padding: 40px 24px;
+            background: rgba(18, 14, 28, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.8), 0 0 30px rgba(212, 175, 55, 0.15);
+            text-align: center;
+            backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .header-title {
+            font-size: 1.2rem;
+            letter-spacing: 3px;
+            color: #d4af37;
+            text-transform: uppercase;
+            font-weight: 700;
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.4);
+        }
+
+        /* Orbe animado de recepción de audio */
+        .audio-orb {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #d4af37, #8a6d1c 60%, #1a1202 100%);
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.5), inset 0 0 15px rgba(255, 255, 255, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            transition: all 0.5s ease;
+        }
+
+        .audio-orb.listening {
+            animation: pulseOrb 2s infinite ease-in-out;
+        }
+
+        .audio-orb.revealing {
+            background: radial-gradient(circle at 35% 35%, #00e676, #00897b 60%, #00271d 100%);
+            box-shadow: 0 0 40px rgba(0, 230, 118, 0.7);
+            animation: spinGlow 1.2s infinite linear;
+        }
+
+        .audio-orb.error {
+            background: radial-gradient(circle at 35% 35%, #ff5252, #c62828 60%, #310000 100%);
+            box-shadow: 0 0 35px rgba(255, 82, 82, 0.7);
+        }
+
+        @keyframes pulseOrb {
+            0% { transform: scale(1); box-shadow: 0 0 25px rgba(212, 175, 55, 0.4); }
+            50% { transform: scale(1.08); box-shadow: 0 0 45px rgba(212, 175, 55, 0.8); }
+            100% { transform: scale(1); box-shadow: 0 0 25px rgba(212, 175, 55, 0.4); }
+        }
+
+        @keyframes spinGlow {
+            0% { transform: scale(1.05) rotate(0deg); }
+            50% { transform: scale(1.12) rotate(180deg); }
+            100% { transform: scale(1.05) rotate(360deg); }
+        }
+
+        /* Mensaje de estado principal */
+        .status-badge {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #e0e0e0;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 8px 16px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .activation-box {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 16px;
+            width: 100%;
+        }
+
+        .activation-box strong {
+            color: #ffd700;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, #d4af37, #aa820a);
+            color: #000000;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.4);
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-start:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.6);
+        }
+
+        .transcript-debug {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.4);
+            font-style: italic;
+            min-height: 20px;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="audio-card-container">
+        <div class="header-title">🔮 Revelación Sonora</div>
+
+        <div id="audioOrb" class="audio-orb">🎙️</div>
+
+        <div id="statusBadge" class="status-badge">
+            Haz clic abajo para iniciar la escucha de voz
+        </div>
+
+        <div class="activation-box">
+            Palabra de Activación: <strong id="activationWordText">LISTO</strong>
+        </div>
+
+        <button id="btnStartListening" class="btn-start">
+            <span>🎙️</span>
+            <span>ACTIVAR MICRÓFONO</span>
+        </button>
+
+        <div id="transcriptDebug" class="transcript-debug">Esperando voz...</div>
+    </div>
+
+    <script>
+        // Palabra de activación inyectada desde el backend o sobreescribible vía URL ?kw=LISTO
+        const urlParams = new URLSearchParams(window.location.search);
+        const ACTIVATION_WORD = (urlParams.get('kw') || "{{ ACTIVATION_WORD }}").trim().toUpperCase();
+
+        const audioOrb = document.getElementById('audioOrb');
+        const statusBadge = document.getElementById('statusBadge');
+        const activationWordText = document.getElementById('activationWordText');
+        const btnStartListening = document.getElementById('btnStartListening');
+        const transcriptDebug = document.getElementById('transcriptDebug');
+
+        activationWordText.textContent = ACTIVATION_WORD;
+
+        let recognition = null;
+        let isListening = false;
+        let isRevealing = false;
+
+        // Mapeo de identificadores de cartas a lenguaje hablado en español
+        const NOMBRES_VALORES = {
+            'A': 'As', '1': 'As',
+            '2': 'Dos', '3': 'Tres', '4': 'Cuatro', '5': 'Cinco',
+            '6': 'Seis', '7': 'Siete', '8': 'Ocho', '9': 'Nueve', '10': 'Diez',
+            'J': 'Jota', 'Q': 'Reina', 'K': 'Rey'
+        };
+
+        const NOMBRES_PALOS = {
+            'corazones': 'corazones',
+            'picas': 'picas',
+            'treboles': 'tréboles',
+            'diamantes': 'diamantes'
+        };
+
+        function cardToHumanReadableName(cardData) {
+            if (!cardData || !cardData.valor || !cardData.palo_id) {
+                return null;
+            }
+            const valStr = String(cardData.valor).toUpperCase();
+            const suitStr = String(cardData.palo_id).toLowerCase();
+
+            const nombreVal = NOMBRES_VALORES[valStr] || valStr;
+            const nombrePalo = NOMBRES_PALOS[suitStr] || cardData.palo_nombre || suitStr;
+
+            return `${nombreVal} de ${nombrePalo}`;
+        }
+
+        // Comprobación de concordancia robusta para la palabra de activación ("LISTO")
+        function isActivationWordMatch(text, targetWord) {
+            if (!text || !targetWord) return false;
+            
+            // Limpiar signos de puntuación y normalizar
+            const cleanText = text.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .replace(/[¡!¿?.,;:]/g, " ");
+            
+            const cleanTarget = targetWord.toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                .trim();
+
+            const words = cleanText.split(/\s+/).filter(w => w.length > 0);
+            
+            // Coincidencia exacta o palabra suelta en la frase
+            return words.includes(cleanTarget);
+        }
+
+        // Inicializar la API nativa de reconocimiento de voz
+        function initSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                statusBadge.textContent = "Este navegador no soporta reconocimiento de voz.";
+                audioOrb.className = "audio-orb error";
+                btnStartListening.style.display = 'none';
+                return null;
+            }
+
+            const rec = new SpeechRecognition();
+            rec.continuous = true;
+            rec.interimResults = true;
+            rec.lang = 'es-ES';
+
+            rec.onstart = () => {
+                isListening = true;
+                if (!isRevealing) {
+                    audioOrb.className = "audio-orb listening";
+                    statusBadge.textContent = `Escuchando... Di "${ACTIVATION_WORD}"`;
+                }
+            };
+
+            rec.onresult = (event) => {
+                if (isRevealing) return;
+
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript + ' ';
+                }
+
+                transcriptDebug.textContent = `Escuchado: "${transcript.trim()}"`;
+
+                if (isActivationWordMatch(transcript, ACTIVATION_WORD)) {
+                    triggerCardAudioRevelation();
+                }
+            };
+
+            rec.onerror = (event) => {
+                console.log('Error de voz:', event.error);
+                if (event.error === 'not-allowed') {
+                    statusBadge.textContent = "Acceso al micrófono denegado. Permite el micro para continuar.";
+                    audioOrb.className = "audio-orb error";
+                    isListening = false;
+                }
+            };
+
+            rec.onend = () => {
+                isListening = false;
+                // Si sigue activo y no estamos en medio de una locución, reiniciar escucha
+                if (!isRevealing && btnStartListening.style.display === 'none') {
+                    try { rec.start(); } catch (e) {}
+                }
+            };
+
+            return rec;
+        }
+
+        // Flujo principal: al detectar "LISTO", realiza UNA ÚNICA petición HTTP a Redis y reproduce por TTS
+        async function triggerCardAudioRevelation() {
+            if (isRevealing) return;
+            isRevealing = true;
+
+            audioOrb.className = "audio-orb revealing";
+            statusBadge.textContent = "✨ Palabra clave recibida... Consultando carta...";
+
+            // Detener temporalmente el micrófono mientras consulta y reproduce
+            if (recognition) {
+                try { recognition.stop(); } catch (e) {}
+            }
+
+            try {
+                // UNA ÚNICA petición HTTP al endpoint de Redis
+                const res = await fetch('/api/carta_actual?t=' + Date.now());
+                if (res.ok) {
+                    const data = await res.json();
+                    const spokenText = cardToHumanReadableName(data);
+
+                    if (spokenText) {
+                        statusBadge.textContent = `🔊 ${spokenText}`;
+                        transcriptDebug.textContent = `Carta decodificada: ${spokenText}`;
+                        speakSentence(spokenText);
+                        return;
+                    }
+                }
+                
+                showErrorState("No se ha podido obtener la carta. Inténtalo de nuevo.");
+            } catch (err) {
+                console.error("Error al consultar la carta:", err);
+                showErrorState("Error de conexión con el servidor.");
+            }
+        }
+
+        // Reproducir la locución en voz alta usando window.speechSynthesis
+        function speakSentence(text) {
+            if (!('speechSynthesis' in window)) {
+                console.warn('Speech Synthesis no soportado');
+                resetAfterSpeech();
+                return;
+            }
+
+            window.speechSynthesis.cancel(); // Detener locuciones anteriores
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'es-ES';
+            utterance.rate = 0.95; // Velocidad pausada y clara para magia
+            utterance.pitch = 1.0;
+
+            // Intentar seleccionar una voz española nativa si está disponible
+            const voices = window.speechSynthesis.getVoices();
+            const esVoice = voices.find(v => v.lang.includes('es') || v.lang.includes('ES'));
+            if (esVoice) {
+                utterance.voice = esVoice;
+            }
+
+            utterance.onend = () => {
+                setTimeout(resetAfterSpeech, 1200);
+            };
+
+            utterance.onerror = (err) => {
+                console.error('Error en síntesis de voz:', err);
+                setTimeout(resetAfterSpeech, 1200);
+            };
+
+            window.speechSynthesis.speak(utterance);
+        }
+
+        function showErrorState(msg) {
+            audioOrb.className = "audio-orb error";
+            statusBadge.textContent = msg;
+            setTimeout(resetAfterSpeech, 3000);
+        }
+
+        function resetAfterSpeech() {
+            isRevealing = false;
+            audioOrb.className = "audio-orb listening";
+            statusBadge.textContent = `Escuchando... Di "${ACTIVATION_WORD}"`;
+            transcriptDebug.textContent = "Preparado para nueva consulta...";
+
+            if (recognition) {
+                try { recognition.start(); } catch (e) {}
+            }
+        }
+
+        btnStartListening.addEventListener('click', () => {
+            if (!recognition) {
+                recognition = initSpeechRecognition();
+            }
+            if (recognition) {
+                try {
+                    recognition.start();
+                    btnStartListening.style.display = 'none';
+                } catch (e) {
+                    console.log('Start err:', e);
+                }
+            }
+        });
+
+        // Cargar voces del sistema por adelantado
+        if ('speechSynthesis' in window) {
+            window.speechSynthesis.onvoiceschanged = () => {
+                window.speechSynthesis.getVoices();
+            };
+        }
+    </script>
+</body>
+</html>

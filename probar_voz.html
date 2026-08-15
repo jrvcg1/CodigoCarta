@@ -639,9 +639,14 @@
                 <span>PANTALLA NEGRA</span>
             </button>
 
-            <button id="btnQRUI" class="btn-qr" title="Mostrar QR Espectador con indicador secreto (Doble toque para restaurar)">
+            <button id="btnQRUI" class="btn-qr" title="Mostrar QR Espectador /visualizar">
                 <span>📱</span>
-                <span>QR ESPECTADOR</span>
+                <span>QR VISUALIZAR</span>
+            </button>
+
+            <button id="btnQREscucharUI" class="btn-qr" style="background: linear-gradient(135deg, #10b981, #059669);" title="Mostrar QR Audio /escuchar">
+                <span>🎧</span>
+                <span>QR ESCUCHAR</span>
             </button>
         </div>
 
@@ -686,8 +691,10 @@
         // --- LÓGICA DE MODOS DE PANTALLA (NORMAL, MODO SIGILOSO NEGRO, MODO QR) ---
         const btnHideUI = document.getElementById('btnHideUI');
         const btnQRUI = document.getElementById('btnQRUI');
+        const btnQREscucharUI = document.getElementById('btnQREscucharUI');
         const stealthToast = document.getElementById('stealthToast');
         const qrScreenMode = document.getElementById('qrScreenMode');
+        const qrCodeImg = document.getElementById('qrCodeImg');
         const qrSecretPeek = document.getElementById('qrSecretPeek');
         const stealthSecretPeek = document.getElementById('stealthSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
@@ -718,6 +725,30 @@
             }
         }
 
+        function showQRModal(type) {
+            const qrTitle = qrScreenMode.querySelector('.qr-title');
+            const qrSubtitle = qrScreenMode.querySelector('.qr-subtitle');
+            const qrUrlText = qrScreenMode.querySelector('.qr-url-text');
+
+            const domain = window.location.origin;
+
+            if (type === 'escuchar') {
+                const urlEscuchar = domain + '/escuchar';
+                if (qrTitle) qrTitle.textContent = 'REVELACIÓN POR AUDIO';
+                if (qrSubtitle) qrSubtitle.textContent = 'Escanea el código para acceder a la revelación sonora';
+                if (qrCodeImg) qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(urlEscuchar)}`;
+                if (qrUrlText) qrUrlText.textContent = urlEscuchar;
+            } else {
+                const urlVisualizar = domain + '/visualizar';
+                if (qrTitle) qrTitle.textContent = 'EL GRAN ORÁCULO';
+                if (qrSubtitle) qrSubtitle.textContent = 'Escanea el código para ingresar al espectáculo';
+                if (qrCodeImg) qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(urlVisualizar)}`;
+                if (qrUrlText) qrUrlText.textContent = urlVisualizar;
+            }
+
+            setScreenMode('qr');
+        }
+
         function showStealthToast(msg) {
             stealthToast.textContent = msg;
             stealthToast.classList.add('show');
@@ -727,7 +758,10 @@
         }
 
         btnHideUI.addEventListener('click', () => setScreenMode('black'));
-        btnQRUI.addEventListener('click', () => setScreenMode('qr'));
+        btnQRUI.addEventListener('click', () => showQRModal('visualizar'));
+        if (btnQREscucharUI) {
+            btnQREscucharUI.addEventListener('click', () => showQRModal('escuchar'));
+        }
 
         // --- GESTIÓN UNIFICADA DE DOBLE TAP Y DESLIZAMIENTO VERTICAL DE OPACIDAD EN PANTALLA NEGRA ---
         let currentStealthOpacity = parseFloat(localStorage.getItem('stealth_opacity')) || 0.85;

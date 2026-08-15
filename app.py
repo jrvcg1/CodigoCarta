@@ -785,6 +785,21 @@ def visualizar_carta(
     return HTMLResponse(content=html_content)
 
 
+ACTIVATION_WORD = os.environ.get("ACTIVATION_WORD", "LISTO")
+
+
+@app.get("/escuchar", response_class=HTMLResponse, summary="Página de Revelación por Audio", tags=["Visualización"])
+def escuchar_web():
+    """Servicio de la interfaz de revelación por audio (escuchar.html)."""
+    html_path = os.path.join(os.path.dirname(__file__), "escuchar.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            content = f.read()
+            content = content.replace("{{ ACTIVATION_WORD }}", ACTIVATION_WORD)
+            return HTMLResponse(content=content)
+    return HTMLResponse(content="Archivo escuchar.html no encontrado.", status_code=404)
+
+
 @app.get("/decodificador", response_class=HTMLResponse, summary="Aplicación Web Decodificador con Micrófono", tags=["Visualización"])
 def decodificador_web():
     """Servicio de la interfaz gráfica interactiva decodificador.html."""
