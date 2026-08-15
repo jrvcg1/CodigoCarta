@@ -147,6 +147,23 @@ def obtener_logs(limit: int = 50):
     return {"logs": EVENT_LOGS[-limit:]}
 
 
+import json
+import datetime
+
+REDIS_KEY_CURRENT_CARD = "codigo-carta:current-card"
+
+def get_redis_client():
+    redis_url = os.environ.get("REDIS_URL")
+    if not redis_url:
+        return None
+    try:
+        import redis
+        return redis.from_url(redis_url, decode_responses=True, socket_timeout=3.0)
+    except Exception as e:
+        print(f"[REDIS CLIENT ERROR] {e}")
+        return None
+
+
 # Estado en memoria de la carta activa en el servidor (por defecto As de Corazones)
 CARTA_ACTUAL = {
     "valor": "A",
@@ -156,12 +173,13 @@ CARTA_ACTUAL = {
     "frase": "Ahora sí correcto",
     "coletilla": "C",
     "n_palabras": 3,
-    "version": 1
+    "version": 1,
+    "updated_at": datetime.datetime.now().isoformat()
 }
 
 
 def actualizar_estado_carta(res: dict, frase: str):
-    """Actualiza silenciosamente la carta activa en el servidor sin recargar la web."""
+    """Actualiza la carta activa en la memoria local y en la clave de Redis 'codigo-carta:current-card'."""
     if "error" not in res:
         global CARTA_ACTUAL
         val = res.get("valor") or res.get("value")
@@ -177,17 +195,46 @@ def actualizar_estado_carta(res: dict, frase: str):
                 "frase": frase,
                 "coletilla": res.get("coletilla", res.get("suitCode", "")),
                 "n_palabras": res.get("n_palabras", 2),
-                "version": CARTA_ACTUAL.get("version", 1) + 1
+                "version": CARTA_ACTUAL.get("version", 1) + 1,
+                "updated_at": datetime.datetime.now().isoformat()
             }
+            # Persistencia en Redis (clave 'codigo-carta:current-card')
+            r = get_redis_client()
+            if r:
+                try:
+                    r.set(REDIS_KEY_CURRENT_CARD, json.dumps(CARTA_ACTUAL, ensure_ascii=False))
+                except Exception as e:
+                    print(f"[REDIS PERSISTENCE ERROR] No se pudo guardar en Redis: {e}")
 
 
 @app.get(
     "/api/carta_actual",
-    summary="Obtener la carta activa almacenada en el servidor",
+    summary="Obtener la carta activa almacenada en Redis o servidor",
     tags=["Mentalismo"]
 )
 def obtener_carta_actual():
-    """Retorna la última carta decodificada en el servidor."""
+    """Retorna la última carta decodificada almacenada en Redis o en memoria."""
+    redis_url = os.environ.get("REDIS_URL")
+    if redis_url:
+        r = get_redis_client()
+        if r is None:
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Servicio Redis no disponible"
+            )
+        try:
+            data_str = r.get(REDIS_KEY_CURRENT_CARD)
+            if data_str:
+                return json.loads(data_str)
+            else:
+                return CARTA_ACTUAL
+        except Exception as e:
+            print(f"[REDIS READ ERROR] {e}")
+            raise HTTPException(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Servicio Redis no disponible"
+            )
+
     return CARTA_ACTUAL
 
 
@@ -565,6 +612,29 @@ def visualizar_carta(
                 pointer-events: none;
             }}
 
+            /* Cartel de error para Redis / HTTP 503 */
+            .error-toast {{
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(220, 53, 69, 0.92);
+                color: white;
+                padding: 12px 24px;
+                border-radius: 8px;
+                font-family: sans-serif;
+                font-size: 14px;
+                font-weight: bold;
+                opacity: 0;
+                transition: opacity 0.3s;
+                pointer-events: none;
+                z-index: 1000;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            }}
+            .error-toast.show {{
+                opacity: 1;
+            }}
+
         </style>
     </head>
     <body>
@@ -584,41 +654,68 @@ def visualizar_carta(
             </div>
         </div>
 
+        <div id="errorToast" class="error-toast"></div>
+
         <script>
-            let currentVersion = -1;
             const cardScene = document.getElementById('cardScene');
             const imgFront = document.getElementById('imgFront');
+            const errorToast = document.getElementById('errorToast');
+            let isFetching = false;
 
-            function toggleCard(e) {{
-                if (e) e.stopPropagation();
-                cardScene.classList.toggle('volteada');
+            function showErrorToast(msg) {{
+                if (!errorToast) return;
+                errorToast.textContent = msg;
+                errorToast.classList.add('show');
+                setTimeout(() => {{ errorToast.classList.remove('show'); }}, 3500);
             }}
 
-            cardScene.addEventListener('click', toggleCard);
+            async function handleCardFlip(e) {{
+                if (e) e.stopPropagation();
 
-            // Polling silencioso en segundo plano y precarga inmediata para garantizar sincronización en móvil
-            async function consultarEstadoSilencioso() {{
-                try {{
-                    const res = await fetch('/api/carta_actual?t=' + Date.now());
-                    if (res.ok) {{
-                        const data = await res.json();
-                        if (data.valor && data.palo_id) {{
-                            if (data.version !== currentVersion) {{
-                                currentVersion = data.version;
+                // Si la carta está en el dorso (sin voltear), al hacer clic/doble clic realizamos UNA ÚNICA consulta a Redis
+                if (!cardScene.classList.contains('volteada')) {{
+                    if (isFetching) return;
+                    isFetching = true;
+
+                    try {{
+                        const res = await fetch('/api/carta_actual?t=' + Date.now());
+                        if (res.ok) {{
+                            const data = await res.json();
+                            if (data.valor && data.palo_id) {{
                                 const newSrc = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
                                 const tempImg = new Image();
-                                tempImg.onload = () => {{ imgFront.src = newSrc; }};
+                                tempImg.onload = () => {{
+                                    imgFront.src = newSrc;
+                                    cardScene.classList.add('volteada');
+                                    isFetching = false;
+                                }};
+                                tempImg.onerror = () => {{
+                                    imgFront.src = newSrc;
+                                    cardScene.classList.add('volteada');
+                                    isFetching = false;
+                                }};
                                 tempImg.src = newSrc;
+                                return;
                             }}
+                        }} else if (res.status === 503) {{
+                            showErrorToast('Error HTTP 503: Servicio Redis no disponible');
+                        }} else {{
+                            showErrorToast('Error HTTP ' + res.status + ' al consultar la carta');
                         }}
+                    }} catch (err) {{
+                        console.error('Error de red al consultar carta:', err);
+                        showErrorToast('Error de conexión con el servidor');
                     }}
-                }} catch (err) {{
-                    console.log('Sync err:', err);
+                    isFetching = false;
+                }} else {{
+                    // Si ya está volteada mostrando el frente, la devolvemos al dorso sin hacer llamadas a Redis
+                    cardScene.classList.remove('volteada');
                 }}
             }}
 
-            setInterval(consultarEstadoSilencioso, 400);
-            consultarEstadoSilencioso();
+            // Manejador de evento por doble clic y clic para voltear con consulta única a Redis
+            cardScene.addEventListener('dblclick', handleCardFlip);
+            cardScene.addEventListener('click', handleCardFlip);
         </script>
     </body>
     </html>

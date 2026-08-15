@@ -60,7 +60,11 @@ def test_endpoints_visuales():
     res_vis = client.get("/visualizar")
     assert res_vis.status_code == 200
     assert "text/html" in res_vis.headers["content-type"]
-    print("[OK] GET /visualizar (Vista HTML de carta) verificado.")
+    html_vis = res_vis.text
+    assert "setInterval" not in html_vis, "Error: Se detectó setInterval en el HTML de /visualizar"
+    assert "handleCardFlip" in html_vis
+    assert "cardScene.addEventListener('dblclick', handleCardFlip)" in html_vis
+    print("[OK] GET /visualizar (Vista HTML sin polling y con doble clic) verificado.")
 
     res_dec = client.get("/decodificador")
     assert res_dec.status_code == 200
@@ -70,6 +74,7 @@ def test_endpoints_visuales():
     res_voz = client.get("/probar_voz")
     assert res_voz.status_code == 200
     assert "text/html" in res_voz.headers["content-type"]
+    assert "setInterval(sincronizarCartaQR, 400)" not in res_voz.text
     print("[OK] GET /probar_voz (Prueba de Voz con Palabra Clave HTML) verificado.")
 
 def test_decodificar_palabra_clave():
@@ -89,6 +94,37 @@ def test_decodificar_palabra_clave():
     assert data["palo"]["simbolo"] == "♥"
     print("[OK] POST /api/decodificar_palabra_clave (palabra clave 'vale' -> 2 de Corazones) verificado.")
 
+def test_redis_y_errores():
+    import os
+    from unittest.mock import patch, MagicMock
+
+    # Test 1: Verificar que sin REDIS_URL devuelve el estado actual local
+    res_actual = client.get("/api/carta_actual")
+    assert res_actual.status_code == 200
+    assert "valor" in res_actual.json()
+    print("[OK] GET /api/carta_actual sin REDIS_URL recupera el estado de desarrollo local.")
+
+    # Test 2: Simular error de conexión a Redis y verificar respuesta HTTP 503
+    with patch.dict(os.environ, {"REDIS_URL": "redis://fake_invalid_host:6379"}):
+        with patch("app.get_redis_client", return_value=None):
+            res_503 = client.get("/api/carta_actual")
+            assert res_503.status_code == 503
+            assert "detail" in res_503.json()
+            print("[OK] GET /api/carta_actual con Redis no disponible devuelve HTTP 503 correctamente.")
+
+    # Test 3: Simular Redis funcional y verificar lectura/escritura de clave 'codigo-carta:current-card'
+    mock_redis = MagicMock()
+    mock_redis.get.return_value = '{"valor": "K", "palo_id": "picas", "palo_nombre": "Picas", "simbolo": "♠"}'
+    with patch.dict(os.environ, {"REDIS_URL": "redis://localhost:6379"}):
+        with patch("app.get_redis_client", return_value=mock_redis):
+            res_mock = client.get("/api/carta_actual")
+            assert res_mock.status_code == 200
+            data_mock = res_mock.json()
+            assert data_mock["valor"] == "K"
+            assert data_mock["palo_id"] == "picas"
+            mock_redis.get.assert_called_with("codigo-carta:current-card")
+            print("[OK] GET /api/carta_actual recupera correctamente el estado desde la clave Redis 'codigo-carta:current-card'.")
+
 if __name__ == "__main__":
     test_health()
     test_decodificar_get_exito()
@@ -97,4 +133,6 @@ if __name__ == "__main__":
     test_obtener_configuracion()
     test_endpoints_visuales()
     test_decodificar_palabra_clave()
-    print("\n[OK] TODAS LAS PRUEBAS DE LA API REST PASARON CON ÉXITO.")
+    test_redis_y_errores()
+    print("\n[OK] TODAS LAS PRUEBAS DE LA API REST Y REDIS PASARON CON ÉXITO.")
+

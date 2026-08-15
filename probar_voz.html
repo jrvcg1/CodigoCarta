@@ -1282,28 +1282,6 @@
                 apiJsonView.textContent = JSON.stringify({ error: err.message }, null, 2);
             }
         }
-
-        // POLLING EN TIEMPO REAL PARA EL INDICADOR SECRETO DE LAS PANTALLAS QR Y PANTALLA NEGRA
-        async function sincronizarCartaQR() {
-            try {
-                const res = await fetch('/api/carta_actual?t=' + Date.now());
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.valor && (data.simbolo || data.palo_id)) {
-                        const val = data.valor;
-                        const suitSymbol = data.simbolo || PALO_SIMBOLOS[data.palo_id] || "";
-                        const peekStr = `${val}${suitSymbol}`;
-                        qrSecretPeek.textContent = peekStr;
-                        stealthSecretPeek.textContent = peekStr;
-                    }
-                }
-            } catch (err) {
-                console.log('Sync QR err:', err);
-            }
-        }
-
-        setInterval(sincronizarCartaQR, 400);
-        sincronizarCartaQR();
     </script>
 </body>
 </html>
