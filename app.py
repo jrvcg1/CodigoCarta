@@ -193,12 +193,15 @@ def upstash_redis_get(key: str) -> Optional[str]:
     rest_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
     redis_url = os.environ.get("REDIS_URL")
 
-    if not (rest_url and rest_token) and redis_url and "rediss://default:" in redis_url:
+    if not (rest_url and rest_token) and redis_url:
         try:
-            parts = redis_url.replace("rediss://default:", "").split("@")
-            rest_token = parts[0]
-            host_port = parts[1].split(":")[0]
-            rest_url = f"https://{host_port}"
+            clean_url = redis_url.replace("rediss://", "").replace("redis://", "")
+            if "@" in clean_url:
+                user_pass, host_port = clean_url.split("@", 1)
+                token = user_pass.split(":")[-1] if ":" in user_pass else user_pass
+                host = host_port.split(":")[0].strip("/")
+                rest_url = f"https://{host}"
+                rest_token = token
         except Exception:
             pass
 
@@ -239,12 +242,15 @@ def upstash_redis_set(key: str, value_str: str) -> bool:
     rest_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
     redis_url = os.environ.get("REDIS_URL")
 
-    if not (rest_url and rest_token) and redis_url and "rediss://default:" in redis_url:
+    if not (rest_url and rest_token) and redis_url:
         try:
-            parts = redis_url.replace("rediss://default:", "").split("@")
-            rest_token = parts[0]
-            host_port = parts[1].split(":")[0]
-            rest_url = f"https://{host_port}"
+            clean_url = redis_url.replace("rediss://", "").replace("redis://", "")
+            if "@" in clean_url:
+                user_pass, host_port = clean_url.split("@", 1)
+                token = user_pass.split(":")[-1] if ":" in user_pass else user_pass
+                host = host_port.split(":")[0].strip("/")
+                rest_url = f"https://{host}"
+                rest_token = token
         except Exception:
             pass
 
