@@ -152,8 +152,20 @@ import datetime
 
 REDIS_KEY_CURRENT_CARD = "codigo-carta:current-card"
 
+def get_redis_url():
+    url = os.environ.get("REDIS_URL")
+    if url:
+        return url
+    rest_url = os.environ.get("UPSTASH_REDIS_REST_URL")
+    rest_token = os.environ.get("UPSTASH_REDIS_REST_TOKEN")
+    if rest_url and rest_token:
+        # Extraer host desde la URL de REST (ej: https://champion-buzzard-90975.upstash.io)
+        host = rest_url.replace("https://", "").replace("http://", "").strip("/")
+        return f"rediss://default:{rest_token}@{host}:6379"
+    return None
+
 def get_redis_client():
-    redis_url = os.environ.get("REDIS_URL")
+    redis_url = get_redis_url()
     if not redis_url:
         return None
     try:
@@ -214,7 +226,7 @@ def actualizar_estado_carta(res: dict, frase: str):
 )
 def obtener_carta_actual():
     """Retorna la última carta decodificada almacenada en Redis o en memoria."""
-    redis_url = os.environ.get("REDIS_URL")
+    redis_url = get_redis_url()
     if redis_url:
         r = get_redis_client()
         if r is None:
