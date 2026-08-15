@@ -141,6 +141,26 @@ def registrar_evento_log(payload: LogPayload):
     return {"status": "ok", "total_logs": len(EVENT_LOGS)}
 
 
+@app.get("/api/redis_status", tags=["Estado"])
+def check_redis_status():
+    """Diagnóstico del estado de conexión a Redis en Vercel."""
+    has_redis_url = bool(os.environ.get("REDIS_URL"))
+    has_rest_url = bool(os.environ.get("UPSTASH_REDIS_REST_URL"))
+    has_rest_token = bool(os.environ.get("UPSTASH_REDIS_REST_TOKEN"))
+    redis_url_effective = get_redis_url()
+    
+    redis_val = upstash_redis_get(REDIS_KEY_CURRENT_CARD)
+    
+    return {
+        "has_redis_url": has_redis_url,
+        "has_rest_url": has_rest_url,
+        "has_rest_token": has_rest_token,
+        "redis_configured": bool(redis_url_effective),
+        "redis_value_read": redis_val,
+        "memory_value": CARTA_ACTUAL
+    }
+
+
 @app.get("/api/logs", tags=["Monitoreo"])
 def obtener_logs(limit: int = 50):
     """Retorna los últimos eventos registrados para monitoreo."""
