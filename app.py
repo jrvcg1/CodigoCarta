@@ -204,9 +204,17 @@ def upstash_redis_get(key: str) -> Optional[str]:
 
     if rest_url and rest_token:
         try:
-            import urllib.request, urllib.parse
-            url = f"{rest_url.rstrip('/')}/get/{urllib.parse.quote(key)}"
-            req = urllib.request.Request(url, headers={"Authorization": f"Bearer {rest_token}"})
+            import urllib.request
+            url = f"{rest_url.rstrip('/')}/"
+            payload = json.dumps(["GET", key]).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={
+                    "Authorization": f"Bearer {rest_token}",
+                    "Content-Type": "application/json"
+                }
+            )
             with urllib.request.urlopen(req, timeout=3.5) as resp:
                 if resp.status == 200:
                     data = json.loads(resp.read().decode('utf-8'))
