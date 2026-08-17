@@ -369,7 +369,8 @@ def decodificar_get(
     Interpreta una frase completa para determinar la carta de póker codificada (Valor + Palo).
     Actualiza silenciosamente el estado del servidor para la pantalla en directo.
     """
-    res = analizar_frase(frase)
+    bin_cfg = cargar_config_binaria()
+    res = analizar_frase(frase, bin_cfg)
     if "error" in res:
         return ResultadoDecodificación(
             exito=False,
@@ -401,7 +402,8 @@ def decodificar_post(body: PeticionPostDecodificar):
     Interpreta una frase enviada por JSON POST.
     Actualiza silenciosamente el estado del servidor sin refrescar ninguna pantalla.
     """
-    res = analizar_frase(body.frase)
+    bin_cfg = cargar_config_binaria()
+    res = analizar_frase(body.frase, bin_cfg)
 
     if "error" in res:
         return ResultadoDecodificación(
@@ -423,19 +425,94 @@ def decodificar_post(body: PeticionPostDecodificar):
     )
 
 
+REDIS_KEY_BINARY_CONFIG = "codigo-carta:binary-config"
+BINARY_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "binary_config.json")
+
+
+def cargar_config_binaria() -> dict:
+    """Carga la configuración de 9 campos de componentes binarios desde Redis o JSON local."""
+    from codigo_carta import DEFAULT_BINARY_CONFIG
+    try:
+        data_str = upstash_redis_get(REDIS_KEY_BINARY_CONFIG)
+        if data_str:
+            data = json.loads(data_str)
+            if isinstance(data, dict):
+                return data
+    except Exception as e:
+        print(f"[REDIS BINARY CONFIG READ ERR] {e}")
+
+    if os.path.exists(BINARY_CONFIG_FILE):
+        try:
+            with open(BINARY_CONFIG_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict):
+                    return data
+        except Exception as e:
+            print(f"[FILE BINARY CONFIG READ ERR] {e}")
+
+    import copy
+    return copy.deepcopy(DEFAULT_BINARY_CONFIG)
+
+
+def guardar_config_binaria(config: dict) -> bool:
+    """Guarda la configuración de componentes binarios en Redis y en el archivo local JSON."""
+    config_json = json.dumps(config, ensure_ascii=False, indent=2)
+    success = False
+    try:
+        success = upstash_redis_set(REDIS_KEY_BINARY_CONFIG, config_json)
+    except Exception as e:
+        print(f"[REDIS BINARY CONFIG WRITE ERR] {e}")
+
+    try:
+        with open(BINARY_CONFIG_FILE, "w", encoding="utf-8") as f:
+            f.write(config_json)
+        success = True
+    except Exception as e:
+        print(f"[FILE BINARY CONFIG WRITE ERR] {e}")
+
+    return success
+
+
+@app.get("/configuracion", response_class=HTMLResponse, summary="Página de Configuración de Componentes Binarios", tags=["Visualización"])
+def configuracion_web():
+    """Servicio de la interfaz gráfica de configuración ultrasimple de 9 campos (configuracion.html)."""
+    html_path = os.path.join(os.path.dirname(__file__), "configuracion.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="Archivo configuracion.html no encontrado.", status_code=404)
+
+
+@app.get("/api/config_binaria", summary="Obtener configuración binaria de 9 campos", tags=["Configuración"])
+def obtener_config_binaria():
+    """Retorna la configuración actual de componentes binarios."""
+    return cargar_config_binaria()
+
+
+@app.post("/api/config_binaria", summary="Guardar configuración binaria de 9 campos", tags=["Configuración"])
+def guardar_config_binaria_endpoint(config: dict):
+    """Guarda la configuración de 9 campos de componentes binarios."""
+    if not isinstance(config, dict):
+        raise HTTPException(status_code=400, detail="Estructura de configuración inválida.")
+    guardar_config_binaria(config)
+    return {"exito": True, "mensaje": "Configuración binaria guardada correctamente"}
+
+
 @app.post(
     "/api/decodificar_palabra_clave",
-    summary="Decodificar carta a partir de una palabra clave hablada (ej. 'vale')",
+    summary="Decodificar carta a partir de una palabra clave hablada y componentes binarios",
     tags=["Decodificación Fonética"]
 )
 def decodificar_palabra_clave(body: PeticionDecodificacionPalabraClave):
     """
-    Busca la palabra clave (ej. 'vale') dentro del texto hablado y analiza
-    las palabras subsecuentes para detectar la carta.
-    Si se detecta una carta, actualiza el estado CARTA_ACTUAL para /visualizar.
+    Analiza la transcripción buscando componentes binarios independientes (Bits 8, 4, 2, 1 y palo).
+    Si se detecta una carta en rango [1, 13], actualiza el estado CARTA_ACTUAL para /visualizar.
     """
-    from codigo_carta import detectCardWithKeyword
-    res = detectCardWithKeyword(body.texto, body.palabra_clave)
+    from codigo_carta import detectCardFromBinaryComponents
+    bin_cfg = cargar_config_binaria()
+    kw_target = body.palabra_clave or bin_cfg.get("trigger", "vale")
+
+    res = detectCardFromBinaryComponents(body.texto, bin_cfg)
 
     # Si Python no detectó la carta pero el cliente JS sí pasó valor y palo_id válidos
     if not res.get("detected") and body.valor and body.palo_id:
@@ -455,24 +532,24 @@ def decodificar_palabra_clave(body: PeticionDecodificacionPalabraClave):
         return {
             "exito": True,
             "keywordFound": True,
-            "keyword": res.get("keyword", body.palabra_clave),
+            "keyword": res.get("keyword", kw_target),
             "fullText": body.texto,
             "afterWords": res.get("afterWords", []),
             "matchedWords": res.get("matchedWords", []),
             "valor": str(val_str),
             "palo_id": suit_id,
             "palo": palo_info,
-            "coletilla": res.get("coletilla", res.get("suitCode", "")),
-            "valuePattern": res.get("valuePattern")
+            "coletilla": res.get("suitCode", suit_id.upper()),
+            "valuePattern": res.get("valuePattern", "")
         }
 
     return {
         "exito": False,
         "keywordFound": res.get("keywordFound", False),
-        "keyword": res.get("keyword", body.palabra_clave),
+        "keyword": res.get("keyword", kw_target),
         "fullText": body.texto,
         "afterWords": res.get("afterWords", []),
-        "error": "No se detectó ninguna carta válida tras la palabra clave"
+        "error": "No se detectó ninguna carta válida tras la suma de bits [1..13] y palo"
     }
 
 

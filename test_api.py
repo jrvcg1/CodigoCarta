@@ -14,19 +14,19 @@ def test_health():
     print("[OK] GET /health funcionando correctamente.")
 
 def test_decodificar_get_exito():
-    # regular (J) + sacado (picas) -> J de Picas
-    response = client.get("/api/decodificar?frase=Hablando del elemento regular que fue sacado")
+    # bueno (8) + entonces (4) + vas (1) = 13 (K) + sacado (picas) -> K de Picas
+    response = client.get("/api/decodificar?frase=Vale bueno entonces vas sacado de la mesa")
     assert response.status_code == 200
     data = response.json()
     assert data["exito"] is True
-    assert data["valor"] == "J"
+    assert data["valor"] == "K"
     assert data["palo_id"] == "picas"
     assert data["palo"]["simbolo"] == "♠"
-    print("[OK] GET /api/decodificar exito: J de Picas verificado.")
+    print("[OK] GET /api/decodificar exito: K de Picas verificado.")
 
 def test_decodificar_get_error_sin_palo():
     # ahora (2 sin palabra de palo) -> No confirma carta (error)
-    response = client.get("/api/decodificar?frase=Hola ahora estamos viendo")
+    response = client.get("/api/decodificar?frase=Vale ahora estamos viendo")
     assert response.status_code == 200
     data = response.json()
     assert data["exito"] is False
@@ -36,7 +36,7 @@ def test_decodificar_get_error_sin_palo():
 def test_decodificar_post_kw():
     # ahora (2) + sacado (picas) -> 2 de Picas
     payload = {
-        "frase": "Viendo que ahora fue sacado de la baraja"
+        "frase": "Viendo que vale ahora fue sacado de la baraja"
     }
     response = client.post("/api/decodificar", json=payload)
     assert response.status_code == 200
@@ -135,6 +135,58 @@ def test_redis_y_errores():
             assert data_mock["palo_id"] == "picas"
             print("[OK] GET /api/carta_actual recupera correctamente el estado desde la clave Redis 'codigo-carta:current-card'.")
 
+def test_configuracion_binaria():
+    from codigo_carta import detectCardFromBinaryComponents
+
+    # 1. GET /configuracion
+    res_cfg = client.get("/configuracion")
+    assert res_cfg.status_code == 200
+    assert "Configuración por Componentes Binarios" in res_cfg.text
+    print("[OK] GET /configuracion verificado.")
+
+    # 2. GET /api/config_binaria y POST /api/config_binaria
+    res_get = client.get("/api/config_binaria")
+    assert res_get.status_code == 200
+    assert "bit8" in res_get.json()
+    print("[OK] GET /api/config_binaria verificado.")
+
+    bin_cfg = {
+        "trigger": "vale",
+        "bit8": "bueno, vale bueno",
+        "bit4": "entonces",
+        "bit2": "ahora",
+        "bit1": "vas",
+        "corazones": "corazones, corazon",
+        "diamantes": "diamantes",
+        "treboles": "treboles",
+        "picas": "picas"
+    }
+
+    res_post = client.post("/api/config_binaria", json=bin_cfg)
+    assert res_post.status_code == 200
+    assert res_post.json()["exito"] is True
+    print("[OK] POST /api/config_binaria verificado.")
+
+    # 3. Ejemplo del usuario: "bueno entonces ahora vas corazones" -> (8+4+2+1=15) -> >13 (Inválido)
+    res_15 = detectCardFromBinaryComponents("vale bueno entonces ahora vas corazones", bin_cfg)
+    assert res_15["detected"] is False
+    print("[OK] Ejemplo 1: (8+4+2+1=15) descartado por valor fuera de rango (>13) verificado.")
+
+    # 4. Ejemplo del usuario: "bueno entonces corazones" -> (8+4=12) -> 12 de Corazones (Q♥️)
+    res_12 = detectCardFromBinaryComponents("vale bueno entonces corazones", bin_cfg)
+    assert res_12["detected"] is True
+    assert res_12["value"] == "Q"
+    assert res_12["suit"] == "corazones"
+    print("[OK] Ejemplo 2: 'bueno entonces corazones' (8+4=12) -> Q de Corazones verificado.")
+
+    # 5. Ejemplo: "entonces vas picas" -> (4+1=5) -> 5 de Picas (5♠️)
+    res_5 = detectCardFromBinaryComponents("vale entonces vas picas", bin_cfg)
+    assert res_5["detected"] is True
+    assert res_5["value"] == "5"
+    assert res_5["suit"] == "picas"
+    print("[OK] Ejemplo 3: 'entonces vas picas' (4+1=5) -> 5 de Picas verificado.")
+
+
 if __name__ == "__main__":
     test_health()
     test_decodificar_get_exito()
@@ -144,5 +196,6 @@ if __name__ == "__main__":
     test_endpoints_visuales()
     test_decodificar_palabra_clave()
     test_redis_y_errores()
+    test_configuracion_binaria()
     print("\n[OK] TODAS LAS PRUEBAS DE LA API REST Y REDIS PASARON CON ÉXITO.")
 
