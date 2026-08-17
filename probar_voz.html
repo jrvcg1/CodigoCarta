@@ -875,88 +875,38 @@
             }
         });
 
-        // --- MOTOR DE DECODIFICACIÓN LOCAL POR PALABRAS CLAVE DE VALOR Y PALO ---
-        const VALOR_PALABRAS = {
-            "antes":     { valor: "A",  nombre: "As",       num: 1 },
-            "ante":      { valor: "A",  nombre: "As",       num: 1 },
-            "1":         { valor: "A",  nombre: "As",       num: 1 },
-            "uno":       { valor: "A",  nombre: "As",       num: 1 },
-            "ahora":     { valor: "2",  nombre: "2",        num: 2 },
-            "2":         { valor: "2",  nombre: "2",        num: 2 },
-            "dos":       { valor: "2",  nombre: "2",        num: 2 },
-            "luego":     { valor: "3",  nombre: "3",        num: 3 },
-            "3":         { valor: "3",  nombre: "3",        num: 3 },
-            "tres":      { valor: "3",  nombre: "3",        num: 3 },
-            "despues":   { valor: "4",  nombre: "4",        num: 4 },
-            "despue":    { valor: "4",  nombre: "4",        num: 4 },
-            "4":         { valor: "4",  nombre: "4",        num: 4 },
-            "cuatro":    { valor: "4",  nombre: "4",        num: 4 },
-            "nada":      { valor: "5",  nombre: "5",        num: 5 },
-            "5":         { valor: "5",  nombre: "5",        num: 5 },
-            "cinco":     { valor: "5",  nombre: "5",        num: 5 },
-            "poco":      { valor: "6",  nombre: "6",        num: 6 },
-            "poca":      { valor: "6",  nombre: "6",        num: 6 },
-            "6":         { valor: "6",  nombre: "6",        num: 6 },
-            "seis":      { valor: "6",  nombre: "6",        num: 6 },
-            "mucho":     { valor: "7",  nombre: "7",        num: 7 },
-            "mucha":     { valor: "7",  nombre: "7",        num: 7 },
-            "7":         { valor: "7",  nombre: "7",        num: 7 },
-            "siete":     { valor: "7",  nombre: "7",        num: 7 },
-            "demasiado": { valor: "8",  nombre: "8",        num: 8 },
-            "demasiada": { valor: "8",  nombre: "8",        num: 8 },
-            "8":         { valor: "8",  nombre: "8",        num: 8 },
-            "ocho":      { valor: "8",  nombre: "8",        num: 8 },
-            "todo":      { valor: "9",  nombre: "9",        num: 9 },
-            "toda":      { valor: "9",  nombre: "9",        num: 9 },
-            "9":         { valor: "9",  nombre: "9",        num: 9 },
-            "nueve":     { valor: "9",  nombre: "9",        num: 9 },
-            "mal":       { valor: "10", nombre: "10",       num: 10 },
-            "malo":      { valor: "10", nombre: "10",       num: 10 },
-            "mala":      { valor: "10", nombre: "10",       num: 10 },
-            "10":        { valor: "10", nombre: "10",       num: 10 },
-            "diez":      { valor: "10", nombre: "10",       num: 10 },
-            "regular":   { valor: "J",  nombre: "J",        num: 11 },
-            "11":        { valor: "J",  nombre: "J",        num: 11 },
-            "once":      { valor: "J",  nombre: "J",        num: 11 },
-            "jota":      { valor: "J",  nombre: "J",        num: 11 },
-            "bien":      { valor: "Q",  nombre: "Q",        num: 12 },
-            "12":        { valor: "Q",  nombre: "Q",        num: 12 },
-            "doce":      { valor: "Q",  nombre: "Q",        num: 12 },
-            "reina":     { valor: "Q",  nombre: "Q",        num: 12 },
-            "dama":      { valor: "Q",  nombre: "Q",        num: 12 },
-            "perfecto":  { valor: "K",  nombre: "K",        num: 13 },
-            "perfecta":  { valor: "K",  nombre: "K",        num: 13 },
-            "13":        { valor: "K",  nombre: "K",        num: 13 },
-            "trece":     { valor: "K",  nombre: "K",        num: 13 },
-            "rey":       { valor: "K",  nombre: "K",        num: 13 }
+        // --- MOTOR DE DECODIFICACIÓN DINÁMICO POR COMPONENTES BINARIOS ---
+        let activeBinaryConfig = {
+            trigger: "vale",
+            bit8: "bueno, vale bueno, demasiado, mal",
+            bit4: "entonces, despues, nada",
+            bit2: "ahora, luego, mucho",
+            bit1: "vas, ante, uno, antes",
+            corazones: "corazones, corazon, tomado",
+            diamantes: "diamantes, diamante, elegido",
+            treboles: "treboles, trebol, cogido",
+            picas: "picas, pica, sacado"
         };
 
-        const PALO_PALABRAS = {
-            "cogido":   "treboles",
-            "cogida":   "treboles",
-            "cogidos":  "treboles",
-            "cogidas":  "treboles",
-            "trebol":   "treboles",
-            "treboles": "treboles",
-            "sacado":   "picas",
-            "sacada":   "picas",
-            "sacados":  "picas",
-            "sacadas":  "picas",
-            "pica":     "picas",
-            "picas":    "picas",
-            "elegido":  "diamantes",
-            "elegida":  "diamantes",
-            "elegidos": "diamantes",
-            "elegidas": "diamantes",
-            "diamante": "diamantes",
-            "diamantes":"diamantes",
-            "tomado":   "corazones",
-            "tomada":   "corazones",
-            "tomados":  "corazones",
-            "tomadas":  "corazones",
-            "corazon":  "corazones",
-            "corazones":"corazones"
-        };
+        async function syncBinaryConfig() {
+            try {
+                const res = await fetch('/api/config_binaria');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && typeof data === 'object') {
+                        activeBinaryConfig = data;
+                        if (data.trigger && keywordInput && document.activeElement !== keywordInput) {
+                            keywordInput.value = data.trigger;
+                        }
+                    }
+                }
+            } catch(e) {
+                console.log("Error syncing binary config:", e);
+            }
+        }
+
+        syncBinaryConfig();
+        setInterval(syncBinaryConfig, 4000);
 
         const PALO_NOMBRES = { "picas": "Picas ♠", "corazones": "Corazones ♥", "diamantes": "Diamantes ♦", "treboles": "Tréboles ♣" };
         const PALO_SIMBOLOS = { "picas": "♠", "corazones": "♥", "diamantes": "♦", "treboles": "♣" };
@@ -969,34 +919,59 @@
             return t.split(/\s+/).filter(w => w.length > 0);
         }
 
+        function parsePatternsJS(rawVal) {
+            if (!rawVal) return [];
+            let items = Array.isArray(rawVal) ? rawVal : String(rawVal).split(",");
+            return items.map(item => normalizeSpeech(item).join(" ")).filter(w => w.length > 0);
+        }
+
+        function containsPatternJS(textStr, expressions) {
+            if (!textStr || !expressions || expressions.length === 0) return false;
+            let normText = " " + normalizeSpeech(textStr).join(" ") + " ";
+            for (let expr of expressions) {
+                let normExpr = " " + expr + " ";
+                if (normText.includes(normExpr)) return true;
+            }
+            return false;
+        }
+
         function detectCardFromWords(words) {
             if (!words || words.length === 0) return null;
+            let textStr = words.join(" ");
 
-            let detectedVal = null;
-            let detectedPalo = null;
-            let valWord = null;
-            let paloWord = null;
-            let matchedWords = [];
+            let b8Exprs = parsePatternsJS(activeBinaryConfig.bit8);
+            let b4Exprs = parsePatternsJS(activeBinaryConfig.bit4);
+            let b2Exprs = parsePatternsJS(activeBinaryConfig.bit2);
+            let b1Exprs = parsePatternsJS(activeBinaryConfig.bit1);
 
-            for (let w of words) {
-                if (!detectedVal && VALOR_PALABRAS[w]) {
-                    detectedVal = VALOR_PALABRAS[w];
-                    valWord = w;
-                    matchedWords.push(w);
-                } else if (!detectedPalo && PALO_PALABRAS[w]) {
-                    detectedPalo = PALO_PALABRAS[w];
-                    paloWord = w;
-                    matchedWords.push(w);
+            let hasB8 = containsPatternJS(textStr, b8Exprs);
+            let hasB4 = containsPatternJS(textStr, b4Exprs);
+            let hasB2 = containsPatternJS(textStr, b2Exprs);
+            let hasB1 = containsPatternJS(textStr, b1Exprs);
+
+            let decVal = (hasB8 ? 8 : 0) + (hasB4 ? 4 : 0) + (hasB2 ? 2 : 0) + (hasB1 ? 1 : 0);
+
+            let detectedSuit = null;
+            const suits = ["corazones", "diamantes", "treboles", "picas"];
+            for (let s of suits) {
+                let sExprs = parsePatternsJS(activeBinaryConfig[s]);
+                if (containsPatternJS(textStr, sExprs)) {
+                    detectedSuit = s;
+                    break;
                 }
             }
 
-            if (detectedVal && detectedPalo) {
+            if (decVal >= 1 && decVal <= 13 && detectedSuit) {
+                const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+                let valCode = numToVal[String(decVal)];
+                let bitsStr = `B8:${hasB8?1:0} B4:${hasB4?1:0} B2:${hasB2?1:0} B1:${hasB1?1:0}`;
                 return {
-                    value: detectedVal.valor,
-                    suit: detectedPalo,
-                    suitCode: paloWord.toUpperCase(),
-                    pattern: valWord.toUpperCase(),
-                    matchedWords: matchedWords
+                    value: valCode,
+                    decimalValue: decVal,
+                    suit: detectedSuit,
+                    suitCode: detectedSuit.toUpperCase(),
+                    pattern: bitsStr,
+                    matchedWords: [bitsStr, detectedSuit.toUpperCase()]
                 };
             }
 

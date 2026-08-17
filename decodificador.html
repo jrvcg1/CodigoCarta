@@ -383,29 +383,34 @@ function tokenizar(frase){
   return crudos.map(t => t.replace(/[¿¡?!.,;:]/g, "")).filter(Boolean);
 }
 
-const VALOR_PALABRAS = {
-  "antes":     { valor: "A",  nombre: "As",       num: 1 },
-  "ahora":     { valor: "2",  nombre: "2",        num: 2 },
-  "luego":     { valor: "3",  nombre: "3",        num: 3 },
-  "despues":   { valor: "4",  nombre: "4",        num: 4 },
-  "despue":    { valor: "4",  nombre: "4",        num: 4 },
-  "nada":      { valor: "5",  nombre: "5",        num: 5 },
-  "poco":      { valor: "6",  nombre: "6",        num: 6 },
-  "mucho":     { valor: "7",  nombre: "7",        num: 7 },
-  "demasiado": { valor: "8",  nombre: "8",        num: 8 },
-  "todo":      { valor: "9",  nombre: "9",        num: 9 },
-  "mal":       { valor: "10", nombre: "10",       num: 10 },
-  "regular":   { valor: "J",  nombre: "J",        num: 11 },
-  "bien":      { valor: "Q",  nombre: "Q",        num: 12 },
-  "perfecto":  { valor: "K",  nombre: "K",        num: 13 }
+let activeBinaryConfig = {
+  trigger: "vale",
+  bit8: "bueno, vale bueno, demasiado, mal",
+  bit4: "entonces, despues, nada",
+  bit2: "ahora, luego, mucho",
+  bit1: "vas, ante, uno, antes",
+  corazones: "corazones, corazon, tomado",
+  diamantes: "diamantes, diamante, elegido",
+  treboles: "treboles, trebol, cogido",
+  picas: "picas, pica, sacado"
 };
 
-const PALO_PALABRAS = {
-  "cogido":  "treboles",
-  "sacado":  "picas",
-  "elegido": "diamantes",
-  "tomado":  "corazones"
-};
+async function syncBinaryConfig() {
+  try {
+    const res = await fetch('/api/config_binaria');
+    if (res.ok) {
+      const data = await res.json();
+      if (data && typeof data === 'object') {
+        activeBinaryConfig = data;
+      }
+    }
+  } catch(e) {
+    console.log("Error syncing binary config:", e);
+  }
+}
+
+syncBinaryConfig();
+setInterval(syncBinaryConfig, 5000);
 
 function normalizeSpeech(text) {
   if (!text) return [];
@@ -415,37 +420,62 @@ function normalizeSpeech(text) {
   return t.split(/\s+/).filter(Boolean);
 }
 
+function parsePatternsJS(rawVal) {
+  if (!rawVal) return [];
+  let items = Array.isArray(rawVal) ? rawVal : String(rawVal).split(",");
+  return items.map(item => normalizeSpeech(item).join(" ")).filter(w => w.length > 0);
+}
+
+function containsPatternJS(textStr, expressions) {
+  if (!textStr || !expressions || expressions.length === 0) return false;
+  let normText = " " + normalizeSpeech(textStr).join(" ") + " ";
+  for (let expr of expressions) {
+    let normExpr = " " + expr + " ";
+    if (normText.includes(normExpr)) return true;
+  }
+  return false;
+}
+
 function detectCardFromSpeech(text) {
   const words = normalizeSpeech(text);
   if (words.length === 0) return { detected: false };
+  let textStr = words.join(" ");
 
-  let detectedVal = null;
-  let detectedPalo = null;
-  let valWord = null;
-  let paloWord = null;
-  let matchedWords = [];
+  let b8Exprs = parsePatternsJS(activeBinaryConfig.bit8);
+  let b4Exprs = parsePatternsJS(activeBinaryConfig.bit4);
+  let b2Exprs = parsePatternsJS(activeBinaryConfig.bit2);
+  let b1Exprs = parsePatternsJS(activeBinaryConfig.bit1);
 
-  for (const w of words) {
-    if (!detectedVal && VALOR_PALABRAS[w]) {
-      detectedVal = VALOR_PALABRAS[w];
-      valWord = w;
-      matchedWords.push(w);
-    } else if (!detectedPalo && PALO_PALABRAS[w]) {
-      detectedPalo = PALO_PALABRAS[w];
-      paloWord = w;
-      matchedWords.push(w);
+  let hasB8 = containsPatternJS(textStr, b8Exprs);
+  let hasB4 = containsPatternJS(textStr, b4Exprs);
+  let hasB2 = containsPatternJS(textStr, b2Exprs);
+  let hasB1 = containsPatternJS(textStr, b1Exprs);
+
+  let decVal = (hasB8 ? 8 : 0) + (hasB4 ? 4 : 0) + (hasB2 ? 2 : 0) + (hasB1 ? 1 : 0);
+
+  let detectedSuit = null;
+  const suits = ["corazones", "diamantes", "treboles", "picas"];
+  for (let s of suits) {
+    let sExprs = parsePatternsJS(activeBinaryConfig[s]);
+    if (containsPatternJS(textStr, sExprs)) {
+      detectedSuit = s;
+      break;
     }
   }
 
-  if (detectedVal && detectedPalo) {
+  if (decVal >= 1 && decVal <= 13 && detectedSuit) {
+    const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+    const valNames = { "A": "As", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "J": "J", "Q": "Q", "K": "K" };
+    let valCode = numToVal[String(decVal)];
+    let bitsStr = `B8:${hasB8?1:0} B4:${hasB4?1:0} B2:${hasB2?1:0} B1:${hasB1?1:0}`;
     return {
       detected: true,
-      value: detectedVal.valor,
-      valueName: detectedVal.nombre,
-      suit: detectedPalo,
-      suitCode: paloWord.toUpperCase(),
-      valuePattern: valWord.toUpperCase(),
-      matchedWords: matchedWords
+      value: valCode,
+      valueName: valNames[valCode],
+      suit: detectedSuit,
+      suitCode: detectedSuit.toUpperCase(),
+      valuePattern: bitsStr,
+      matchedWords: [bitsStr, detectedSuit.toUpperCase()]
     };
   }
 
