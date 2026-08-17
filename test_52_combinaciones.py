@@ -66,8 +66,8 @@ def test_52_combinaciones_binarias():
 
 def test_casos_borde_binarios():
     casos = [
-        # Ejemplo 1 del usuario: 8 + 4 + 2 + 1 = 15 -> >13 (Inválido)
-        ("Vale bueno entonces ahora vas corazones", False, None, None),
+        # Ejemplo 1 del usuario: 8 + 4 + 2 + 1 = 15 -> tope 13 -> K de Corazones
+        ("Vale bueno entonces ahora vas corazones", True, "K", "corazones"),
 
         # Ejemplo 2 del usuario: 8 + 4 = 12 -> Q de Corazones
         ("Vale bueno entonces corazones", True, "Q", "corazones"),

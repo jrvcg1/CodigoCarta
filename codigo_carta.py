@@ -140,8 +140,10 @@ def detectCardFromBinaryComponents(text: str, config: dict = None) -> dict:
             suit_code = suit_key.upper()
             break
 
-    if 1 <= decimal_val <= 13 and detected_suit:
-        rank_code = NUM_TO_VAL_MAP[str(decimal_val)]
+    effective_val = min(decimal_val, 13) if decimal_val >= 1 else 0
+
+    if 1 <= effective_val <= 13 and detected_suit:
+        rank_code = NUM_TO_VAL_MAP[str(effective_val)]
         val_name = VALUE_NAMES[rank_code]
         bits_str = f"B8:{int(has_b8)} B4:{int(has_b4)} B2:{int(has_b2)} B1:{int(has_b1)}"
         return {
@@ -150,6 +152,7 @@ def detectCardFromBinaryComponents(text: str, config: dict = None) -> dict:
             "keyword": kw_matched,
             "value": rank_code,
             "decimalValue": decimal_val,
+            "effectiveValue": effective_val,
             "valueName": val_name,
             "suit": detected_suit,
             "suitCode": suit_code,
@@ -160,9 +163,7 @@ def detectCardFromBinaryComponents(text: str, config: dict = None) -> dict:
         }
 
     reason_err = "No se detectó una combinación válida"
-    if decimal_val > 13:
-        reason_err = f"Suma de bits = {decimal_val} (fuera de rango [1..13]). Las cartas sólo van del 1 al 13."
-    elif decimal_val == 0:
+    if decimal_val == 0:
         reason_err = "No se detectó ningún bit de valor (suma = 0)."
     elif not detected_suit:
         reason_err = f"Suma de bits = {decimal_val}, pero falta el palo."

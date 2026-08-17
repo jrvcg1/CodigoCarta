@@ -1030,33 +1030,34 @@
                 matchedSuitExpr.split(" ").forEach(w => matchedWordsSet.add(w));
             }
 
-            let isCardValid = (decVal >= 1 && decVal <= 13 && detectedSuit !== null);
+            let effectiveVal = (decVal >= 1) ? Math.min(decVal, 13) : 0;
+            let isCardValid = (effectiveVal >= 1 && effectiveVal <= 13 && detectedSuit !== null);
             let mathSumStr = mathParts.length > 0 ? mathParts.join(" + ") : "Sin bits (+0)";
             let suitName = detectedSuit ? (PALO_NOMBRES[detectedSuit] || detectedSuit) : "Sin palo";
 
+            const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+            let valCode = isCardValid ? numToVal[String(effectiveVal)] : null;
+            let suitSymbol = detectedSuit ? (PALO_SIMBOLOS[detectedSuit] || "") : "";
+
             let breakdownText = "";
-            if (decVal > 13) {
-                breakdownText = `⚠️ <strong>Suma fuera de rango:</strong> ${mathSumStr} = <span style="color: #ef4444; font-weight: 700;">${decVal} (inválido >13)</span>. Las cartas sólo van del 1 al 13.`;
+            if (decVal > 13 && isCardValid) {
+                breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} &rarr; tope 13 (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
             } else if (!detectedSuit && decVal >= 1) {
-                const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
-                breakdownText = `ℹ️ <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${numToVal[String(decVal)]})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span style="color: #f59e0b; font-weight: 700;">Falta indicar palo</span>`;
+                let dispVal = numToVal[String(effectiveVal)];
+                breakdownText = `ℹ️ <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal}${decVal>13?' &rarr; 13':''} (${dispVal})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span style="color: #f59e0b; font-weight: 700;">Falta indicar palo</span>`;
             } else if (isCardValid) {
-                const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
-                let valCode = numToVal[String(decVal)];
-                let suitSymbol = PALO_SIMBOLOS[detectedSuit] || "";
                 breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
             } else {
                 breakdownText = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en la frase...`;
             }
 
-            const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
-            let valCode = isCardValid ? numToVal[String(decVal)] : null;
             let bitsStr = `B8:${hasB8?1:0} B4:${hasB4?1:0} B2:${hasB2?1:0} B1:${hasB1?1:0}`;
 
             return {
                 detected: isCardValid,
                 value: valCode,
                 decimalValue: decVal,
+                effectiveValue: effectiveVal,
                 suit: detectedSuit,
                 suitCode: detectedSuit ? detectedSuit.toUpperCase() : "",
                 pattern: bitsStr,

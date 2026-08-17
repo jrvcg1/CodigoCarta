@@ -167,10 +167,12 @@ def test_configuracion_binaria():
     assert res_post.json()["exito"] is True
     print("[OK] POST /api/config_binaria verificado.")
 
-    # 3. Ejemplo del usuario: "bueno entonces ahora vas corazones" -> (8+4+2+1=15) -> >13 (Inválido)
+    # 3. Ejemplo del usuario: "bueno entonces ahora vas corazones" -> (8+4+2+1=15) -> tope K (13 de Corazones)
     res_15 = detectCardFromBinaryComponents("vale bueno entonces ahora vas corazones", bin_cfg)
-    assert res_15["detected"] is False
-    print("[OK] Ejemplo 1: (8+4+2+1=15) descartado por valor fuera de rango (>13) verificado.")
+    assert res_15["detected"] is True
+    assert res_15["value"] == "K"
+    assert res_15["suit"] == "corazones"
+    print("[OK] Ejemplo 1: (8+4+2+1=15) interpretado como Rey (K) verificado.")
 
     # 4. Ejemplo del usuario: "bueno entonces corazones" -> (8+4=12) -> 12 de Corazones (Q♥️)
     res_12 = detectCardFromBinaryComponents("vale bueno entonces corazones", bin_cfg)
