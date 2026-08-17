@@ -435,14 +435,36 @@
             margin: 0 2px;
         }
         .matched-words-tag {
-            color: var(--cyan-glow);
+            color: var(--gold-bright);
             font-weight: 700;
-            background: rgba(0, 229, 255, 0.15);
+            background: rgba(212, 175, 55, 0.28);
             padding: 2px 8px;
             border-radius: 6px;
-            border: 1px solid rgba(0, 229, 255, 0.4);
-            box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+            border: 1px solid rgba(212, 175, 55, 0.6);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
             margin: 0 2px;
+            display: inline-block;
+        }
+
+        .calc-breakdown-box {
+            margin-top: 12px;
+            padding: 10px 14px;
+            background: rgba(10, 6, 20, 0.85);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 8px;
+            font-size: 13px;
+            color: #e2e8f0;
+            line-height: 1.5;
+            word-break: break-word;
+            width: 100%;
+        }
+        .calc-breakdown-box .bit-highlight {
+            color: #2ecc71;
+            font-weight: 700;
+        }
+        .calc-breakdown-box .suit-highlight {
+            color: #00e5ff;
+            font-weight: 700;
         }
 
         /* RESULTADO: CARTA RECONOCIDA EN PRIMER PLANO */
@@ -667,6 +689,9 @@
                 <span id="lockStatusBadge" style="color: #a89bbd;">🔓 Esperando clave oracular</span>
             </div>
             <div class="feed-text" id="speechFeed">Inicia el canal oracular y transmite el código de apertura (ej. "vale")...</div>
+            <div class="calc-breakdown-box" id="calcBreakdownBox">
+                🧮 <strong>Cálculo de Componentes:</strong> Esperando detección tras la palabra clave...
+            </div>
         </div>
 
         <!-- CARTA RECONOCIDA EN PRIMER PLANO -->
@@ -935,6 +960,18 @@
             return false;
         }
 
+        function containsPatternJSWithMatch(textStr, expressions) {
+            if (!textStr || !expressions || expressions.length === 0) return { matched: false, expr: null };
+            let normText = " " + normalizeSpeech(textStr).join(" ") + " ";
+            for (let expr of expressions) {
+                let normExpr = " " + expr + " ";
+                if (normText.includes(normExpr)) {
+                    return { matched: true, expr: expr };
+                }
+            }
+            return { matched: false, expr: null };
+        }
+
         function detectCardFromWords(words) {
             if (!words || words.length === 0) return null;
             let textStr = words.join(" ");
@@ -944,34 +981,76 @@
             let b2Exprs = parsePatternsJS(activeBinaryConfig.bit2);
             let b1Exprs = parsePatternsJS(activeBinaryConfig.bit1);
 
-            let hasB8 = containsPatternJS(textStr, b8Exprs);
-            let hasB4 = containsPatternJS(textStr, b4Exprs);
-            let hasB2 = containsPatternJS(textStr, b2Exprs);
-            let hasB1 = containsPatternJS(textStr, b1Exprs);
+            let resB8 = containsPatternJSWithMatch(textStr, b8Exprs);
+            let resB4 = containsPatternJSWithMatch(textStr, b4Exprs);
+            let resB2 = containsPatternJSWithMatch(textStr, b2Exprs);
+            let resB1 = containsPatternJSWithMatch(textStr, b1Exprs);
+
+            let hasB8 = resB8.matched;
+            let hasB4 = resB4.matched;
+            let hasB2 = resB2.matched;
+            let hasB1 = resB1.matched;
 
             let decVal = (hasB8 ? 8 : 0) + (hasB4 ? 4 : 0) + (hasB2 ? 2 : 0) + (hasB1 ? 1 : 0);
 
             let detectedSuit = null;
+            let matchedSuitExpr = null;
             const suits = ["corazones", "diamantes", "treboles", "picas"];
             for (let s of suits) {
                 let sExprs = parsePatternsJS(activeBinaryConfig[s]);
-                if (containsPatternJS(textStr, sExprs)) {
+                let resS = containsPatternJSWithMatch(textStr, sExprs);
+                if (resS.matched) {
                     detectedSuit = s;
+                    matchedSuitExpr = resS.expr;
                     break;
                 }
             }
 
             if (decVal >= 1 && decVal <= 13 && detectedSuit) {
                 const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+                const valNames = { "A": "As", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "J": "J", "Q": "Q", "K": "K" };
                 let valCode = numToVal[String(decVal)];
+
+                let matchedWordsSet = new Set();
+                let mathParts = [];
+
+                if (hasB8) {
+                    resB8.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                    mathParts.push(`Bit 8 ("${resB8.expr}": +8)`);
+                }
+                if (hasB4) {
+                    resB4.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                    mathParts.push(`Bit 4 ("${resB4.expr}": +4)`);
+                }
+                if (hasB2) {
+                    resB2.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                    mathParts.push(`Bit 2 ("${resB2.expr}": +2)`);
+                }
+                if (hasB1) {
+                    resB1.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                    mathParts.push(`Bit 1 ("${resB1.expr}": +1)`);
+                }
+
+                if (matchedSuitExpr) {
+                    matchedSuitExpr.split(" ").forEach(w => matchedWordsSet.add(w));
+                }
+
+                let suitName = PALO_NOMBRES[detectedSuit] || detectedSuit;
+                let suitSymbol = PALO_SIMBOLOS[detectedSuit] || "";
+                let mathSumStr = mathParts.join(" + ");
+                let breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
+
                 let bitsStr = `B8:${hasB8?1:0} B4:${hasB4?1:0} B2:${hasB2?1:0} B1:${hasB1?1:0}`;
+
                 return {
                     value: valCode,
                     decimalValue: decVal,
                     suit: detectedSuit,
                     suitCode: detectedSuit.toUpperCase(),
                     pattern: bitsStr,
-                    matchedWords: [bitsStr, detectedSuit.toUpperCase()]
+                    matchedWordsSet: matchedWordsSet,
+                    matchedWords: Array.from(matchedWordsSet),
+                    breakdownHtml: breakdownText
                 };
             }
 
@@ -986,6 +1065,7 @@
         const kwAlert = document.getElementById('kwAlert');
         const kwDetectedName = document.getElementById('kwDetectedName');
         const speechFeed = document.getElementById('speechFeed');
+        const calcBreakdownBox = document.getElementById('calcBreakdownBox');
         const lockStatusBadge = document.getElementById('lockStatusBadge');
         const cardTitle = document.getElementById('cardTitle');
         const cardImg = document.getElementById('cardImg');
@@ -1083,7 +1163,6 @@
             }
         });
 
-        // RELOJ GUARDIÁN (WATCHDOG TIMER): Garantiza que el micrófono nunca se quede inactivo si isListening es verdadero
         setInterval(() => {
             if (isListening && recognition) {
                 try {
@@ -1123,7 +1202,6 @@
 
             let currentKwIdx = findLastKwIndex(words, kw);
 
-            // Si la carta estaba bloqueada y volvemos a escuchar la palabra clave (ej. "vale"), desbloqueamos la sintonización
             if (cardLocked && currentKwIdx !== -1) {
                 cardLocked = false;
                 lastKwWordCount = currentKwIdx;
@@ -1133,6 +1211,7 @@
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+                calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonización desbloqueada por "${kw.toUpperCase()}"...`;
             } else if (currentKwIdx !== -1 && (lastKwWordCount === -1 || currentKwIdx > lastKwWordCount)) {
                 lastKwWordCount = currentKwIdx;
                 cardLocked = false;
@@ -1142,6 +1221,7 @@
                 kwDetectedName.textContent = kw.toUpperCase();
                 lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
                 speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+                calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonizando frase tras "${kw.toUpperCase()}"...`;
             }
 
             if (lastKwWordCount === -1) {
@@ -1154,11 +1234,17 @@
             if (!cardLocked) {
                 let match = detectCardFromWords(wordsAfterKw);
 
-                let afterText = wordsAfterKw.join(' ');
-                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + afterText;
-
                 if (match) {
-                    // Si el resultado es final o la coincidencia persiste durante el temporizador de 450ms
+                    let formattedWords = wordsAfterKw.map(w => {
+                        if (match.matchedWordsSet && match.matchedWordsSet.has(w)) {
+                            return `<span class="matched-words-tag">${w}</span>`;
+                        }
+                        return w;
+                    }).join(' ');
+
+                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
+                    calcBreakdownBox.innerHTML = match.breakdownHtml;
+
                     if (isFinal) {
                         if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
                         cardLocked = true;
@@ -1174,7 +1260,6 @@
                         }, 600);
                     } else {
                         sendLogToServer('INTERIM_CARD_MATCH', { value: match.value, suit: match.suit });
-                        // Coincidencia provisional interina: programar temporizador antirruido de 450ms
                         if (!pendingCardTimer) {
                             pendingCardTimer = setTimeout(() => {
                                 pendingCardTimer = null;
@@ -1192,7 +1277,10 @@
                         }
                     }
                 } else {
-                    // Si la actualización del dictado eliminó la coincidencia ruidosa, cancelar el temporizador provisional
+                    let afterText = wordsAfterKw.join(' ');
+                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + afterText;
+                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en: <em>"${afterText}"</em>`;
+
                     if (pendingCardTimer) {
                         sendLogToServer('INTERIM_MATCH_DISCARDED_BY_NOISE_FILTER');
                         clearTimeout(pendingCardTimer);
@@ -1200,7 +1288,7 @@
                     }
                 }
             } else {
-                let matchedWordsSet = new Set(window.lastMatchedWords || []);
+                let matchedWordsSet = window.lastMatchedWordsSet || new Set();
                 let formattedWords = wordsAfterKw.map(w => {
                     if (matchedWordsSet.has(w)) {
                         return `<span class="matched-words-tag">${w}</span>`;
@@ -1230,7 +1318,7 @@
             let suit = cardMatch.suit;
             let suitName = PALO_NOMBRES[suit];
             let suitSymbol = PALO_SIMBOLOS[suit] || "";
-            window.lastMatchedWords = cardMatch.matchedWords;
+            window.lastMatchedWordsSet = cardMatch.matchedWordsSet;
 
             let peekStr = `${val}${suitSymbol}`;
             qrSecretPeek.textContent = peekStr;
@@ -1242,7 +1330,7 @@
             void cardImg.offsetWidth;
             cardImg.classList.add('pop');
 
-            let matchedWordsSet = new Set(cardMatch.matchedWords);
+            let matchedWordsSet = cardMatch.matchedWordsSet || new Set();
             let highlightedTranscript = afterWords.map(w => {
                 if (matchedWordsSet.has(w)) {
                     return `<span class="matched-words-tag">${w}</span>`;
@@ -1251,6 +1339,9 @@
             }).join(' ');
 
             speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + highlightedTranscript;
+            if (cardMatch.breakdownHtml) {
+                calcBreakdownBox.innerHTML = cardMatch.breakdownHtml;
+            }
 
             let wordBadges = cardMatch.matchedWords.map(w => {
                 return `<span class="init-badge">${w.toUpperCase()}</span>`;

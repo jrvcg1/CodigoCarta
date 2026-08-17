@@ -1,11 +1,11 @@
 {
   "trigger": "vale",
-  "bit8": "bueno, vale bueno, demasiado, mal",
-  "bit4": "entonces, despues, nada",
-  "bit2": "ahora, luego, mucho",
-  "bit1": "vas, ante, uno, antes",
-  "corazones": "corazones, corazon, tomado",
-  "diamantes": "diamantes, diamante, elegido",
-  "treboles": "treboles, trebol, cogido",
-  "picas": "picas, pica, sacado"
+  "bit8": "bueno, vale bueno",
+  "bit4": "entonces",
+  "bit2": "ahora",
+  "bit1": "vas",
+  "corazones": "corazones, corazon",
+  "diamantes": "diamantes",
+  "treboles": "treboles",
+  "picas": "picas"
 }
