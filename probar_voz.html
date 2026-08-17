@@ -1006,55 +1006,64 @@
                 }
             }
 
-            if (decVal >= 1 && decVal <= 13 && detectedSuit) {
-                const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
-                const valNames = { "A": "As", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "J": "J", "Q": "Q", "K": "K" };
-                let valCode = numToVal[String(decVal)];
+            let matchedWordsSet = new Set();
+            let mathParts = [];
 
-                let matchedWordsSet = new Set();
-                let mathParts = [];
-
-                if (hasB8) {
-                    resB8.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                    mathParts.push(`Bit 8 ("${resB8.expr}": +8)`);
-                }
-                if (hasB4) {
-                    resB4.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                    mathParts.push(`Bit 4 ("${resB4.expr}": +4)`);
-                }
-                if (hasB2) {
-                    resB2.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                    mathParts.push(`Bit 2 ("${resB2.expr}": +2)`);
-                }
-                if (hasB1) {
-                    resB1.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                    mathParts.push(`Bit 1 ("${resB1.expr}": +1)`);
-                }
-
-                if (matchedSuitExpr) {
-                    matchedSuitExpr.split(" ").forEach(w => matchedWordsSet.add(w));
-                }
-
-                let suitName = PALO_NOMBRES[detectedSuit] || detectedSuit;
-                let suitSymbol = PALO_SIMBOLOS[detectedSuit] || "";
-                let mathSumStr = mathParts.join(" + ");
-                let breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
-
-                let bitsStr = `B8:${hasB8?1:0} B4:${hasB4?1:0} B2:${hasB2?1:0} B1:${hasB1?1:0}`;
-
-                return {
-                    value: valCode,
-                    decimalValue: decVal,
-                    suit: detectedSuit,
-                    suitCode: detectedSuit.toUpperCase(),
-                    pattern: bitsStr,
-                    matchedWordsSet: matchedWordsSet,
-                    matchedWords: Array.from(matchedWordsSet),
-                    breakdownHtml: breakdownText
-                };
+            if (hasB8) {
+                resB8.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                mathParts.push(`Bit 8 ("${resB8.expr}": +8)`);
+            }
+            if (hasB4) {
+                resB4.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                mathParts.push(`Bit 4 ("${resB4.expr}": +4)`);
+            }
+            if (hasB2) {
+                resB2.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                mathParts.push(`Bit 2 ("${resB2.expr}": +2)`);
+            }
+            if (hasB1) {
+                resB1.expr.split(" ").forEach(w => matchedWordsSet.add(w));
+                mathParts.push(`Bit 1 ("${resB1.expr}": +1)`);
             }
 
-            return null;
+            if (matchedSuitExpr) {
+                matchedSuitExpr.split(" ").forEach(w => matchedWordsSet.add(w));
+            }
+
+            let isCardValid = (decVal >= 1 && decVal <= 13 && detectedSuit !== null);
+            let mathSumStr = mathParts.length > 0 ? mathParts.join(" + ") : "Sin bits (+0)";
+            let suitName = detectedSuit ? (PALO_NOMBRES[detectedSuit] || detectedSuit) : "Sin palo";
+
+            let breakdownText = "";
+            if (decVal > 13) {
+                breakdownText = `⚠️ <strong>Suma fuera de rango:</strong> ${mathSumStr} = <span style="color: #ef4444; font-weight: 700;">${decVal} (inválido >13)</span>. Las cartas sólo van del 1 al 13.`;
+            } else if (!detectedSuit && decVal >= 1) {
+                const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+                breakdownText = `ℹ️ <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${numToVal[String(decVal)]})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span style="color: #f59e0b; font-weight: 700;">Falta indicar palo</span>`;
+            } else if (isCardValid) {
+                const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+                let valCode = numToVal[String(decVal)];
+                let suitSymbol = PALO_SIMBOLOS[detectedSuit] || "";
+                breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
+            } else {
+                breakdownText = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en la frase...`;
+            }
+
+            const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
+            let valCode = isCardValid ? numToVal[String(decVal)] : null;
+            let bitsStr = `B8:${hasB8?1:0} B4:${hasB4?1:0} B2:${hasB2?1:0} B1:${hasB1?1:0}`;
+
+            return {
+                detected: isCardValid,
+                value: valCode,
+                decimalValue: decVal,
+                suit: detectedSuit,
+                suitCode: detectedSuit ? detectedSuit.toUpperCase() : "",
+                pattern: bitsStr,
+                matchedWordsSet: matchedWordsSet,
+                matchedWords: Array.from(matchedWordsSet),
+                breakdownHtml: breakdownText
+            };
         }
 
         // --- ESTADO DE PROCESAMIENTO ---
@@ -1234,7 +1243,7 @@
             if (!cardLocked) {
                 let match = detectCardFromWords(wordsAfterKw);
 
-                if (match) {
+                if (match && match.detected) {
                     let formattedWords = wordsAfterKw.map(w => {
                         if (match.matchedWordsSet && match.matchedWordsSet.has(w)) {
                             return `<span class="matched-words-tag">${w}</span>`;
@@ -1277,9 +1286,19 @@
                         }
                     }
                 } else {
-                    let afterText = wordsAfterKw.join(' ');
-                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + afterText;
-                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en: <em>"${afterText}"</em>`;
+                    let formattedWords = wordsAfterKw.map(w => {
+                        if (match && match.matchedWordsSet && match.matchedWordsSet.has(w)) {
+                            return `<span class="matched-words-tag">${w}</span>`;
+                        }
+                        return w;
+                    }).join(' ');
+
+                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
+                    if (match && match.breakdownHtml) {
+                        calcBreakdownBox.innerHTML = match.breakdownHtml;
+                    } else {
+                        calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en: <em>"${wordsAfterKw.join(' ')}"</em>`;
+                    }
 
                     if (pendingCardTimer) {
                         sendLogToServer('INTERIM_MATCH_DISCARDED_BY_NOISE_FILTER');

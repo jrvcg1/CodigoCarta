@@ -159,11 +159,21 @@ def detectCardFromBinaryComponents(text: str, config: dict = None) -> dict:
             "fullText": text
         }
 
+    reason_err = "No se detectó una combinación válida"
+    if decimal_val > 13:
+        reason_err = f"Suma de bits = {decimal_val} (fuera de rango [1..13]). Las cartas sólo van del 1 al 13."
+    elif decimal_val == 0:
+        reason_err = "No se detectó ningún bit de valor (suma = 0)."
+    elif not detected_suit:
+        reason_err = f"Suma de bits = {decimal_val}, pero falta el palo."
+
     return {
         "detected": False,
         "keywordFound": kw_found,
         "keyword": kw_matched,
         "decimalValue": decimal_val,
+        "suit": detected_suit,
+        "error": reason_err,
         "afterWords": normalizeSpeech(after_text),
         "fullText": text
     }
