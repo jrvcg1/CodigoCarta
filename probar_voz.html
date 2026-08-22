@@ -132,7 +132,7 @@
             font-size: 10px;
             font-weight: 900;
             line-height: 1;
-            color: #ffffff;
+            color: #2ecc71; /* Verde claro por defecto para el estado de espera '--' */
             /* Alto contraste: sombra oscura gruesa para legibilidad sobre cualquier fondo */
             text-shadow:
                 -1px -1px 0 #000,
@@ -808,6 +808,25 @@
         const wallpaperSecretPeek = document.getElementById('wallpaperSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
 
+        function setSecretPeekWaiting() {
+            if (wallpaperSecretPeek) {
+                wallpaperSecretPeek.textContent = '--';
+                wallpaperSecretPeek.style.color = '#2ecc71'; // Verde claro al esperar valor
+            }
+        }
+
+        function setSecretPeekConfirmed(peekStr) {
+            if (wallpaperSecretPeek) {
+                wallpaperSecretPeek.textContent = peekStr;
+                wallpaperSecretPeek.style.color = '#ffffff'; // Blanco al confirmar carta
+            }
+            if (stealthSecretPeek) stealthSecretPeek.textContent = peekStr;
+            if (qrSecretPeek) qrSecretPeek.textContent = peekStr;
+        }
+
+        // Inicializar secret peek en estado de espera verde
+        setSecretPeekWaiting();
+
         let currentScreenMode = 'normal';
 
         function setScreenMode(mode) {
@@ -1368,6 +1387,7 @@
                     lastKwWordCount = currentKwIdx;
                     if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
                     resetSessionState();
+                    setSecretPeekWaiting();
                     sendLogToServer('KEYWORD_UNLOCKED', { kw });
                     kwAlert.className = 'kw-alert active';
                     kwDetectedName.textContent = kw.toUpperCase();
@@ -1379,6 +1399,7 @@
                     cardLocked = false;
                     if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
                     resetSessionState();
+                    setSecretPeekWaiting();
                     sendLogToServer('KEYWORD_UNLOCKED', { kw });
                     kwAlert.className = 'kw-alert active';
                     kwDetectedName.textContent = kw.toUpperCase();
@@ -1426,6 +1447,7 @@
                             // Nueva secuencia detectada → desbloquear automáticamente
                             cardLocked = false;
                             if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                            setSecretPeekWaiting();
                             sendLogToServer('AUTO_UNLOCKED_BY_NEW_SEQUENCE');
                             lockStatusBadge.innerHTML = `🟢 MODO CONTINUO — Nueva secuencia detectada`;
                             break;
@@ -1532,6 +1554,7 @@
             cardLocked = false;
             lastKwWordCount = -1;
             resetSessionState();
+            setSecretPeekWaiting();
             let kw = keywordInput.value.trim().toUpperCase() || 'VALE';
             kwAlert.className = 'kw-alert active';
             kwAlert.innerHTML = `🟢 TRANSMISIÓN DESBLOQUEADA MANUALMENTE — Esperando clave "${kw}"`;
@@ -1550,9 +1573,7 @@
             window.lastMatchedWordsSet = cardMatch.matchedWordsSet;
 
             let peekStr = `${val}${suitSymbol}`;
-            qrSecretPeek.textContent = peekStr;
-            stealthSecretPeek.textContent = peekStr;
-            if (wallpaperSecretPeek) wallpaperSecretPeek.textContent = peekStr;
+            setSecretPeekConfirmed(peekStr);
 
             cardTitle.textContent = `✨ ${val} de ${suitName}`;
             cardImg.src = `/cartas_svg/${val}_${suit}.svg`;
