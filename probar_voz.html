@@ -82,6 +82,52 @@
             -webkit-user-select: none;
         }
 
+        /* MODO FONDO: imagen de pantalla de móvil + secret peek esquina inferior derecha */
+        .wallpaper-screen-mode {
+            position: fixed;
+            inset: 0;
+            background-image: url('/static/wallpaper_fondo.jpg');
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            display: none;
+            z-index: 99995;
+            cursor: pointer;
+        }
+
+        body.wallpaper-mode .wallpaper-screen-mode {
+            display: block !important;
+        }
+
+        body.wallpaper-mode #stealthScreenMode,
+        body.wallpaper-mode #qrScreenMode {
+            display: none !important;
+        }
+
+        .wallpaper-secret-peek {
+            position: absolute;
+            bottom: 22px;
+            right: 18px;
+            font-family: 'Cinzel', monospace, sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: #ffffff;
+            /* Alto contraste: sombra oscura gruesa para legibilidad sobre cualquier fondo */
+            text-shadow:
+                -2px -2px 0 #000,
+                 2px -2px 0 #000,
+                -2px  2px 0 #000,
+                 2px  2px 0 #000,
+                 0    3px 6px rgba(0,0,0,0.9);
+            letter-spacing: 2px;
+            pointer-events: none;
+            user-select: none;
+            -webkit-user-select: none;
+            background: rgba(0,0,0,0.45);
+            padding: 4px 10px;
+            border-radius: 8px;
+        }
+
         .container {
             width: 100%;
             max-width: 820px;
@@ -625,6 +671,11 @@
         <div id="stealthSecretPeek" class="stealth-secret-peek">--</div>
     </div>
 
+    <!-- OVERLAY MODO FONDO (WALLPAPER + SECRET PEEK ESQUINA INFERIOR DERECHA) -->
+    <div id="wallpaperScreenMode" class="wallpaper-screen-mode">
+        <div id="wallpaperSecretPeek" class="wallpaper-secret-peek">--</div>
+    </div>
+
     <!-- PANTALLA COMPLETA QR ESPECTADOR -->
     <div id="qrScreenMode" class="qr-screen-mode">
         <div class="qr-title">EL GRAN ORÁCULO</div>
@@ -647,8 +698,8 @@
         <!-- Panel de Control: Canal Oracular, Clave y Botones de Pantalla -->
         <div class="controls-box">
             <div class="kw-group">
-                <label for="keywordInput">🔑 CLAVE ORACULAR:</label>
-                <input type="text" id="keywordInput" class="kw-input" value="vale">
+                <label for="keywordInput">🔑 CLAVE ORACULAR: <span style="font-weight:400;opacity:.65;font-size:.8em;">(vacío = escucha continua)</span></label>
+                <input type="text" id="keywordInput" class="kw-input" value="vale" placeholder="vacío = sin trigger">
             </div>
 
             <button id="btnMic" class="btn-mic">
@@ -659,6 +710,11 @@
             <button id="btnHideUI" class="btn-hide" title="Modo Pantalla Negra (Doble toque en cualquier lugar para restaurar)">
                 <span>👁️</span>
                 <span>PANTALLA NEGRA</span>
+            </button>
+
+            <button id="btnWallpaperUI" class="btn-hide" style="background: linear-gradient(135deg, #4a6fa5, #2c3e6e);" title="Modo Fondo (imagen de pantalla de inicio — doble toque para restaurar)">
+                <span>🖼️</span>
+                <span>FONDO</span>
             </button>
 
             <button id="btnQRUI" class="btn-qr" title="Mostrar QR Espectador /visualizar">
@@ -718,8 +774,9 @@
     </div>
 
     <script>
-        // --- LÓGICA DE MODOS DE PANTALLA (NORMAL, MODO SIGILOSO NEGRO, MODO QR) ---
+        // --- LÓGICA DE MODOS DE PANTALLA (NORMAL, MODO SIGILOSO NEGRO, MODO QR, MODO FONDO) ---
         const btnHideUI = document.getElementById('btnHideUI');
+        const btnWallpaperUI = document.getElementById('btnWallpaperUI');
         const btnQRUI = document.getElementById('btnQRUI');
         const btnQREscucharUI = document.getElementById('btnQREscucharUI');
         const stealthToast = document.getElementById('stealthToast');
@@ -727,19 +784,26 @@
         const qrCodeImg = document.getElementById('qrCodeImg');
         const qrSecretPeek = document.getElementById('qrSecretPeek');
         const stealthSecretPeek = document.getElementById('stealthSecretPeek');
+        const wallpaperSecretPeek = document.getElementById('wallpaperSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
 
         let currentScreenMode = 'normal';
 
         function setScreenMode(mode) {
             currentScreenMode = mode;
-            document.body.classList.remove('stealth-mode', 'qr-mode');
+            document.body.classList.remove('stealth-mode', 'qr-mode', 'wallpaper-mode');
 
             if (mode === 'black') {
                 document.body.classList.add('stealth-mode');
                 showStealthToast('🙈 PANTALLA NEGRA (BRILLO MÍNIMO): Doble toque para restaurar');
                 if (window.Android && window.Android.setBrightness) {
                     try { window.Android.setBrightness(0.01); } catch(e){}
+                }
+            } else if (mode === 'wallpaper') {
+                document.body.classList.add('wallpaper-mode');
+                showStealthToast('🖼️ MODO FONDO: Doble toque para restaurar');
+                if (window.Android && window.Android.setBrightness) {
+                    try { window.Android.setBrightness(1.0); } catch(e){}
                 }
             } else if (mode === 'qr') {
                 document.body.classList.add('qr-mode');
@@ -788,6 +852,7 @@
         }
 
         btnHideUI.addEventListener('click', () => setScreenMode('black'));
+        if (btnWallpaperUI) btnWallpaperUI.addEventListener('click', () => setScreenMode('wallpaper'));
         btnQRUI.addEventListener('click', () => showQRModal('visualizar'));
         if (btnQREscucharUI) {
             btnQREscucharUI.addEventListener('click', () => showQRModal('escuchar'));
@@ -972,81 +1037,111 @@
             return { matched: false, expr: null };
         }
 
-        function detectCardFromWords(words) {
-            if (!words || words.length === 0) return null;
-            let textStr = words.join(" ");
+        // ─── MOTOR STATEFUL DE BITS ──────────────────────────────────────────────
+        // Estado de la sesión actual (desde la última palabra clave hasta el bloqueo)
+        let bitState = { b8: null, b4: null, b2: null, b1: null, suit: null };
+        let processedAfterKwCount = 0; // nº de palabras de wordsAfterKw ya procesadas
+
+        function clearBitValues() {
+            // Limpia los bits acumulados (no resetea processedAfterKwCount)
+            bitState = { b8: null, b4: null, b2: null, b1: null, suit: null };
+        }
+
+        function resetSessionState() {
+            // Reset completo: nueva palabra clave detectada
+            bitState = { b8: null, b4: null, b2: null, b1: null, suit: null };
+            processedAfterKwCount = 0;
+        }
+
+        function processNewWordForBitState(wordsAfterKw, idx) {
+            // Ventana de contexto de 2 palabras para capturar expresiones multi-palabra
+            let ctxWords = wordsAfterKw.slice(Math.max(0, idx - 1), idx + 1);
+            let ctx = ctxWords.join(' ');
 
             let b8Exprs = parsePatternsJS(activeBinaryConfig.bit8);
             let b4Exprs = parsePatternsJS(activeBinaryConfig.bit4);
             let b2Exprs = parsePatternsJS(activeBinaryConfig.bit2);
             let b1Exprs = parsePatternsJS(activeBinaryConfig.bit1);
 
-            let resB8 = containsPatternJSWithMatch(textStr, b8Exprs);
-            let resB4 = containsPatternJSWithMatch(textStr, b4Exprs);
-            let resB2 = containsPatternJSWithMatch(textStr, b2Exprs);
-            let resB1 = containsPatternJSWithMatch(textStr, b1Exprs);
+            let resB8 = containsPatternJSWithMatch(ctx, b8Exprs);
+            let resB4 = containsPatternJSWithMatch(ctx, b4Exprs);
+            let resB2 = containsPatternJSWithMatch(ctx, b2Exprs);
+            let resB1 = containsPatternJSWithMatch(ctx, b1Exprs);
 
-            let hasB8 = resB8.matched;
-            let hasB4 = resB4.matched;
-            let hasB2 = resB2.matched;
-            let hasB1 = resB1.matched;
+            let didReset = false;
 
-            let decVal = (hasB8 ? 8 : 0) + (hasB4 ? 4 : 0) + (hasB2 ? 2 : 0) + (hasB1 ? 1 : 0);
+            if (resB8.matched) {
+                // Bit 8: siempre inicia secuencia nueva → limpiar todo
+                clearBitValues();
+                bitState.b8 = resB8.expr;
+                didReset = true;
+            } else if (resB4.matched) {
+                // Bit 4 sin Bit 8 previo → inicio de secuencia nueva
+                if (bitState.b8 === null) { clearBitValues(); didReset = true; }
+                bitState.b4 = resB4.expr;
+            } else if (resB2.matched) {
+                // Bit 2 sin Bit 8 ni Bit 4 previos → inicio de secuencia nueva
+                if (bitState.b8 === null && bitState.b4 === null) { clearBitValues(); didReset = true; }
+                bitState.b2 = resB2.expr;
+            } else if (resB1.matched) {
+                // Bit 1 sin ningún bit previo → inicio de secuencia nueva
+                if (bitState.b8 === null && bitState.b4 === null && bitState.b2 === null) { clearBitValues(); didReset = true; }
+                bitState.b1 = resB1.expr;
+            }
 
-            let detectedSuit = null;
-            let matchedSuitExpr = null;
-            const suits = ["corazones", "diamantes", "treboles", "picas"];
-            for (let s of suits) {
-                let sExprs = parsePatternsJS(activeBinaryConfig[s]);
-                let resS = containsPatternJSWithMatch(textStr, sExprs);
-                if (resS.matched) {
-                    detectedSuit = s;
-                    matchedSuitExpr = resS.expr;
-                    break;
+            // Palo: nunca dispara reset (siempre llega al final)
+            if (bitState.suit === null) {
+                const suits = ['corazones', 'diamantes', 'treboles', 'picas'];
+                for (let s of suits) {
+                    let sExprs = parsePatternsJS(activeBinaryConfig[s]);
+                    let resS = containsPatternJSWithMatch(ctx, sExprs);
+                    if (resS.matched) {
+                        bitState.suit = { key: s, expr: resS.expr };
+                        break;
+                    }
                 }
             }
+
+            return didReset; // true si empezó una secuencia nueva
+        }
+
+        function evaluateBitState() {
+            // Construye el resultado de carta desde el estado actual de bits
+            let hasB8 = bitState.b8 !== null;
+            let hasB4 = bitState.b4 !== null;
+            let hasB2 = bitState.b2 !== null;
+            let hasB1 = bitState.b1 !== null;
+
+            let decVal = (hasB8 ? 8 : 0) + (hasB4 ? 4 : 0) + (hasB2 ? 2 : 0) + (hasB1 ? 1 : 0);
+            let effectiveVal = (decVal >= 1) ? Math.min(decVal, 13) : 0;
+            let detectedSuit = bitState.suit ? bitState.suit.key : null;
+            let matchedSuitExpr = bitState.suit ? bitState.suit.expr : null;
 
             let matchedWordsSet = new Set();
             let mathParts = [];
 
-            if (hasB8) {
-                resB8.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                mathParts.push(`Bit 8 ("${resB8.expr}": +8)`);
-            }
-            if (hasB4) {
-                resB4.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                mathParts.push(`Bit 4 ("${resB4.expr}": +4)`);
-            }
-            if (hasB2) {
-                resB2.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                mathParts.push(`Bit 2 ("${resB2.expr}": +2)`);
-            }
-            if (hasB1) {
-                resB1.expr.split(" ").forEach(w => matchedWordsSet.add(w));
-                mathParts.push(`Bit 1 ("${resB1.expr}": +1)`);
-            }
+            if (hasB8) { bitState.b8.split(' ').forEach(w => matchedWordsSet.add(w)); mathParts.push(`Bit 8 ("${bitState.b8}": +8)`); }
+            if (hasB4) { bitState.b4.split(' ').forEach(w => matchedWordsSet.add(w)); mathParts.push(`Bit 4 ("${bitState.b4}": +4)`); }
+            if (hasB2) { bitState.b2.split(' ').forEach(w => matchedWordsSet.add(w)); mathParts.push(`Bit 2 ("${bitState.b2}": +2)`); }
+            if (hasB1) { bitState.b1.split(' ').forEach(w => matchedWordsSet.add(w)); mathParts.push(`Bit 1 ("${bitState.b1}": +1)`); }
+            if (matchedSuitExpr) matchedSuitExpr.split(' ').forEach(w => matchedWordsSet.add(w));
 
-            if (matchedSuitExpr) {
-                matchedSuitExpr.split(" ").forEach(w => matchedWordsSet.add(w));
-            }
+            let isCardValid = (effectiveVal >= 1 && detectedSuit !== null);
+            let mathSumStr = mathParts.length > 0 ? mathParts.join(' + ') : 'Sin bits (+0)';
+            let suitName = detectedSuit ? (PALO_NOMBRES[detectedSuit] || detectedSuit) : 'Sin palo';
 
-            let effectiveVal = (decVal >= 1) ? Math.min(decVal, 13) : 0;
-            let isCardValid = (effectiveVal >= 1 && effectiveVal <= 13 && detectedSuit !== null);
-            let mathSumStr = mathParts.length > 0 ? mathParts.join(" + ") : "Sin bits (+0)";
-            let suitName = detectedSuit ? (PALO_NOMBRES[detectedSuit] || detectedSuit) : "Sin palo";
+            const numToVal = { '1':'A','2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','8':'8','9':'9','10':'10','11':'J','12':'Q','13':'K' };
+            let valCode = effectiveVal >= 1 ? numToVal[String(effectiveVal)] : null;
+            let suitSymbol = detectedSuit ? (PALO_SIMBOLOS[detectedSuit] || '') : '';
 
-            const numToVal = { "1": "A", "2": "2", "3": "3", "4": "4", "5": "5", "6": "6", "7": "7", "8": "8", "9": "9", "10": "10", "11": "J", "12": "Q", "13": "K" };
-            let valCode = isCardValid ? numToVal[String(effectiveVal)] : null;
-            let suitSymbol = detectedSuit ? (PALO_SIMBOLOS[detectedSuit] || "") : "";
-
-            let breakdownText = "";
-            if (decVal > 13 && isCardValid) {
-                breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} &rarr; tope 13 (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
-            } else if (!detectedSuit && decVal >= 1) {
-                let dispVal = numToVal[String(effectiveVal)];
-                breakdownText = `ℹ️ <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal}${decVal>13?' &rarr; 13':''} (${dispVal})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span style="color: #f59e0b; font-weight: 700;">Falta indicar palo</span>`;
+            let breakdownText = '';
+            if (isCardValid && decVal > 13) {
+                breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} &rarr; tope 13 (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color:#fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
             } else if (isCardValid) {
-                breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color: #fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
+                breakdownText = `🧮 <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal} (${valCode})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span class="suit-highlight">${suitName} ("${matchedSuitExpr}")</span> &rArr; <strong style="color:#fbe394;">${valCode} de ${suitName} ${suitSymbol}</strong>`;
+            } else if (decVal >= 1 && !detectedSuit) {
+                let disp = numToVal[String(effectiveVal)] || '?';
+                breakdownText = `ℹ️ <strong>Cálculo:</strong> ${mathSumStr} = <span class="bit-highlight">${decVal}${decVal>13?' &rarr; 13':''} (${disp})</span> &nbsp;|&nbsp; <strong>Palo:</strong> <span style="color:#f59e0b;font-weight:700;">Falta indicar palo</span>`;
             } else {
                 breakdownText = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en la frase...`;
             }
@@ -1059,13 +1154,14 @@
                 decimalValue: decVal,
                 effectiveValue: effectiveVal,
                 suit: detectedSuit,
-                suitCode: detectedSuit ? detectedSuit.toUpperCase() : "",
+                suitCode: detectedSuit ? detectedSuit.toUpperCase() : '',
                 pattern: bitsStr,
-                matchedWordsSet: matchedWordsSet,
+                matchedWordsSet,
                 matchedWords: Array.from(matchedWordsSet),
                 breakdownHtml: breakdownText
             };
         }
+        // ─────────────────────────────────────────────────────────────────────────
 
         // --- ESTADO DE PROCESAMIENTO ---
         const btnMic = document.getElementById('btnMic');
@@ -1089,12 +1185,61 @@
         let cardLocked = false;
         let lastKwWordCount = -1;
         let isRestarting = false;
+        let pendingCardTimer = null;
+        let watchdogInterval = null;
 
+        // ─── FÁBRICA DE RECONOCEDOR ────────────────────────────────────────────────
+        // Crea un objeto SpeechRecognition completamente nuevo con sus handlers.
+        // Llamar después de cada carta válida para evitar degradación por estado acumulado.
+        function createNewRecognition() {
+            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRec) return null;
+
+            // Desconectar handlers del objeto anterior para evitar dobles disparos
+            if (recognition) {
+                recognition.onresult = null;
+                recognition.onerror  = null;
+                recognition.onend    = null;
+                try { recognition.abort(); } catch(e) {}
+            }
+
+            const rec = new SpeechRec();
+            rec.continuous      = true;
+            rec.interimResults  = true;
+            rec.lang            = 'es-ES';
+
+            rec.onresult = (event) => {
+                let fullTranscript = '';
+                let isFinal = false;
+                let startIdx = Math.max(0, event.results.length - 20);
+                for (let i = startIdx; i < event.results.length; i++) {
+                    fullTranscript += event.results[i][0].transcript + ' ';
+                    if (event.results[i].isFinal) isFinal = true;
+                }
+                sendLogToServer('SPEECH_RECOGNIZED', { transcript: fullTranscript, isFinal });
+                processSpeechText(fullTranscript, isFinal);
+            };
+
+            rec.onerror = (err) => {
+                console.log('Error de canal:', err);
+                sendLogToServer('SPEECH_ERROR', { error: err.error || err });
+                if (err.error !== 'no-speech' && err.error !== 'aborted') {
+                    safeRestartRecognition();
+                }
+            };
+
+            rec.onend = () => {
+                if (isListening) safeRestartRecognition();
+            };
+
+            return rec;
+        }
+
+        // Reinicio suave: reutiliza el objeto actual (para pausas de audio normales)
         function safeRestartRecognition() {
             if (!isListening || isRestarting) return;
             isRestarting = true;
             try { recognition.stop(); } catch (e) {}
-
             setTimeout(() => {
                 isRestarting = false;
                 if (isListening) {
@@ -1102,6 +1247,25 @@
                 }
             }, 180);
         }
+
+        // Reinicio completo: crea objeto nuevo (usar tras carta válida reconocida)
+        function hardRestartRecognition() {
+            if (!isListening) return;
+            isRestarting = true;
+            // Limpiar todo el estado de sesión
+            lastKwWordCount = -1;
+            resetSessionState();
+            // Crear objeto fresco
+            recognition = createNewRecognition();
+            setTimeout(() => {
+                isRestarting = false;
+                if (isListening && recognition) {
+                    try { recognition.start(); } catch(e) {}
+                }
+            }, 250);
+            sendLogToServer('HARD_RESTART', {});
+        }
+        // ──────────────────────────────────────────────────────────────────────────
 
         function sendLogToServer(eventMsg, detailsObj = {}) {
             try {
@@ -1114,44 +1278,9 @@
         }
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            recognition = new SpeechRec();
-            recognition.continuous = true;
-            recognition.interimResults = true;
-            recognition.lang = 'es-ES';
-
-            let pendingCardTimer = null;
-            let pendingCardMatch = null;
-
-            recognition.onresult = (event) => {
-                let fullTranscript = '';
-                let isFinal = false;
-                let startIdx = Math.max(0, event.results.length - 20);
-                for (let i = startIdx; i < event.results.length; i++) {
-                    fullTranscript += event.results[i][0].transcript + ' ';
-                    if (event.results[i].isFinal) {
-                        isFinal = true;
-                    }
-                }
-                sendLogToServer('SPEECH_RECOGNIZED', { transcript: fullTranscript, isFinal });
-                processSpeechText(fullTranscript, isFinal);
-            };
-
-            recognition.onerror = (err) => {
-                console.log('Error de canal:', err);
-                sendLogToServer('SPEECH_ERROR', { error: err.error || err });
-                if (err.error !== 'no-speech' && err.error !== 'aborted') {
-                    safeRestartRecognition();
-                }
-            };
-
-            recognition.onend = () => {
-                if (isListening) {
-                    safeRestartRecognition();
-                }
-            };
+            recognition = createNewRecognition();
         } else {
-            console.log('Utilizando reconocimiento nativo de Android o Web Speech.');
+            console.log('Reconocimiento de voz no disponible en este navegador.');
         }
 
         btnMic.addEventListener('click', () => {
@@ -1163,25 +1292,23 @@
                 micIcon.textContent = '🟢';
                 micText.textContent = 'CANAL ACTIVO (EN LÍNEA)';
                 try { recognition.start(); } catch(e) {}
+                // Watchdog: si el reconocedor se queda callado, lo despierta
+                watchdogInterval = setInterval(() => {
+                    if (isListening && recognition && !isRestarting) {
+                        try { recognition.start(); } catch (e) {} // no-op si ya está activo
+                    }
+                }, 2000);
             } else {
                 isListening = false;
                 btnMic.classList.remove('listening');
                 micPulseDot.classList.remove('active');
                 micIcon.textContent = '🔴';
                 micText.textContent = 'CONECTAR CANAL ORACULAR';
+                if (watchdogInterval) { clearInterval(watchdogInterval); watchdogInterval = null; }
                 try { recognition.stop(); } catch(e) {}
             }
         });
 
-        setInterval(() => {
-            if (isListening && recognition) {
-                try {
-                    if (!isRestarting) {
-                        recognition.start();
-                    }
-                } catch (e) {}
-            }
-        }, 1500);
 
         function isKwMatch(w, kwInput) {
             if (!w) return false;
@@ -1206,123 +1333,186 @@
         let pendingCardTimer = null;
 
         function processSpeechText(transcript, isFinal = false) {
-            let kw = keywordInput.value.trim().toLowerCase() || 'vale';
+            let kw = keywordInput.value.trim().toLowerCase();
+            let triggerEnabled = kw.length > 0;
             let words = normalizeSpeech(transcript);
             if (words.length === 0) return;
 
-            let currentKwIdx = findLastKwIndex(words, kw);
+            // ═══════════════════════════════════════════════════════════
+            // MODO TRIGGER: la clave oracular activa el reconocimiento
+            // ═══════════════════════════════════════════════════════════
+            if (triggerEnabled) {
+                let currentKwIdx = findLastKwIndex(words, kw);
 
-            if (cardLocked && currentKwIdx !== -1) {
-                cardLocked = false;
-                lastKwWordCount = currentKwIdx;
-                if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
-                sendLogToServer('KEYWORD_UNLOCKED', { kw });
+                if (cardLocked && currentKwIdx !== -1) {
+                    cardLocked = false;
+                    lastKwWordCount = currentKwIdx;
+                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                    resetSessionState();
+                    sendLogToServer('KEYWORD_UNLOCKED', { kw });
+                    kwAlert.className = 'kw-alert active';
+                    kwDetectedName.textContent = kw.toUpperCase();
+                    lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
+                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonización desbloqueada por "${kw.toUpperCase()}"...`;
+                } else if (currentKwIdx !== -1 && (lastKwWordCount === -1 || currentKwIdx > lastKwWordCount)) {
+                    lastKwWordCount = currentKwIdx;
+                    cardLocked = false;
+                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                    resetSessionState();
+                    sendLogToServer('KEYWORD_UNLOCKED', { kw });
+                    kwAlert.className = 'kw-alert active';
+                    kwDetectedName.textContent = kw.toUpperCase();
+                    lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
+                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonizando frase tras "${kw.toUpperCase()}"...`;
+                }
+
+                if (lastKwWordCount === -1) {
+                    speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
+                    return;
+                }
+
+                // ⚠️ GUARD: Si el transcript se reinició (recognition restart),
+                // lastKwWordCount puede apuntar fuera del nuevo array → resetear
+                if (lastKwWordCount >= words.length) {
+                    lastKwWordCount = -1;
+                    resetSessionState();
+                    speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
+                    return;
+                }
+
+                let wordsAfterKw = words.slice(lastKwWordCount + 1);
+                renderBitDetection(wordsAfterKw, isFinal, kw, transcript, /* prefixKw */ true);
+
+            // ═══════════════════════════════════════════════════════════
+            // MODO CONTINUO: escucha sin trigger, bits como auto-trigger
+            // ═══════════════════════════════════════════════════════════
+            } else {
+                // Mostrar indicador de modo continuo
                 kwAlert.className = 'kw-alert active';
-                kwDetectedName.textContent = kw.toUpperCase();
-                lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
-                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
-                calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonización desbloqueada por "${kw.toUpperCase()}"...`;
-            } else if (currentKwIdx !== -1 && (lastKwWordCount === -1 || currentKwIdx > lastKwWordCount)) {
-                lastKwWordCount = currentKwIdx;
-                cardLocked = false;
-                if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
-                sendLogToServer('KEYWORD_UNLOCKED', { kw });
-                kwAlert.className = 'kw-alert active';
-                kwDetectedName.textContent = kw.toUpperCase();
-                lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
-                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
-                calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonizando frase tras "${kw.toUpperCase()}"...`;
-            }
+                kwAlert.innerHTML = `🔄 MODO CONTINUO — Escuchando sin clave oracular`;
 
-            if (lastKwWordCount === -1) {
-                speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
-                return;
-            }
+                // Si el transcript se reinició (restart del reconocedor), resetear contador
+                if (words.length < processedAfterKwCount) {
+                    processedAfterKwCount = 0;
+                }
 
-            let wordsAfterKw = words.slice(lastKwWordCount + 1);
-
-            if (!cardLocked) {
-                let match = detectCardFromWords(wordsAfterKw);
-
-                if (match && match.detected) {
-                    let formattedWords = wordsAfterKw.map(w => {
-                        if (match.matchedWordsSet && match.matchedWordsSet.has(w)) {
-                            return `<span class="matched-words-tag">${w}</span>`;
+                // Si la carta está bloqueada, revisar si llegan palabras nuevas
+                // que inicien una secuencia nueva → auto-desbloquear
+                if (cardLocked && words.length > processedAfterKwCount) {
+                    for (let i = processedAfterKwCount; i < words.length; i++) {
+                        let didReset = processNewWordForBitState(words, i);
+                        if (didReset) {
+                            // Nueva secuencia detectada → desbloquear automáticamente
+                            cardLocked = false;
+                            if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                            sendLogToServer('AUTO_UNLOCKED_BY_NEW_SEQUENCE');
+                            lockStatusBadge.innerHTML = `🟢 MODO CONTINUO — Nueva secuencia detectada`;
+                            break;
                         }
-                        return w;
-                    }).join(' ');
+                    }
+                    processedAfterKwCount = words.length;
+                }
 
-                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
-                    calcBreakdownBox.innerHTML = match.breakdownHtml;
+                if (!cardLocked) {
+                    renderBitDetection(words, isFinal, '', transcript, /* prefixKw */ false);
+                }
+            }
+        }
 
-                    if (isFinal) {
-                        if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
-                        cardLocked = true;
-                        sendLogToServer('CARD_LOCKED', { value: match.value, suit: match.suit, wordsAfterKw });
+        // Función compartida de renderizado de detección de bits
+        function renderBitDetection(wordsSlice, isFinal, kw, transcript, prefixKw) {
+            // ⚠️ GUARD: si el slice es más corto que lo procesado anteriormente,
+            // el reconocedor se reinició → resetear contador para no perder palabras nuevas
+            if (wordsSlice.length < processedAfterKwCount) {
+                processedAfterKwCount = 0;
+            }
+
+            // Procesar solo palabras NUEVAS
+            for (let i = processedAfterKwCount; i < wordsSlice.length; i++) {
+                processNewWordForBitState(wordsSlice, i);
+            }
+            processedAfterKwCount = wordsSlice.length;
+
+            let match = evaluateBitState();
+            let kwPrefix = prefixKw && kw ? `<span class="kw-tag">${kw.toUpperCase()}</span> ` : '';
+
+            // Construir feed SIEMPRE desde bitState — solo componentes reconocidos, sin ruido
+            function buildDetectedFeed() {
+                let parts = [];
+                if (bitState.b8) parts.push(`<span class="matched-words-tag">${bitState.b8}</span>`);
+                if (bitState.b4) parts.push(`<span class="matched-words-tag">${bitState.b4}</span>`);
+                if (bitState.b2) parts.push(`<span class="matched-words-tag">${bitState.b2}</span>`);
+                if (bitState.b1) parts.push(`<span class="matched-words-tag">${bitState.b1}</span>`);
+                if (bitState.suit) parts.push(`<span class="matched-words-tag">${bitState.suit.expr}</span>`);
+                return parts.length > 0
+                    ? parts.join(' ')
+                    : '<span style="opacity:.4;font-style:italic;">Escuchando...</span>';
+            }
+
+            if (match && match.detected) {
+                speechFeed.innerHTML = kwPrefix + buildDetectedFeed();
+                calcBreakdownBox.innerHTML = match.breakdownHtml;
+
+                if (isFinal) {
+                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                    cardLocked = true;
+                    sendLogToServer('CARD_LOCKED', { value: match.value, suit: match.suit });
+                    if (kw) {
                         lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
                         kwAlert.className = 'kw-alert locked';
                         kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
-
-                        renderRecognizedCard(match, transcript, kw, wordsAfterKw);
-
-                        setTimeout(() => {
-                            safeRestartRecognition();
-                        }, 600);
                     } else {
-                        sendLogToServer('INTERIM_CARD_MATCH', { value: match.value, suit: match.suit });
-                        if (!pendingCardTimer) {
-                            pendingCardTimer = setTimeout(() => {
-                                pendingCardTimer = null;
-                                if (!cardLocked) {
-                                    cardLocked = true;
-                                    sendLogToServer('CARD_LOCKED_BY_DEBOUNCE', { value: match.value, suit: match.suit });
+                        lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Nueva secuencia de bits para continuar`;
+                        kwAlert.className = 'kw-alert locked';
+                        kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Comenzar nueva secuencia para continuar`;
+                    }
+                    renderRecognizedCard(match, transcript, kw, wordsSlice);
+                    setTimeout(() => { hardRestartRecognition(); }, 600);
+                } else {
+                    sendLogToServer('INTERIM_CARD_MATCH', { value: match.value, suit: match.suit });
+                    if (!pendingCardTimer) {
+                        pendingCardTimer = setTimeout(() => {
+                            pendingCardTimer = null;
+                            if (!cardLocked) {
+                                cardLocked = true;
+                                sendLogToServer('CARD_LOCKED_BY_DEBOUNCE', { value: match.value, suit: match.suit });
+                                if (kw) {
                                     lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
                                     kwAlert.className = 'kw-alert locked';
                                     kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
-
-                                    renderRecognizedCard(match, transcript, kw, wordsAfterKw);
-                                    setTimeout(() => { safeRestartRecognition(); }, 600);
+                                } else {
+                                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Nueva secuencia de bits para continuar`;
+                                    kwAlert.className = 'kw-alert locked';
+                                    kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Comenzar nueva secuencia para continuar`;
                                 }
-                            }, 450);
-                        }
-                    }
-                } else {
-                    let formattedWords = wordsAfterKw.map(w => {
-                        if (match && match.matchedWordsSet && match.matchedWordsSet.has(w)) {
-                            return `<span class="matched-words-tag">${w}</span>`;
-                        }
-                        return w;
-                    }).join(' ');
-
-                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
-                    if (match && match.breakdownHtml) {
-                        calcBreakdownBox.innerHTML = match.breakdownHtml;
-                    } else {
-                        calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo en: <em>"${wordsAfterKw.join(' ')}"</em>`;
-                    }
-
-                    if (pendingCardTimer) {
-                        sendLogToServer('INTERIM_MATCH_DISCARDED_BY_NOISE_FILTER');
-                        clearTimeout(pendingCardTimer);
-                        pendingCardTimer = null;
+                                renderRecognizedCard(match, transcript, kw, wordsSlice);
+                                setTimeout(() => { hardRestartRecognition(); }, 600);
+                            }
+                        }, 450);
                     }
                 }
             } else {
-                let matchedWordsSet = window.lastMatchedWordsSet || new Set();
-                let formattedWords = wordsAfterKw.map(w => {
-                    if (matchedWordsSet.has(w)) {
-                        return `<span class="matched-words-tag">${w}</span>`;
-                    }
-                    return w;
-                }).join(' ');
+                speechFeed.innerHTML = kwPrefix + buildDetectedFeed();
+                if (match && match.breakdownHtml) {
+                    calcBreakdownBox.innerHTML = match.breakdownHtml;
+                } else {
+                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo...`;
+                }
 
-                speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> ` + formattedWords;
+                if (pendingCardTimer) {
+                    sendLogToServer('INTERIM_MATCH_DISCARDED_BY_NOISE_FILTER');
+                    clearTimeout(pendingCardTimer);
+                    pendingCardTimer = null;
+                }
             }
         }
 
         function forceUnlockTransmission() {
             cardLocked = false;
             lastKwWordCount = -1;
+            resetSessionState();
             let kw = keywordInput.value.trim().toUpperCase() || 'VALE';
             kwAlert.className = 'kw-alert active';
             kwAlert.innerHTML = `🟢 TRANSMISIÓN DESBLOQUEADA MANUALMENTE — Esperando clave "${kw}"`;
@@ -1343,6 +1533,7 @@
             let peekStr = `${val}${suitSymbol}`;
             qrSecretPeek.textContent = peekStr;
             stealthSecretPeek.textContent = peekStr;
+            if (wallpaperSecretPeek) wallpaperSecretPeek.textContent = peekStr;
 
             cardTitle.textContent = `✨ ${val} de ${suitName}`;
             cardImg.src = `/cartas_svg/${val}_${suit}.svg`;

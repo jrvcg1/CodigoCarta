@@ -46,6 +46,10 @@ cartas_dir = os.path.join(os.path.dirname(__file__), "cartas_svg")
 if os.path.exists(cartas_dir):
     app.mount("/cartas_svg", StaticFiles(directory=cartas_dir), name="cartas_svg")
 
+# Montar carpeta static (imágenes, assets generales)
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # -------------------------------------------------------------------
 # Modelos Pydantic para Request / Response
