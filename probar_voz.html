@@ -1330,8 +1330,6 @@
             return -1;
         }
 
-        let pendingCardTimer = null;
-
         function processSpeechText(transcript, isFinal = false) {
             let kw = keywordInput.value.trim().toLowerCase();
             let triggerEnabled = kw.length > 0;
