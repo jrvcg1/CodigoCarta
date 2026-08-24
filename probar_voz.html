@@ -1020,7 +1020,7 @@
         // --- MOTOR DE DECODIFICACIÓN DINÁMICO POR COMPONENTES BINARIOS ---
         let activeBinaryConfig = {
             trigger: "vale",
-            bit8: "bueno, vale bueno, demasiado, mal",
+            bit8: "bueno, bien, vale bueno, demasiado, mal",
             bit4: "entonces, despues, nada",
             bit2: "ahora, luego, mucho",
             bit1: "vas, ante, uno, antes",
@@ -1488,48 +1488,31 @@
             if (triggerEnabled) {
                 let currentKwIdx = findLastKwIndex(words, kw);
 
-                if (cardLocked && currentKwIdx !== -1) {
-                    cardLocked = false;
-                    lastKwWordCount = currentKwIdx;
-                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
-                    resetSessionState();
-                    setSecretPeekWaiting();
-                    sendLogToServer('KEYWORD_UNLOCKED', { kw });
-                    kwAlert.className = 'kw-alert active';
-                    kwDetectedName.textContent = kw.toUpperCase();
-                    lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
-                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
-                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonización desbloqueada por "${kw.toUpperCase()}"...`;
-                } else if (currentKwIdx !== -1 && (lastKwWordCount === -1 || currentKwIdx > lastKwWordCount)) {
-                    lastKwWordCount = currentKwIdx;
-                    cardLocked = false;
-                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
-                    resetSessionState();
-                    setSecretPeekWaiting();
-                    sendLogToServer('KEYWORD_UNLOCKED', { kw });
-                    kwAlert.className = 'kw-alert active';
-                    kwDetectedName.textContent = kw.toUpperCase();
-                    lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
-                    speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
-                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonizando frase tras "${kw.toUpperCase()}"...`;
+                if (currentKwIdx !== -1) {
+                    if (cardLocked || lastKwWordCount === -1 || currentKwIdx > lastKwWordCount) {
+                        cardLocked = false;
+                        lastKwWordCount = currentKwIdx;
+                        if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                        resetSessionState();
+                        setSecretPeekWaiting();
+                        sendLogToServer('KEYWORD_UNLOCKED', { kw });
+                        kwAlert.className = 'kw-alert active';
+                        kwDetectedName.textContent = kw.toUpperCase();
+                        lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>"`;
+                        speechFeed.innerHTML = `<span class="kw-tag">${kw.toUpperCase()}</span> `;
+                        calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Sintonizando frase tras "${kw.toUpperCase()}"...`;
+                    }
+                    let wordsAfterKw = words.slice(currentKwIdx + 1);
+                    renderBitDetection(wordsAfterKw, isFinal, kw, transcript, /* prefixKw */ true);
+                } else {
+                    // La clave no está en el fragmento actual
+                    if (cardLocked || lastKwWordCount === -1) {
+                        speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
+                        return;
+                    }
+                    // Canal ya desbloqueado previamente: procesar todo este segmento
+                    renderBitDetection(words, isFinal, kw, transcript, /* prefixKw */ true);
                 }
-
-                if (lastKwWordCount === -1) {
-                    speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
-                    return;
-                }
-
-                // ⚠️ GUARD: Si el transcript se reinició (recognition restart),
-                // lastKwWordCount puede apuntar fuera del nuevo array → resetear
-                if (lastKwWordCount >= words.length) {
-                    lastKwWordCount = -1;
-                    resetSessionState();
-                    speechFeed.textContent = transcript || 'Transmitiendo... Espera la clave oracular...';
-                    return;
-                }
-
-                let wordsAfterKw = words.slice(lastKwWordCount + 1);
-                renderBitDetection(wordsAfterKw, isFinal, kw, transcript, /* prefixKw */ true);
 
             // ═══════════════════════════════════════════════════════════
             // MODO CONTINUO: escucha sin trigger, bits como auto-trigger

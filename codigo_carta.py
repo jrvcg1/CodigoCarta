@@ -37,7 +37,7 @@ VALUE_NAMES = {
 
 DEFAULT_BINARY_CONFIG = {
     "trigger": "vale",
-    "bit8": "bueno, vale bueno, demasiado, mal",
+    "bit8": "bueno, bien, vale bueno, demasiado, mal",
     "bit4": "entonces, despues, nada",
     "bit2": "ahora, luego, mucho",
     "bit1": "vas, ante, uno, antes",
