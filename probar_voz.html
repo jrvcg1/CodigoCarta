@@ -1046,7 +1046,15 @@
             let t = text.lower ? text.lower() : text.toLowerCase();
             t = t.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             t = t.replace(/[^a-z0-9\s]/g, " ");
-            return t.split(/\s+/).filter(w => w.length > 0);
+            let rawWords = t.split(/\s+/).filter(w => w.length > 0);
+            let cleanWords = [];
+            for (let i = 0; i < rawWords.length; i++) {
+                // Evitar repeticiones consecutivas de la misma palabra por artefactos del reconocedor
+                if (i === 0 || rawWords[i] !== rawWords[i - 1]) {
+                    cleanWords.push(rawWords[i]);
+                }
+            }
+            return cleanWords;
         }
 
         function parsePatternsJS(rawVal) {
@@ -1270,12 +1278,32 @@
             rec.interimResults  = true;
             rec.lang            = 'es-ES';
 
+            function extractCleanTranscript(event) {
+                let parts = [];
+                for (let i = 0; i < event.results.length; i++) {
+                    let current = (event.results[i][0].transcript || '').trim();
+                    if (!current) continue;
+                    
+                    // Si este resultado ya contiene o empieza con el resultado anterior
+                    // (comportamiento acumulativo de Android WebView), reemplazamos el anterior
+                    if (parts.length > 0) {
+                        let prev = parts[parts.length - 1];
+                        if (current.toLowerCase().startsWith(prev.toLowerCase())) {
+                            parts[parts.length - 1] = current;
+                            continue;
+                        }
+                        if (prev.toLowerCase().startsWith(current.toLowerCase())) {
+                            continue;
+                        }
+                    }
+                    parts.push(current);
+                }
+                return parts.join(' ').trim();
+            }
+
             rec.onresult = (event) => {
                 lastSpeechTime = Date.now();
-                let fullTranscript = '';
-                for (let i = 0; i < event.results.length; i++) {
-                    fullTranscript += event.results[i][0].transcript + ' ';
-                }
+                let fullTranscript = extractCleanTranscript(event);
                 let isFinal = event.results[event.results.length - 1].isFinal;
                 sendLogToServer('SPEECH_RECOGNIZED', { transcript: fullTranscript, isFinal });
                 processSpeechText(fullTranscript, isFinal);
