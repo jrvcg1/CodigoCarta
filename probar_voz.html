@@ -1558,11 +1558,17 @@
 
         // Función compartida de renderizado de detección de bits
         function renderBitDetection(wordsSlice, isFinal, kw, transcript, prefixKw) {
-            // Reevaluar siempre la secuencia completa de la frase para capturar
-            // correcciones in-place del reconocedor de voz (ej: 'co' -> 'cogido')
+            // Reevaluar siempre la secuencia completa de la frase
             clearBitValues();
+            let suitFoundAtIdx = -1;
+
             for (let i = 0; i < wordsSlice.length; i++) {
                 processNewWordForBitState(wordsSlice, i);
+                if (bitState.suit !== null) {
+                    suitFoundAtIdx = i;
+                    // El palo es el fin absoluto e irrevocable de la transmisión
+                    break;
+                }
             }
 
             let match = evaluateBitState();
@@ -1581,7 +1587,8 @@
                     : '<span style="opacity:.4;font-style:italic;">Escuchando...</span>';
             }
 
-            if (match && match.detected) {
+            // 1. PALO DETECTADO Y VALOR VÁLIDO (>= 1) -> BLOQUEO INMEDIATO Y REVELACIÓN
+            if (suitFoundAtIdx !== -1 && match && match.detected) {
                 speechFeed.innerHTML = kwPrefix + buildDetectedFeed();
                 calcBreakdownBox.innerHTML = match.breakdownHtml;
 
@@ -1598,15 +1605,25 @@
                         kwAlert.className = 'kw-alert locked';
                         kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Comenzar nueva secuencia para continuar`;
                     }
-                    renderRecognizedCard(match, transcript, kw, wordsSlice);
+                    renderRecognizedCard(match, transcript, kw, wordsSlice.slice(0, suitFoundAtIdx + 1));
                     setTimeout(() => { hardRestartRecognition(); }, 250);
                 }
+
+            // 2. PALO DETECTADO PERO SIN VALOR VÁLIDO (valor = 0) -> RESET TOTAL A ESTADO 'VALE'
+            } else if (suitFoundAtIdx !== -1 && match && !match.detected) {
+                clearBitValues();
+                setSecretPeekWaiting();
+                sendLogToServer('PALO_WITHOUT_VALUE_RESET', { palo: bitState.suit ? bitState.suit.key : 'desconocido' });
+                calcBreakdownBox.innerHTML = `⚠️ <strong>Palo sin valor previo:</strong> Secuencia descartada y canal reseteado a estado inicial.`;
+                speechFeed.innerHTML = kwPrefix + `<span style="opacity:.5;font-style:italic;">[Palo sin valor &rarr; Reseteado a VALE]</span>`;
+
+            // 3. ACUMULANDO BITS (esperando la palabra del palo)
             } else {
                 speechFeed.innerHTML = kwPrefix + buildDetectedFeed();
                 if (match && match.breakdownHtml) {
                     calcBreakdownBox.innerHTML = match.breakdownHtml;
                 } else {
-                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y palo...`;
+                    calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y esperando palabra de palo...`;
                 }
 
                 if (pendingCardTimer) {
