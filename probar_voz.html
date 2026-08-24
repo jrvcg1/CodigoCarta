@@ -1475,17 +1475,12 @@
 
         // Función compartida de renderizado de detección de bits
         function renderBitDetection(wordsSlice, isFinal, kw, transcript, prefixKw) {
-            // ⚠️ GUARD: si el slice es más corto que lo procesado anteriormente,
-            // el reconocedor se reinició → resetear contador para no perder palabras nuevas
-            if (wordsSlice.length < processedAfterKwCount) {
-                processedAfterKwCount = 0;
-            }
-
-            // Procesar solo palabras NUEVAS
-            for (let i = processedAfterKwCount; i < wordsSlice.length; i++) {
+            // Reevaluar siempre la secuencia completa de la frase para capturar
+            // correcciones in-place del reconocedor de voz (ej: 'co' -> 'cogido')
+            clearBitValues();
+            for (let i = 0; i < wordsSlice.length; i++) {
                 processNewWordForBitState(wordsSlice, i);
             }
-            processedAfterKwCount = wordsSlice.length;
 
             let match = evaluateBitState();
             let kwPrefix = prefixKw && kw ? `<span class="kw-tag">${kw.toUpperCase()}</span> ` : '';
