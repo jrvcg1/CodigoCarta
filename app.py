@@ -512,21 +512,43 @@ def decodificar_palabra_clave(body: PeticionDecodificacionPalabraClave):
     bin_cfg = cargar_config_binaria()
     kw_target = body.palabra_clave or bin_cfg.get("trigger", "vale")
 
-    res = detectCardFromBinaryComponents(body.texto, bin_cfg)
+    # Si el cliente en vivo ya calculó y envió valor y palo_id explícitos, sincronizar directamente
+    if body.valor and body.palo_id:
+        suit_id = body.palo_id.lower()
+        val_str = str(body.valor).upper()
+        palo_info = PALOS.get(suit_id, {"nombre": suit_id, "simbolo": ""})
 
-    # Si Python no detectó la carta pero el cliente JS sí pasó valor y palo_id válidos
-    if not res.get("detected") and body.valor and body.palo_id:
-        res["detected"] = True
-        res["value"] = body.valor
-        res["suit"] = body.palo_id
-        res["matchedWords"] = []
-        res["suitCode"] = body.palo_id.upper()
-        res["valuePattern"] = body.valor
+        res = {
+            "detected": True,
+            "value": val_str,
+            "suit": suit_id,
+            "suitCode": suit_id.upper(),
+            "valuePattern": val_str,
+            "matchedWords": []
+        }
+        actualizar_estado_carta(res, body.texto)
+
+        return {
+            "exito": True,
+            "keywordFound": True,
+            "keyword": kw_target,
+            "fullText": body.texto,
+            "afterWords": [],
+            "matchedWords": [],
+            "valor": val_str,
+            "palo_id": suit_id,
+            "palo": palo_info,
+            "coletilla": suit_id.upper(),
+            "valuePattern": val_str
+        }
+
+    from codigo_carta import detectCardFromBinaryComponents
+    res = detectCardFromBinaryComponents(body.texto, bin_cfg)
 
     if res.get("detected"):
         actualizar_estado_carta(res, body.texto)
-        suit_id = res.get("suit") or body.palo_id or "corazones"
-        val_str = res.get("value") or body.valor or "A"
+        suit_id = res.get("suit") or "corazones"
+        val_str = res.get("value") or "A"
         palo_info = PALOS.get(suit_id, {"nombre": suit_id, "simbolo": ""})
 
         return {
