@@ -1507,10 +1507,10 @@
                 speechFeed.innerHTML = kwPrefix + buildDetectedFeed();
                 calcBreakdownBox.innerHTML = match.breakdownHtml;
 
-                if (isFinal) {
-                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                if (!cardLocked) {
                     cardLocked = true;
-                    sendLogToServer('CARD_LOCKED', { value: match.value, suit: match.suit });
+                    if (pendingCardTimer) { clearTimeout(pendingCardTimer); pendingCardTimer = null; }
+                    sendLogToServer('CARD_LOCKED_ON_SUIT', { value: match.value, suit: match.suit });
                     if (kw) {
                         lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
                         kwAlert.className = 'kw-alert locked';
@@ -1521,29 +1521,7 @@
                         kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Comenzar nueva secuencia para continuar`;
                     }
                     renderRecognizedCard(match, transcript, kw, wordsSlice);
-                    setTimeout(() => { hardRestartRecognition(); }, 600);
-                } else {
-                    sendLogToServer('INTERIM_CARD_MATCH', { value: match.value, suit: match.suit });
-                    if (!pendingCardTimer) {
-                        pendingCardTimer = setTimeout(() => {
-                            pendingCardTimer = null;
-                            if (!cardLocked) {
-                                cardLocked = true;
-                                sendLogToServer('CARD_LOCKED_BY_DEBOUNCE', { value: match.value, suit: match.suit });
-                                if (kw) {
-                                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Di "<span style="color:#2ecc71;">${kw.toUpperCase()}</span>" para nueva transmisión`;
-                                    kwAlert.className = 'kw-alert locked';
-                                    kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Transmisión en espera de nueva clave "${kw.toUpperCase()}"`;
-                                } else {
-                                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Nueva secuencia de bits para continuar`;
-                                    kwAlert.className = 'kw-alert locked';
-                                    kwAlert.innerHTML = `🔒 REVELACIÓN CONFIRMADA — Comenzar nueva secuencia para continuar`;
-                                }
-                                renderRecognizedCard(match, transcript, kw, wordsSlice);
-                                setTimeout(() => { hardRestartRecognition(); }, 600);
-                            }
-                        }, 450);
-                    }
+                    setTimeout(() => { hardRestartRecognition(); }, 250);
                 }
             } else {
                 speechFeed.innerHTML = kwPrefix + buildDetectedFeed();
@@ -1554,7 +1532,6 @@
                 }
 
                 if (pendingCardTimer) {
-                    sendLogToServer('INTERIM_MATCH_DISCARDED_BY_NOISE_FILTER');
                     clearTimeout(pendingCardTimer);
                     pendingCardTimer = null;
                 }
