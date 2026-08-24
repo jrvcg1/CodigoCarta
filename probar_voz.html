@@ -1085,13 +1085,18 @@
             return false;
         }
 
-        function containsPatternJSWithMatch(textStr, expressions) {
-            if (!textStr || !expressions || expressions.length === 0) return { matched: false, expr: null };
-            let normText = " " + normalizeSpeech(textStr).join(" ") + " ";
+        function matchPatternEndingAt(words, idx, expressions) {
+            if (!words || idx < 0 || !expressions || expressions.length === 0) {
+                return { matched: false, expr: null };
+            }
             for (let expr of expressions) {
-                let normExpr = " " + expr + " ";
-                if (normText.includes(normExpr)) {
-                    return { matched: true, expr: expr };
+                let exprWords = expr.split(' ');
+                let len = exprWords.length;
+                if (idx - len + 1 >= 0) {
+                    let slice = words.slice(idx - len + 1, idx + 1).join(' ');
+                    if (slice === expr) {
+                        return { matched: true, expr: expr };
+                    }
                 }
             }
             return { matched: false, expr: null };
@@ -1114,47 +1119,38 @@
         }
 
         function processNewWordForBitState(wordsAfterKw, idx) {
-            // Ventana de contexto amplia (hasta 5 palabras) para capturar expresiones compuestas
-            let ctxWords = wordsAfterKw.slice(Math.max(0, idx - 4), idx + 1);
-            let ctx = ctxWords.join(' ');
-
             let b8Exprs = parsePatternsJS(activeBinaryConfig.bit8);
             let b4Exprs = parsePatternsJS(activeBinaryConfig.bit4);
             let b2Exprs = parsePatternsJS(activeBinaryConfig.bit2);
             let b1Exprs = parsePatternsJS(activeBinaryConfig.bit1);
 
-            let resB8 = containsPatternJSWithMatch(ctx, b8Exprs);
-            let resB4 = containsPatternJSWithMatch(ctx, b4Exprs);
-            let resB2 = containsPatternJSWithMatch(ctx, b2Exprs);
-            let resB1 = containsPatternJSWithMatch(ctx, b1Exprs);
+            let resB8 = matchPatternEndingAt(wordsAfterKw, idx, b8Exprs);
+            let resB4 = matchPatternEndingAt(wordsAfterKw, idx, b4Exprs);
+            let resB2 = matchPatternEndingAt(wordsAfterKw, idx, b2Exprs);
+            let resB1 = matchPatternEndingAt(wordsAfterKw, idx, b1Exprs);
 
             let didReset = false;
 
             if (resB8.matched) {
-                // Bit 8: siempre inicia secuencia nueva → limpiar todo
-                clearBitValues();
+                // Bit 8: inicia o actualiza bit 8
                 bitState.b8 = resB8.expr;
-                didReset = true;
             } else if (resB4.matched) {
-                // Bit 4 sin Bit 8 previo → inicio de secuencia nueva
-                if (bitState.b8 === null) { clearBitValues(); didReset = true; }
+                // Bit 4: inicia o actualiza bit 4
                 bitState.b4 = resB4.expr;
             } else if (resB2.matched) {
-                // Bit 2 sin Bit 8 ni Bit 4 previos → inicio de secuencia nueva
-                if (bitState.b8 === null && bitState.b4 === null) { clearBitValues(); didReset = true; }
+                // Bit 2: inicia o actualiza bit 2
                 bitState.b2 = resB2.expr;
             } else if (resB1.matched) {
-                // Bit 1 sin ningún bit previo → inicio de secuencia nueva
-                if (bitState.b8 === null && bitState.b4 === null && bitState.b2 === null) { clearBitValues(); didReset = true; }
+                // Bit 1: inicia o actualiza bit 1
                 bitState.b1 = resB1.expr;
             }
 
-            // Palo: nunca dispara reset (siempre llega al final)
+            // Palo: se detecta exactamente cuando la palabra del palo concluye en idx
             if (bitState.suit === null) {
                 const suits = ['corazones', 'diamantes', 'treboles', 'picas'];
                 for (let s of suits) {
                     let sExprs = parsePatternsJS(activeBinaryConfig[s]);
-                    let resS = containsPatternJSWithMatch(ctx, sExprs);
+                    let resS = matchPatternEndingAt(wordsAfterKw, idx, sExprs);
                     if (resS.matched) {
                         bitState.suit = { key: s, expr: resS.expr };
                         break;
@@ -1162,7 +1158,7 @@
                 }
             }
 
-            return didReset; // true si empezó una secuencia nueva
+            return didReset;
         }
 
         function evaluateBitState() {
