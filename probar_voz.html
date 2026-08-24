@@ -811,14 +811,26 @@
         function setSecretPeekWaiting() {
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = '--';
-                wallpaperSecretPeek.style.color = '#2ecc71'; // Verde claro al esperar valor
+                wallpaperSecretPeek.style.color = '#2ecc71'; // Verde claro al esperar
             }
+            if (stealthSecretPeek) stealthSecretPeek.textContent = '--';
+            if (qrSecretPeek) qrSecretPeek.textContent = '--';
+        }
+
+        function setSecretPeekProgress(valStr) {
+            let display = valStr || '--';
+            if (wallpaperSecretPeek) {
+                wallpaperSecretPeek.textContent = display;
+                wallpaperSecretPeek.style.color = '#2ecc71'; // Verde claro con el valor parcial acumulado
+            }
+            if (stealthSecretPeek) stealthSecretPeek.textContent = display;
+            if (qrSecretPeek) qrSecretPeek.textContent = display;
         }
 
         function setSecretPeekConfirmed(peekStr) {
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = peekStr;
-                wallpaperSecretPeek.style.color = '#ffffff'; // Blanco al confirmar carta
+                wallpaperSecretPeek.style.color = '#ffffff'; // Blanco al confirmar carta completa
             }
             if (stealthSecretPeek) stealthSecretPeek.textContent = peekStr;
             if (qrSecretPeek) qrSecretPeek.textContent = peekStr;
@@ -1624,6 +1636,13 @@
                     calcBreakdownBox.innerHTML = match.breakdownHtml;
                 } else {
                     calcBreakdownBox.innerHTML = `🧮 <strong>Cálculo de Componentes:</strong> Evaluando bits y esperando palabra de palo...`;
+                }
+
+                if (match && match.effectiveValue >= 1) {
+                    // Actualizar el valor en curso en verde claro en el secret peek
+                    setSecretPeekProgress(match.value);
+                } else {
+                    setSecretPeekWaiting();
                 }
 
                 if (pendingCardTimer) {
