@@ -1094,8 +1094,8 @@
         }
 
         function processNewWordForBitState(wordsAfterKw, idx) {
-            // Ventana de contexto de 2 palabras para capturar expresiones multi-palabra
-            let ctxWords = wordsAfterKw.slice(Math.max(0, idx - 1), idx + 1);
+            // Ventana de contexto amplia (hasta 5 palabras) para capturar expresiones compuestas
+            let ctxWords = wordsAfterKw.slice(Math.max(0, idx - 4), idx + 1);
             let ctx = ctxWords.join(' ');
 
             let b8Exprs = parsePatternsJS(activeBinaryConfig.bit8);
@@ -1228,14 +1228,14 @@
         let pendingCardTimer = null;
         let watchdogInterval = null;
 
-        // ─── FÁBRICA DE RECONOCEDOR ────────────────────────────────────────────────
+        // ─── FÁBRICA DE RECONOCEDOR Y CICLO CONTINUO ─────────────────────────────
         // Crea un objeto SpeechRecognition completamente nuevo con sus handlers.
-        // Llamar después de cada carta válida para evitar degradación por estado acumulado.
+        // Se cicla periódicamente y tras pausas para garantizar latencia cero como al inicio.
         function createNewRecognition() {
             const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (!SpeechRec) return null;
 
-            // Desconectar handlers del objeto anterior para evitar dobles disparos
+            // Desconectar handlers del objeto anterior para evitar fugas de memoria o dobles disparos
             if (recognition) {
                 recognition.onresult = null;
                 recognition.onerror  = null;
@@ -1250,12 +1250,10 @@
 
             rec.onresult = (event) => {
                 let fullTranscript = '';
-                let isFinal = false;
-                let startIdx = Math.max(0, event.results.length - 20);
-                for (let i = startIdx; i < event.results.length; i++) {
+                for (let i = 0; i < event.results.length; i++) {
                     fullTranscript += event.results[i][0].transcript + ' ';
-                    if (event.results[i].isFinal) isFinal = true;
                 }
+                let isFinal = event.results[event.results.length - 1].isFinal;
                 sendLogToServer('SPEECH_RECOGNIZED', { transcript: fullTranscript, isFinal });
                 processSpeechText(fullTranscript, isFinal);
             };
@@ -1264,45 +1262,58 @@
                 console.log('Error de canal:', err);
                 sendLogToServer('SPEECH_ERROR', { error: err.error || err });
                 if (err.error !== 'no-speech' && err.error !== 'aborted') {
-                    safeRestartRecognition();
+                    cycleRecognition(false, 200);
                 }
             };
 
             rec.onend = () => {
-                if (isListening) safeRestartRecognition();
+                if (isListening && !isRestarting) {
+                    // Pausa de audio o fin natural de stream: recrear instancia fresca para mantener latencia mínima
+                    cycleRecognition(false, 100);
+                }
             };
 
             return rec;
         }
 
-        // Reinicio suave: reutiliza el objeto actual (para pausas de audio normales)
-        function safeRestartRecognition() {
+        // Ciclo de reconocedor: SIEMPRE destruye el objeto anterior y crea uno nuevo fresco
+        function cycleRecognition(resetBitState = false, delayMs = 150) {
             if (!isListening || isRestarting) return;
             isRestarting = true;
-            try { recognition.stop(); } catch (e) {}
+            if (resetBitState) {
+                lastKwWordCount = -1;
+                resetSessionState();
+            }
+            if (recognition) {
+                recognition.onresult = null;
+                recognition.onerror  = null;
+                recognition.onend    = null;
+                try { recognition.abort(); } catch(e) {}
+                recognition = null;
+            }
             setTimeout(() => {
-                isRestarting = false;
-                if (isListening) {
-                    try { recognition.start(); } catch (e) {}
+                if (!isListening) {
+                    isRestarting = false;
+                    return;
                 }
-            }, 180);
+                recognition = createNewRecognition();
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.log('Error al iniciar ciclo de reconocimiento:', e);
+                }
+                isRestarting = false;
+            }, delayMs);
         }
 
-        // Reinicio completo: crea objeto nuevo (usar tras carta válida reconocida)
+        // Reinicio suave: cicla a objeto limpio sin borrar bits acumulados
+        function safeRestartRecognition() {
+            cycleRecognition(false, 120);
+        }
+
+        // Reinicio completo: tras confirmación de carta válida, cicla a objeto limpio y resetea estado de sesión
         function hardRestartRecognition() {
-            if (!isListening) return;
-            isRestarting = true;
-            // Limpiar todo el estado de sesión
-            lastKwWordCount = -1;
-            resetSessionState();
-            // Crear objeto fresco
-            recognition = createNewRecognition();
-            setTimeout(() => {
-                isRestarting = false;
-                if (isListening && recognition) {
-                    try { recognition.start(); } catch(e) {}
-                }
-            }, 250);
+            cycleRecognition(true, 250);
             sendLogToServer('HARD_RESTART', {});
         }
         // ──────────────────────────────────────────────────────────────────────────
