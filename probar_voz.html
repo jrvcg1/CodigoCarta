@@ -1227,6 +1227,27 @@
         let isRestarting = false;
         let pendingCardTimer = null;
         let watchdogInterval = null;
+        let proactiveCycleTimer = null;
+        let lastSpeechTime = Date.now();
+        let sessionStartTime = Date.now();
+        let wakeLock = null;
+
+        async function acquireWakeLock() {
+            try {
+                if ('wakeLock' in navigator) {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                }
+            } catch(e) {}
+        }
+
+        function releaseWakeLock() {
+            try {
+                if (wakeLock) {
+                    wakeLock.release();
+                    wakeLock = null;
+                }
+            } catch(e) {}
+        }
 
         // ─── FÁBRICA DE RECONOCEDOR Y CICLO CONTINUO ─────────────────────────────
         // Crea un objeto SpeechRecognition completamente nuevo con sus handlers.
@@ -1243,12 +1264,14 @@
                 try { recognition.abort(); } catch(e) {}
             }
 
+            sessionStartTime = Date.now();
             const rec = new SpeechRec();
             rec.continuous      = true;
             rec.interimResults  = true;
             rec.lang            = 'es-ES';
 
             rec.onresult = (event) => {
+                lastSpeechTime = Date.now();
                 let fullTranscript = '';
                 for (let i = 0; i < event.results.length; i++) {
                     fullTranscript += event.results[i][0].transcript + ' ';
@@ -1316,6 +1339,34 @@
             cycleRecognition(true, 250);
             sendLogToServer('HARD_RESTART', {});
         }
+
+        // Temporizador de ciclo proactivo periódico:
+        // Si hay silencio > 10s o la sesión tiene > 30s sin estar a mitad de carta, cicla en silencio
+        function startProactiveCycling() {
+            if (proactiveCycleTimer) clearInterval(proactiveCycleTimer);
+            proactiveCycleTimer = setInterval(() => {
+                if (!isListening || isRestarting) return;
+                let now = Date.now();
+                let idleTime = now - lastSpeechTime;
+                let sessionAge = now - sessionStartTime;
+
+                // Solo ciclar si NO estamos en medio de una secuencia de bits a medio dictar
+                let isMidCard = (bitState.b8 !== null || bitState.b4 !== null || bitState.b2 !== null || bitState.b1 !== null) && !cardLocked;
+
+                if (!isMidCard && (idleTime > 10000 || sessionAge > 30000)) {
+                    sessionStartTime = now;
+                    lastSpeechTime = now;
+                    cycleRecognition(false, 80);
+                }
+            }, 3000);
+        }
+
+        function stopProactiveCycling() {
+            if (proactiveCycleTimer) {
+                clearInterval(proactiveCycleTimer);
+                proactiveCycleTimer = null;
+            }
+        }
         // ──────────────────────────────────────────────────────────────────────────
 
         function sendLogToServer(eventMsg, detailsObj = {}) {
@@ -1338,11 +1389,13 @@
             if (!recognition) return;
             if (!isListening) {
                 isListening = true;
+                acquireWakeLock();
                 btnMic.classList.add('listening');
                 micPulseDot.classList.add('active');
                 micIcon.textContent = '🟢';
                 micText.textContent = 'CANAL ACTIVO (EN LÍNEA)';
                 try { recognition.start(); } catch(e) {}
+                startProactiveCycling();
                 // Watchdog: si el reconocedor se queda callado, lo despierta
                 watchdogInterval = setInterval(() => {
                     if (isListening && recognition && !isRestarting) {
@@ -1351,6 +1404,8 @@
                 }, 2000);
             } else {
                 isListening = false;
+                releaseWakeLock();
+                stopProactiveCycling();
                 btnMic.classList.remove('listening');
                 micPulseDot.classList.remove('active');
                 micIcon.textContent = '🔴';
