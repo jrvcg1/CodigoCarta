@@ -839,28 +839,6 @@ def visualizar_carta(
                 opacity: 1;
             }}
 
-            /* Secret Peek mimetizado con el borde vintage del cartel */
-            .stealth-serial-peek {{
-                position: absolute;
-                bottom: 6px;
-                right: 10px;
-                font-family: 'Cinzel', 'Times New Roman', Georgia, serif;
-                font-size: 9px;
-                font-weight: 700;
-                color: rgba(212, 175, 55, 0.28);
-                text-shadow: 0 0 1px rgba(0, 0, 0, 0.85);
-                letter-spacing: 1px;
-                user-select: none;
-                -webkit-user-select: none;
-                cursor: default;
-                z-index: 20;
-                transition: color 0.2s ease, opacity 0.2s ease;
-            }}
-            .stealth-serial-peek:active,
-            .stealth-serial-peek:hover {{
-                color: rgba(251, 227, 148, 0.75);
-            }}
-
         </style>
     </head>
     <body>
@@ -878,9 +856,6 @@ def visualizar_carta(
                     </div>
                 </div>
             </div>
-
-            <!-- Secret Peek camuflado como marca de serie/grabado en el pie del cartel -->
-            <div id="visSecretPeek" class="stealth-serial-peek" title="Marca del Cartel">{card_valor}{simbolo}</div>
         </div>
 
         <div id="errorToast" class="error-toast"></div>
@@ -888,33 +863,8 @@ def visualizar_carta(
         <script>
             const cardScene = document.getElementById('cardScene');
             const imgFront = document.getElementById('imgFront');
-            const visSecretPeek = document.getElementById('visSecretPeek');
             const errorToast = document.getElementById('errorToast');
             let isFetching = false;
-
-            const SYMBOLS = {{ 'corazones': '♥', 'diamantes': '♦', 'treboles': '♣', 'picas': '♠' }};
-
-            // Sincronización silenciosa del secret peek en tiempo real
-            async function syncSecretPeek() {{
-                try {{
-                    const res = await fetch('/api/carta_actual?t=' + Date.now());
-                    if (res.ok) {{
-                        const data = await res.json();
-                        if (data.valor && data.palo_id) {{
-                            const sym = SYMBOLS[data.palo_id] || '';
-                            if (visSecretPeek) {{
-                                visSecretPeek.textContent = `${{data.valor}}${{sym}}`;
-                            }}
-                            const nextSrc = `/cartas_svg/${{data.valor}}_${{data.palo_id}}.svg`;
-                            if (imgFront.src !== nextSrc && !cardScene.classList.contains('volteada')) {{
-                                imgFront.src = nextSrc;
-                            }}
-                        }}
-                    }}
-                }} catch(e) {{}}
-                setTimeout(syncSecretPeek, 2500);
-            }}
-            setTimeout(syncSecretPeek, 1200);
 
             function showErrorToast(msg) {{
                 if (!errorToast) return;
