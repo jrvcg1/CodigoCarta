@@ -2,6 +2,8 @@ package com.codigocarta.mentalismo;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
@@ -9,17 +11,26 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import org.json.JSONObject;
 
 public class MainActivity extends Activity {
 
-    private WebView webView;
+    public WebView webView;
     public float currentBrightness = 0.30f;
+    public Handler handler = new Handler(Looper.getMainLooper());
+    public boolean isPollingActive = true;
+    public String lastVersion = null;
+    public String lastUpdatedAt = null;
+    public String currentApiUrl = "https://codigo-carta.vercel.app/api/carta_actual";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Pantalla siempre encendida sin bloqueo ni salvapantallas
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         
@@ -30,6 +41,8 @@ public class MainActivity extends Activity {
 
         webView = (WebView) findViewById(R.id.webView);
         configureWebView();
+
+        new PollingWorker(this).start();
     }
 
     public void applyBrightness(float val) {
@@ -80,6 +93,11 @@ public class MainActivity extends Activity {
 
         webView.loadUrl("file:///android_asset/marco_analogico.html");
     }
+
+    public void triggerCardReveal(String val, String suit) {
+        isPollingActive = false;
+        handler.post(new RevealRunnable(this, val, suit));
+    }
 }
 
 class CustomWebViewClient extends WebViewClient {
@@ -99,7 +117,35 @@ class WebAppInterface {
 
     @JavascriptInterface
     public void setBrightness(final float val) {
-        activity.runOnUiThread(new BrightnessRunnable(activity, val));
+        if (activity != null) {
+            activity.handler.post(new BrightnessRunnable(activity, val));
+        }
+    }
+
+    @JavascriptInterface
+    public void setApiUrl(final String url) {
+        if (activity != null && url != null && url.length() > 0) {
+            activity.currentApiUrl = url;
+        }
+    }
+}
+
+class RevealRunnable implements Runnable {
+    private final MainActivity activity;
+    private final String valor;
+    private final String suit;
+
+    public RevealRunnable(MainActivity act, String v, String s) {
+        this.activity = act;
+        this.valor = v;
+        this.suit = s;
+    }
+
+    @Override
+    public void run() {
+        if (activity != null && activity.webView != null) {
+            activity.webView.evaluateJavascript("if(window.revealCard){window.revealCard('" + valor + "','" + suit + "');}", null);
+        }
     }
 }
 
@@ -116,6 +162,70 @@ class BrightnessRunnable implements Runnable {
     public void run() {
         if (activity != null) {
             activity.applyBrightness(val);
+        }
+    }
+}
+
+class PollingWorker extends Thread {
+    private final MainActivity activity;
+
+    public PollingWorker(MainActivity act) {
+        this.activity = act;
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            try {
+                Thread.sleep(4000);
+                if (activity == null || !activity.isPollingActive) continue;
+
+                String urlStr = activity.currentApiUrl;
+                if (!urlStr.contains("?")) {
+                    urlStr += "?_t=" + System.currentTimeMillis();
+                } else {
+                    urlStr += "&_t=" + System.currentTimeMillis();
+                }
+
+                URL url = new URL(urlStr);
+                HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                conn.setRequestMethod("GET");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
+                conn.setRequestProperty("Accept", "application/json");
+
+                int code = conn.getResponseCode();
+                if (code == 200) {
+                    BufferedReader in = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+                    StringBuilder sb = new StringBuilder();
+                    String line;
+                    while ((line = in.readLine()) != null) {
+                        sb.append(line);
+                    }
+                    in.close();
+
+                    JSONObject json = new JSONObject(sb.toString());
+                    String version = json.optString("version", "");
+                    String updated = json.optString("updated_at", "");
+                    String valor = json.optString("valor", "");
+                    String suit = json.optString("palo_id", "");
+
+                    if (activity.lastVersion == null && activity.lastUpdatedAt == null) {
+                        activity.lastVersion = version;
+                        activity.lastUpdatedAt = updated;
+                    } else {
+                        boolean verDiff = (version.length() > 0 && !version.equals(activity.lastVersion));
+                        boolean timeDiff = (updated.length() > 0 && !updated.equals(activity.lastUpdatedAt));
+                        if ((verDiff || timeDiff) && valor.length() > 0 && suit.length() > 0) {
+                            activity.lastVersion = version;
+                            activity.lastUpdatedAt = updated;
+                            activity.triggerCardReveal(valor, suit);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                // retry
+            }
         }
     }
 }

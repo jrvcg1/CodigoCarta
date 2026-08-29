@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
@@ -64,6 +64,7 @@
             height: 19.824%;
             perspective: 1000px;
             z-index: 10;
+            cursor: pointer;
         }
 
         .card-flipper {
@@ -157,25 +158,26 @@
             position: fixed;
             bottom: 8px;
             right: 8px;
-            width: 6px;
-            height: 6px;
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
             background: rgba(212, 175, 55, 0.2);
             z-index: 100;
             transition: all 0.3s;
         }
-        .status-dot.active {
-            background: rgba(16, 185, 129, 0.6);
-            box-shadow: 0 0 6px #10b981;
+        .status-dot.pulse {
+            background: rgba(16, 185, 129, 0.9);
+            box-shadow: 0 0 8px #10b981;
         }
         .status-dot.error {
-            background: rgba(239, 68, 68, 0.7);
+            background: rgba(239, 68, 68, 0.9);
+            box-shadow: 0 0 8px #ef4444;
         }
 
         .settings-modal {
             position: fixed;
             inset: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(0, 0, 0, 0.88);
             backdrop-filter: blur(8px);
             z-index: 1000;
             display: none;
@@ -193,20 +195,33 @@
             border: 1px solid rgba(212, 175, 55, 0.4);
             border-radius: 16px;
             padding: 24px;
-            width: min(90vw, 420px);
+            width: min(92vw, 440px);
             color: #f1ebd8;
             box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .settings-card h3 {
             font-size: 1.2rem;
             color: #d4af37;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             text-align: center;
         }
 
-        .setting-row {
+        .diagnostic-box {
+            background: #1d182b;
+            border: 1px solid rgba(212, 175, 55, 0.2);
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: #c4b5fd;
             margin-bottom: 16px;
+            line-height: 1.4;
+        }
+
+        .setting-row {
+            margin-bottom: 14px;
         }
 
         .setting-row label {
@@ -233,12 +248,13 @@
 
         .setting-actions {
             display: flex;
+            flex-direction: column;
             gap: 10px;
-            margin-top: 20px;
+            margin-top: 18px;
         }
 
         .btn {
-            flex: 1;
+            width: 100%;
             padding: 12px;
             border: none;
             border-radius: 8px;
@@ -246,6 +262,7 @@
             font-size: 0.9rem;
             cursor: pointer;
             transition: all 0.2s;
+            text-align: center;
         }
 
         .btn-gold {
@@ -266,8 +283,8 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 80px;
-            height: 80px;
+            width: 90px;
+            height: 90px;
             z-index: 500;
         }
     </style>
@@ -277,7 +294,7 @@
     <div class="photo-canvas-container" id="photoContainer">
         <img class="base-photo" id="basePhoto" src="cartas_svg/fondo_oraculo_dorso.jpg" alt="Oráculo Analógico" onerror="this.src='static/base_dorso.jpg'">
 
-        <div class="card-anchor" id="cardAnchor">
+        <div class="card-anchor" id="cardAnchor" title="Toca para forzar volteo">
             <div class="card-flipper">
                 <div class="card-side card-back-side">
                     <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
@@ -294,16 +311,23 @@
         <div class="analog-vignette"></div>
     </div>
 
-    <div class="status-dot" id="statusDot"></div>
-    <div class="secret-tap-zone" id="secretZone"></div>
+    <div class="status-dot" id="statusDot" title="Diagnóstico de red"></div>
+    <div class="secret-tap-zone" id="secretZone" title="Mantener 2.5s para configurar"></div>
 
     <div class="settings-modal" id="settingsModal">
         <div class="settings-card">
             <h3>⚙️ Configuración del Marco</h3>
             
+            <div class="diagnostic-box" id="diagnosticBox">
+                <div>📡 <b>API:</b> <span id="diagUrl">...</span></div>
+                <div>⏱️ <b>Último poll:</b> <span id="diagTime">Esperando...</span></div>
+                <div>🃏 <b>Carta en servidor:</b> <span id="diagCard">Ninguna</span></div>
+                <div>🔄 <b>Estado:</b> <span id="diagStatus">Polling activo (5s)</span></div>
+            </div>
+
             <div class="setting-row">
-                <label>URL de la API (Polling 5s):</label>
-                <input type="text" id="apiUrlInput" value="/api/carta_actual">
+                <label>URL de la API:</label>
+                <input type="text" id="apiUrlInput" value="https://codigo-carta.vercel.app/api/carta_actual">
             </div>
 
             <div class="setting-row">
@@ -312,14 +336,14 @@
             </div>
 
             <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">20%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="20">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">18%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="18">
             </div>
 
             <div class="setting-row">
                 <label>Probar Carta Manualmente:</label>
                 <select id="testCardSelect">
-                    <option value="">-- Seleccionar Carta --</option>
+                    <option value="">-- Seleccionar Carta para probar --</option>
                     <option value="A_picas">As de Picas (A♠)</option>
                     <option value="K_corazones">Rey de Corazones (K♥)</option>
                     <option value="Q_diamantes">Reina de Diamantes (Q♦)</option>
@@ -332,8 +356,9 @@
             </div>
 
             <div class="setting-actions">
+                <button class="btn btn-gold" id="btnForceCheck">⚡ Forzar Consulta y Revelar Ahora</button>
+                <button class="btn btn-dark" id="btnResetDorso">🔄 Reiniciar al Dorso y Reanudar Polling</button>
                 <button class="btn btn-gold" id="btnSave">Guardar y Cerrar</button>
-                <button class="btn btn-dark" id="btnResetDorso">Reiniciar al Dorso</button>
             </div>
         </div>
     </div>
@@ -341,9 +366,10 @@
     <script>
         let API_URL = localStorage.getItem('marco_api_url') || 'https://codigo-carta.vercel.app/api/carta_actual';
         let isRevealed = false;
-        let initialVersion = null;
+        let lastVersion = null;
+        let lastUpdatedAt = null;
         let pollingTimer = null;
-        const POLLING_INTERVAL_MS = 5000;
+        const POLLING_INTERVAL_MS = 4000;
 
         const cardAnchor = document.getElementById('cardAnchor');
         const cardFrontImg = document.getElementById('cardFrontImg');
@@ -351,13 +377,25 @@
         const settingsModal = document.getElementById('settingsModal');
         const secretZone = document.getElementById('secretZone');
 
+        const diagUrl = document.getElementById('diagUrl');
+        const diagTime = document.getElementById('diagTime');
+        const diagCard = document.getElementById('diagCard');
+        const diagStatus = document.getElementById('diagStatus');
+
+        function updateDiag(url, time, card, status) {
+            if (diagUrl) diagUrl.textContent = url || API_URL;
+            if (diagTime) diagTime.textContent = time || new Date().toLocaleTimeString();
+            if (diagCard) diagCard.textContent = card || 'Ninguna';
+            if (diagStatus) diagStatus.textContent = status || (isRevealed ? 'Carta Revelada (Polling detenido)' : 'Polling activo');
+        }
+
         function setDeviceBrightness(valPercent) {
             const floatVal = valPercent / 100.0;
             if (window.Android && window.Android.setBrightness) {
                 try {
                     window.Android.setBrightness(floatVal);
                 } catch(e) {
-                    console.log('Bridge Android no disponible', e);
+                    console.log('Bridge Android error:', e);
                 }
             }
         }
@@ -365,7 +403,7 @@
         const savedBright = localStorage.getItem('marco_brightness') || 30;
         setDeviceBrightness(savedBright);
 
-        function revealCard(valor, palo_id) {
+        window.revealCard = function(valor, palo_id) {
             if (isRevealed) return;
             isRevealed = true;
 
@@ -390,67 +428,123 @@
             tempImg.src = svgSrc;
 
             if (statusDot) {
-                statusDot.classList.add('active');
-                setTimeout(() => statusDot.classList.remove('active'), 2000);
+                statusDot.className = 'status-dot pulse';
+                setTimeout(() => statusDot.className = 'status-dot', 2500);
             }
-        }
+            updateDiag(API_URL, new Date().toLocaleTimeString(), `${valor} de ${palo_id}`, '¡Carta Revelada!');
+        };
 
         function resetToDorso() {
             isRevealed = false;
             cardAnchor.classList.remove('revealed');
-            initialVersion = null;
+            lastVersion = null;
+            lastUpdatedAt = null;
+            updateDiag(API_URL, new Date().toLocaleTimeString(), 'Reiniciado a Dorso', 'Polling activo (4s)');
             startPolling();
         }
 
-        async function pollApi() {
-            if (isRevealed) return;
+        async function pollApi(forceRevealNow = false) {
+            if (isRevealed && !forceRevealNow) return;
 
             try {
                 const fetchUrl = API_URL.includes('?') ? `${API_URL}&_t=${Date.now()}` : `${API_URL}?_t=${Date.now()}`;
-                const res = await fetch(fetchUrl, { cache: 'no-store' });
                 
+                // Realizar petición con timeout de 5 segundos
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const res = await fetch(fetchUrl, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
                 if (res.ok) {
                     const data = await res.json();
+                    const nowStr = new Date().toLocaleTimeString();
                     
-                    if (initialVersion === null) {
-                        initialVersion = data.version || 0;
-                        console.log('[MARCO] Versión inicial sincronizada:', initialVersion);
+                    if (statusDot) {
+                        statusDot.className = 'status-dot pulse';
+                        setTimeout(() => statusDot.className = 'status-dot', 600);
+                    }
+
+                    const cardName = `${data.valor || ''} de ${data.palo_nombre || data.palo_id || ''}`;
+                    updateDiag(API_URL, nowStr, cardName, isRevealed ? 'Revelada' : 'Polling activo');
+
+                    // Si es forzado (ej. clic manual o botón en menú)
+                    if (forceRevealNow && data.valor && data.palo_id) {
+                        window.revealCard(data.valor, data.palo_id);
                         return;
                     }
 
-                    if (data.version && data.version > initialVersion && data.valor && data.palo_id) {
-                        revealCard(data.valor, data.palo_id);
+                    // Inicializar primera lectura
+                    if (lastVersion === null && lastUpdatedAt === null) {
+                        lastVersion = data.version || 0;
+                        lastUpdatedAt = data.updated_at || '';
+                        console.log('[MARCO] Estado inicial sincronizado:', lastVersion, lastUpdatedAt);
+                        return;
                     }
+
+                    // Si cambió la versión O el timestamp updated_at
+                    const versionChanged = (data.version && data.version !== lastVersion);
+                    const timeChanged = (data.updated_at && data.updated_at !== lastUpdatedAt);
+
+                    if ((versionChanged || timeChanged) && data.valor && data.palo_id) {
+                        console.log('[MARCO] ¡Detectado cambio de carta en servidor!');
+                        window.revealCard(data.valor, data.palo_id);
+                    }
+                } else {
+                    if (statusDot) {
+                        statusDot.className = 'status-dot error';
+                        setTimeout(() => statusDot.className = 'status-dot', 800);
+                    }
+                    updateDiag(API_URL, new Date().toLocaleTimeString(), 'Error HTTP ' + res.status, 'Fallo de respuesta');
                 }
             } catch (err) {
                 console.error('[MARCO] Error polling API:', err);
                 if (statusDot) {
-                    statusDot.classList.add('error');
-                    setTimeout(() => statusDot.classList.remove('error'), 1000);
+                    statusDot.className = 'status-dot error';
+                    setTimeout(() => statusDot.className = 'status-dot', 800);
                 }
+                updateDiag(API_URL, new Date().toLocaleTimeString(), 'Error de conexión', err.message);
             }
         }
 
         function startPolling() {
             if (pollingTimer) clearInterval(pollingTimer);
             pollApi();
-            pollingTimer = setInterval(pollApi, POLLING_INTERVAL_MS);
-            console.log('[MARCO] Polling iniciado cada 5s en:', API_URL);
+            pollingTimer = setInterval(() => pollApi(false), POLLING_INTERVAL_MS);
+            console.log('[MARCO] Polling iniciado cada 4s en:', API_URL);
         }
 
+        // Iniciar polling
         startPolling();
 
+        // Al tocar la carta directamente en pantalla: forzar consulta a la API y voltear
+        cardAnchor.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (!isRevealed) {
+                pollApi(true); // Forzar revelación inmediata
+            } else {
+                cardAnchor.classList.toggle('revealed');
+            }
+        });
+
+        // Configuración Secreta (mantener pulsado 2.5s en esquina)
         let pressTimer = null;
+        function openSettings() {
+            settingsModal.classList.add('show');
+            updateDiag(API_URL, null, null, null);
+        }
+
         secretZone.addEventListener('touchstart', (e) => {
-            pressTimer = setTimeout(() => {
-                settingsModal.classList.add('show');
-            }, 2500);
+            pressTimer = setTimeout(openSettings, 2200);
         });
         secretZone.addEventListener('touchend', () => clearTimeout(pressTimer));
         secretZone.addEventListener('mousedown', () => {
-            pressTimer = setTimeout(() => {
-                settingsModal.classList.add('show');
-            }, 2500);
+            pressTimer = setTimeout(openSettings, 2200);
         });
         secretZone.addEventListener('mouseup', () => clearTimeout(pressTimer));
 
@@ -462,6 +556,7 @@
         const testCardSelect = document.getElementById('testCardSelect');
         const btnSave = document.getElementById('btnSave');
         const btnResetDorso = document.getElementById('btnResetDorso');
+        const btnForceCheck = document.getElementById('btnForceCheck');
 
         apiUrlInput.value = API_URL;
         brightSlider.value = savedBright;
@@ -483,12 +578,17 @@
             const val = e.target.value;
             if (val) {
                 const parts = val.split('_');
-                revealCard(parts[0], parts[1]);
+                window.revealCard(parts[0], parts[1]);
             }
         });
 
+        btnForceCheck.addEventListener('click', () => {
+            pollApi(true);
+            settingsModal.classList.remove('show');
+        });
+
         btnSave.addEventListener('click', () => {
-            API_URL = apiUrlInput.value.trim() || '/api/carta_actual';
+            API_URL = apiUrlInput.value.trim() || 'https://codigo-carta.vercel.app/api/carta_actual';
             localStorage.setItem('marco_api_url', API_URL);
             localStorage.setItem('marco_brightness', brightSlider.value);
             settingsModal.classList.remove('show');
