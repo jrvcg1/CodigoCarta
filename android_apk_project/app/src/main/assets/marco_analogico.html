@@ -457,16 +457,67 @@
             <div class="setting-row">
                 <label>Probar Carta Manualmente:</label>
                 <select id="testCardSelect">
-                    <option value="">-- Seleccionar Carta para probar --</option>
-                    <option value="A_picas">As de Picas (A♠)</option>
-                    <option value="K_corazones">Rey de Corazones (K♥)</option>
-                    <option value="Q_diamantes">Reina de Diamantes (Q♦)</option>
-                    <option value="J_treboles">Jota de Tréboles (J♣)</option>
-                    <option value="7_diamantes">7 de Diamantes (7♦)</option>
-                    <option value="7_treboles">7 de Tréboles (7♣)</option>
-                    <option value="8_treboles">8 de Tréboles (8♣)</option>
-                    <option value="10_corazones">10 de Corazones (10♥)</option>
-                    <option value="3_picas">3 de Picas (3♠)</option>
+<option value="">-- Seleccionar Carta para probar --</option>
+                    <optgroup label="Corazones (♥)">
+                        <option value="A_corazones">As de Corazones (A♥)</option>
+                        <option value="2_corazones">2 de Corazones (2♥)</option>
+                        <option value="3_corazones">3 de Corazones (3♥)</option>
+                        <option value="4_corazones">4 de Corazones (4♥)</option>
+                        <option value="5_corazones">5 de Corazones (5♥)</option>
+                        <option value="6_corazones">6 de Corazones (6♥)</option>
+                        <option value="7_corazones">7 de Corazones (7♥)</option>
+                        <option value="8_corazones">8 de Corazones (8♥)</option>
+                        <option value="9_corazones">9 de Corazones (9♥)</option>
+                        <option value="10_corazones">10 de Corazones (10♥)</option>
+                        <option value="J_corazones">Jota de Corazones (J♥)</option>
+                        <option value="Q_corazones">Reina de Corazones (Q♥)</option>
+                        <option value="K_corazones">Rey de Corazones (K♥)</option>
+                    </optgroup>
+                    <optgroup label="Diamantes (♦)">
+                        <option value="A_diamantes">As de Diamantes (A♦)</option>
+                        <option value="2_diamantes">2 de Diamantes (2♦)</option>
+                        <option value="3_diamantes">3 de Diamantes (3♦)</option>
+                        <option value="4_diamantes">4 de Diamantes (4♦)</option>
+                        <option value="5_diamantes">5 de Diamantes (5♦)</option>
+                        <option value="6_diamantes">6 de Diamantes (6♦)</option>
+                        <option value="7_diamantes">7 de Diamantes (7♦)</option>
+                        <option value="8_diamantes">8 de Diamantes (8♦)</option>
+                        <option value="9_diamantes">9 de Diamantes (9♦)</option>
+                        <option value="10_diamantes">10 de Diamantes (10♦)</option>
+                        <option value="J_diamantes">Jota de Diamantes (J♦)</option>
+                        <option value="Q_diamantes">Reina de Diamantes (Q♦)</option>
+                        <option value="K_diamantes">Rey de Diamantes (K♦)</option>
+                    </optgroup>
+                    <optgroup label="Tréboles (♣)">
+                        <option value="A_treboles">As de Treboles (A♣)</option>
+                        <option value="2_treboles">2 de Treboles (2♣)</option>
+                        <option value="3_treboles">3 de Treboles (3♣)</option>
+                        <option value="4_treboles">4 de Treboles (4♣)</option>
+                        <option value="5_treboles">5 de Treboles (5♣)</option>
+                        <option value="6_treboles">6 de Treboles (6♣)</option>
+                        <option value="7_treboles">7 de Treboles (7♣)</option>
+                        <option value="8_treboles">8 de Treboles (8♣)</option>
+                        <option value="9_treboles">9 de Treboles (9♣)</option>
+                        <option value="10_treboles">10 de Treboles (10♣)</option>
+                        <option value="J_treboles">Jota de Treboles (J♣)</option>
+                        <option value="Q_treboles">Reina de Treboles (Q♣)</option>
+                        <option value="K_treboles">Rey de Treboles (K♣)</option>
+                    </optgroup>
+                    <optgroup label="Picas (♠)">
+                        <option value="A_picas">As de Picas (A♠)</option>
+                        <option value="2_picas">2 de Picas (2♠)</option>
+                        <option value="3_picas">3 de Picas (3♠)</option>
+                        <option value="4_picas">4 de Picas (4♠)</option>
+                        <option value="5_picas">5 de Picas (5♠)</option>
+                        <option value="6_picas">6 de Picas (6♠)</option>
+                        <option value="7_picas">7 de Picas (7♠)</option>
+                        <option value="8_picas">8 de Picas (8♠)</option>
+                        <option value="9_picas">9 de Picas (9♠)</option>
+                        <option value="10_picas">10 de Picas (10♠)</option>
+                        <option value="J_picas">Jota de Picas (J♠)</option>
+                        <option value="Q_picas">Reina de Picas (Q♠)</option>
+                        <option value="K_picas">Rey de Picas (K♠)</option>
+                    </optgroup>
                 </select>
             </div>
 
@@ -481,6 +532,8 @@
     <script>
         let API_URL = localStorage.getItem('marco_api_url') || 'https://codigo-carta.vercel.app/api/carta_actual';
         let isRevealed = false;
+        let isTestMode = false;
+        let activeCardName = '';
         let lastVersion = null;
         let lastUpdatedAt = null;
         let pollingTimer = null;
@@ -516,11 +569,21 @@
         }
 
         const savedBright = localStorage.getItem('marco_brightness') || 30;
-        setDeviceBrightness(savedBright);
+        const savedSepia = localStorage.getItem('marco_sepia') || 22;
+        const savedGrain = localStorage.getItem('marco_grain') || 22;
+        const savedFullWear = localStorage.getItem('marco_full_wear') || 85;
+        const savedCardWear = localStorage.getItem('marco_card_wear') || 85;
 
-        window.revealCard = function(valor, palo_id) {
-            if (isRevealed) return;
+        setDeviceBrightness(savedBright);
+        document.documentElement.style.setProperty('--analog-sepia', (savedSepia / 100.0));
+        document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
+        document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
+        document.documentElement.style.setProperty('--card-wear-opacity', (savedCardWear / 100.0));
+
+        window.revealCard = function(valor, palo_id, fromTest = false) {
             isRevealed = true;
+            if (fromTest) isTestMode = true;
+            activeCardName = `${valor} de ${palo_id}`;
 
             if (pollingTimer) {
                 clearInterval(pollingTimer);
@@ -551,9 +614,12 @@
 
         function resetToDorso() {
             isRevealed = false;
+            isTestMode = false;
+            activeCardName = '';
             cardAnchor.classList.remove('revealed');
             lastVersion = null;
             lastUpdatedAt = null;
+            testCardSelect.value = '';
             updateDiag(API_URL, new Date().toLocaleTimeString(), 'Reiniciado a Dorso', 'Polling activo (4s)');
             startPolling();
         }
@@ -675,6 +741,14 @@
         apiUrlInput.value = API_URL;
         brightSlider.value = savedBright;
         brightVal.textContent = savedBright + '%';
+        sepiaSlider.value = savedSepia;
+        sepiaVal.textContent = savedSepia + '%';
+        grainSlider.value = savedGrain;
+        grainVal.textContent = savedGrain + '%';
+        fullWearSlider.value = savedFullWear;
+        fullWearVal.textContent = savedFullWear + '%';
+        wearSlider.value = savedCardWear;
+        wearVal.textContent = savedCardWear + '%';
 
         brightSlider.addEventListener('input', (e) => {
             const v = e.target.value;
@@ -710,7 +784,7 @@
             const val = e.target.value;
             if (val) {
                 const parts = val.split('_');
-                window.revealCard(parts[0], parts[1]);
+                window.revealCard(parts[0], parts[1], true);
             }
         });
 
@@ -723,8 +797,12 @@
             API_URL = apiUrlInput.value.trim() || 'https://codigo-carta.vercel.app/api/carta_actual';
             localStorage.setItem('marco_api_url', API_URL);
             localStorage.setItem('marco_brightness', brightSlider.value);
+            localStorage.setItem('marco_sepia', sepiaSlider.value);
+            localStorage.setItem('marco_grain', grainSlider.value);
+            localStorage.setItem('marco_full_wear', fullWearSlider.value);
+            localStorage.setItem('marco_card_wear', wearSlider.value);
             settingsModal.classList.remove('show');
-            if (!isRevealed) startPolling();
+            if (!isRevealed && !isTestMode) startPolling();
         });
 
         btnResetDorso.addEventListener('click', () => {
