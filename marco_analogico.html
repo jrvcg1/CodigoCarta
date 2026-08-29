@@ -665,6 +665,20 @@
         secretZone.addEventListener('mousedown', () => pressTimer = setTimeout(openSettings, 2000));
         secretZone.addEventListener('mouseup', () => clearTimeout(pressTimer));
 
+        // Doble clic en cualquier parte de la imagen para abrir la configuración
+        const photoContainer = document.getElementById('photoContainer');
+        if (photoContainer) {
+            photoContainer.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                openSettings();
+            });
+        }
+        document.body.addEventListener('dblclick', (e) => {
+            if (!settingsModal.classList.contains('show')) {
+                openSettings();
+            }
+        });
+
         const apiUrlInput = document.getElementById('apiUrlInput');
         const sepiaSlider = document.getElementById('sepiaSlider');
         const sepiaVal = document.getElementById('sepiaVal');
