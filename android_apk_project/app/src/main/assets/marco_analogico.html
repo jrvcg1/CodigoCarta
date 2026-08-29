@@ -6,11 +6,12 @@
     <title>Marco Analógico - Oráculo</title>
     <style>
         :root {
-            --bg-frame: #030205;
-            --analog-sepia: 0.20;
-            --analog-brightness: 0.94;
-            --analog-contrast: 1.06;
-            --grain-opacity: 0.15;
+            --bg-frame: #020104;
+            --analog-sepia: 0.22;
+            --analog-brightness: 0.92;
+            --analog-contrast: 1.08;
+            --grain-opacity: 0.22;
+            --full-wear-opacity: 0.85;
             --card-wear-opacity: 0.92;
         }
 
@@ -35,6 +36,7 @@
             position: relative;
         }
 
+        /* Contenedor del lienzo de la fotografía analógica completa */
         .photo-canvas-container {
             position: relative;
             height: 100vh;
@@ -44,11 +46,13 @@
             align-items: center;
             justify-content: center;
             background: #050407;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.95);
+            box-shadow: 0 0 70px rgba(0, 0, 0, 0.98);
             filter: sepia(var(--analog-sepia)) brightness(var(--analog-brightness)) contrast(var(--analog-contrast));
             transition: filter 0.3s ease;
+            overflow: hidden;
         }
 
+        /* Fotografía base del arlequín y la luna */
         .base-photo {
             width: 100%;
             height: 100%;
@@ -57,7 +61,7 @@
             pointer-events: none;
         }
 
-        /* Área de la carta interactiva (ajustada al milímetro con el marco del payaso) */
+        /* Área de la carta interactiva (ajustada al milímetro con el hueco de las manos) */
         .card-anchor {
             position: absolute;
             left: 10.866%;
@@ -108,7 +112,7 @@
             display: block;
         }
 
-        /* Cara frontal (Carta con Papel Ocre Real + SVG en Multiply + Máscara de Desgaste Real) */
+        /* Cara frontal (Papel Ocre Real + SVG en Multiply + Máscara de Desgaste Real) */
         .card-front-side {
             transform: rotateY(180deg);
             background: #2b1f14;
@@ -146,7 +150,7 @@
             mix-blend-mode: multiply;
         }
 
-        /* Capa 3: Máscara de arañazos, manchas y bordes rotos en Multiply */
+        /* Capa 3: Máscara de arañazos, manchas y bordes rotos de la carta en Multiply */
         .card-wear-mask {
             position: absolute;
             inset: 0;
@@ -160,7 +164,7 @@
             pointer-events: none;
         }
 
-        /* Capa 4: Sombra direccional ambiental proyectada por el cuerpo del arlequín */
+        /* Capa 4: Sombra direccional ambiental del arlequín sobre la carta */
         .card-front-side::after {
             content: '';
             position: absolute;
@@ -183,7 +187,35 @@
             object-fit: contain;
         }
 
-        /* Textura de grano y viñeteado general */
+        /* --- EFECTOS DE ENVEJECIMIENTO PARA TODA LA FOTOGRAFÍA --- */
+
+        /* 1. Máscara de desgaste analógico general (Bordes erosionados, manchas de tiempo, arañazos) */
+        .full-frame-wear-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            pointer-events: none;
+            z-index: 25;
+            mix-blend-mode: multiply;
+            opacity: var(--full-wear-opacity);
+        }
+
+        /* 2. Micro-polvo, motas de sales de plata y arañazos finos de placa fotográfica */
+        .full-frame-dust-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            pointer-events: none;
+            z-index: 26;
+            mix-blend-mode: screen;
+            opacity: 0.75;
+        }
+
+        /* 3. Textura de grano de película analógica de alta densidad */
         .analog-grain-overlay {
             position: absolute;
             inset: 0;
@@ -192,10 +224,11 @@
             pointer-events: none;
             z-index: 30;
             opacity: var(--grain-opacity);
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
             mix-blend-mode: overlay;
         }
 
+        /* 4. Viñeteado fotográfico de lente antigua */
         .analog-vignette {
             position: absolute;
             inset: 0;
@@ -203,7 +236,7 @@
             height: 100%;
             pointer-events: none;
             z-index: 31;
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%);
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(15,8,3,0.65) 100%);
         }
 
         .status-dot {
@@ -344,8 +377,10 @@
 <body>
 
     <div class="photo-canvas-container" id="photoContainer">
+        <!-- 1. Fotografía original base -->
         <img class="base-photo" id="basePhoto" src="cartas_svg/fondo_oraculo_dorso.jpg" alt="Oráculo Analógico" onerror="this.src='static/base_dorso.jpg'">
 
+        <!-- 2. Carta Interactiva (Dorso / Frente) -->
         <div class="card-anchor" id="cardAnchor" title="Toca para forzar volteo">
             <div class="card-flipper">
                 <!-- Dorso -->
@@ -361,9 +396,17 @@
             </div>
         </div>
 
+        <!-- 3. Dedos del payaso en primer plano -->
         <img class="fingers-overlay" id="fingersOverlay" src="static/fingers_overlay.png" onerror="this.style.display='none'" alt="Dedos">
 
-        <div class="analog-grain-overlay"></div>
+        <!-- 4. Máscara de Desgaste Fotográfico para TODA la Imagen (Bordes erosionados, manchas, pátina) -->
+        <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
+
+        <!-- 5. Micro-polvo y fibras de película analógica -->
+        <img class="full-frame-dust-overlay" src="static/full_frame_dust.png" onerror="this.src='cartas_svg/full_frame_dust.png'" alt="Polvo Analógico">
+
+        <!-- 6. Grano de película analógica y viñeteado de época -->
+        <div class="analog-grain-overlay" id="grainOverlay"></div>
         <div class="analog-vignette"></div>
     </div>
 
@@ -392,12 +435,22 @@
             </div>
 
             <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">20%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="20">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">22%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="22">
             </div>
 
             <div class="setting-row">
-                <label>Intensidad de Desgaste (Máscara): <span id="wearVal">92%</span></label>
+                <label>Grano Analógico de Película: <span id="grainVal">22%</span></label>
+                <input type="range" id="grainSlider" min="0" max="60" value="22">
+            </div>
+
+            <div class="setting-row">
+                <label>Desgaste de Toda la Fotografía: <span id="fullWearVal">85%</span></label>
+                <input type="range" id="fullWearSlider" min="0" max="100" value="85">
+            </div>
+
+            <div class="setting-row">
+                <label>Intensidad de Desgaste (Carta): <span id="wearVal">92%</span></label>
                 <input type="range" id="wearSlider" min="20" max="100" value="92">
             </div>
 
@@ -608,6 +661,10 @@
         const brightVal = document.getElementById('brightVal');
         const sepiaSlider = document.getElementById('sepiaSlider');
         const sepiaVal = document.getElementById('sepiaVal');
+        const grainSlider = document.getElementById('grainSlider');
+        const grainVal = document.getElementById('grainVal');
+        const fullWearSlider = document.getElementById('fullWearSlider');
+        const fullWearVal = document.getElementById('fullWearVal');
         const wearSlider = document.getElementById('wearSlider');
         const wearVal = document.getElementById('wearVal');
         const testCardSelect = document.getElementById('testCardSelect');
@@ -629,6 +686,18 @@
             const v = e.target.value;
             sepiaVal.textContent = v + '%';
             document.documentElement.style.setProperty('--analog-sepia', (v / 100.0));
+        });
+
+        grainSlider.addEventListener('input', (e) => {
+            const v = e.target.value;
+            grainVal.textContent = v + '%';
+            document.documentElement.style.setProperty('--grain-opacity', (v / 100.0));
+        });
+
+        fullWearSlider.addEventListener('input', (e) => {
+            const v = e.target.value;
+            fullWearVal.textContent = v + '%';
+            document.documentElement.style.setProperty('--full-wear-opacity', (v / 100.0));
         });
 
         wearSlider.addEventListener('input', (e) => {
