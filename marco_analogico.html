@@ -93,7 +93,7 @@
             display: block;
         }
 
-        /* Cara frontal (Valores de la carta con el mismo tono ocre/oro pergamino del dorso) */
+        /* Cara frontal (Valores con margen interior de seguridad para no recortar trazos inferiores como el 3) */
         .card-front-side {
             position: absolute;
             inset: 0;
@@ -105,6 +105,8 @@
             transition: opacity 0.30s ease;
             background: linear-gradient(135deg, #dfc282 0%, #caa968 45%, #b5924e 100%);
             z-index: 2;
+            padding: 2px 3px 6px 3px;
+            box-sizing: border-box;
         }
 
         /* Sustitución limpia al revelarse */
