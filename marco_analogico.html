@@ -12,7 +12,6 @@
             --analog-contrast: 1.08;
             --grain-opacity: 0.16;
             --card-ocher-deg: 135deg;
-            --card-warmth: 0.88;
         }
 
         * {
@@ -58,7 +57,7 @@
             pointer-events: none;
         }
 
-        /* Área de la carta interactiva (ajustada milimétricamente al rectángulo de la mano) */
+        /* Área de la carta interactiva (ajustada al hueco exacto de la mano) */
         .card-anchor {
             position: absolute;
             left: 10.866%;
@@ -77,7 +76,7 @@
             transform-style: preserve-3d;
             transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
             border-radius: 4.5%;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.65);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
         }
 
         .card-anchor.revealed .card-flipper {
@@ -109,23 +108,41 @@
             display: block;
         }
 
-        /* Cara frontal (Carta revelada envejecida con degradado ocre analógico y luz direccional) */
+        /* Cara frontal (Carta revelada envejecida con degradado ocre, luz direccional y relieve 3D) */
         .card-front-side {
             transform: rotateY(180deg);
-            background: linear-gradient(var(--card-ocher-deg), #e6caa0 0%, #d4b27d 35%, #ad8a52 75%, #6a4f24 100%);
-            border: 1px solid rgba(45, 25, 8, 0.75);
-            box-shadow: inset 0 0 16px rgba(35, 18, 5, 0.75), inset 1px 1px 3px rgba(255, 235, 190, 0.3);
+            background: linear-gradient(var(--card-ocher-deg), #e8cc9e 0%, #d4b079 35%, #aa874e 75%, #664c22 100%);
+            /* Bisel de grosor del naipe (luz en top-left y sombra en bottom-right) */
+            border: 1px solid rgba(40, 20, 5, 0.8);
+            box-shadow: 
+                inset 1px 1px 2px rgba(255, 240, 200, 0.4),
+                inset -1px -1px 3px rgba(30, 15, 5, 0.7),
+                inset 0 0 16px rgba(40, 20, 5, 0.65);
             position: relative;
             overflow: hidden;
         }
 
-        .card-front-side img {
+        /* Imagen SVG de la carta fundida con el papel ocre */
+        .card-front-side img.card-svg-art {
             width: 100%;
             height: 100%;
-            object-fit: fill; /* Ajuste total a los bordes sin márgenes sobrantes */
+            object-fit: fill;
             display: block;
             filter: sepia(0.92) saturate(1.4) brightness(0.86) contrast(1.22);
-            mix-blend-mode: multiply; /* Funde perfectamente la tinta con el papel ocre */
+            mix-blend-mode: multiply;
+        }
+
+        /* Máscara de desgaste físico: manchas de humedad, dobleces, pátina de dedos y erosión */
+        .card-wear-mask {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            pointer-events: none;
+            mix-blend-mode: multiply;
+            opacity: 0.88;
+            z-index: 5;
         }
 
         /* Sombra de oclusión ambiental proyectada por el arlequín */
@@ -134,7 +151,8 @@
             position: absolute;
             inset: 0;
             pointer-events: none;
-            background: radial-gradient(circle at 12% 15%, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0) 50%, rgba(25,12,3,0.55) 100%),
+            z-index: 6;
+            background: radial-gradient(circle at 12% 15%, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0) 50%, rgba(25,12,3,0.55) 100%),
                         linear-gradient(to bottom right, rgba(0,0,0,0) 45%, rgba(18,9,2,0.50) 100%);
             mix-blend-mode: multiply;
         }
@@ -150,7 +168,7 @@
             object-fit: contain;
         }
 
-        /* Textura de grano y viñeteado fotográfico */
+        /* Textura de grano y viñeteado fotográfico general */
         .analog-grain-overlay {
             position: absolute;
             inset: 0;
@@ -315,11 +333,14 @@
 
         <div class="card-anchor" id="cardAnchor" title="Toca para forzar volteo">
             <div class="card-flipper">
+                <!-- Dorso -->
                 <div class="card-side card-back-side">
                     <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
                 </div>
+                <!-- Frente con Carta, Textura de Desgaste y Sombra -->
                 <div class="card-side card-front-side">
-                    <img id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
+                    <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
+                    <img class="card-wear-mask" src="static/card_wear_mask.png" onerror="this.src='cartas_svg/card_wear_mask.png'" alt="Desgaste">
                 </div>
             </div>
         </div>
