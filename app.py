@@ -991,6 +991,7 @@ def probar_voz_web():
         with open(html_path_fallback, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
 @app.get("/marco_analogico", response_class=HTMLResponse, summary="Marco de Fotos Analógico para Tablet", tags=["Visualización"])
+@app.get("/marco", response_class=HTMLResponse, summary="Marco de Fotos Analógico (Alias)", tags=["Visualización"])
 def marco_analogico_web():
     """Servicio de la interfaz del marco de fotos analógico interactivo para tablets (marco_analogico.html)."""
     html_path = os.path.join(os.path.dirname(__file__), "marco_analogico.html")
@@ -998,6 +999,7 @@ def marco_analogico_web():
         with open(html_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse(content="Archivo marco_analogico.html no encontrado.", status_code=404)
+
 
 
 if __name__ == "__main__":

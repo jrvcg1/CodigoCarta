@@ -748,6 +748,16 @@
                 <span>QR ESCUCHAR</span>
             </button>
 
+            <a href="/marco_analogico" target="_blank" class="btn-qr" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); color: #fff; text-decoration: none; font-weight: 700;" title="Abrir Marco Analógico Web (Tablet Huawei MediaPad T5)">
+                <span>🖼️</span>
+                <span>MARCO ANALÓGICO</span>
+            </a>
+
+            <button id="btnQRMarcoUI" class="btn-qr" style="background: linear-gradient(135deg, #7c3aed, #5b21b6);" title="Mostrar QR Marco Analógico">
+                <span>📷</span>
+                <span>QR MARCO</span>
+            </button>
+
             <a href="/configuracion" class="btn-qr" style="background: linear-gradient(135deg, #d4af37, #aa820a); color: #000; text-decoration: none; font-weight: 700;" title="Abrir Configuración de Componentes Binarios">
                 <span>⚙️</span>
                 <span>CONFIGURACIÓN</span>
@@ -884,6 +894,12 @@
                 if (qrSubtitle) qrSubtitle.textContent = 'Escanea el código para acceder a la revelación sonora';
                 if (qrCodeImg) qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(urlEscuchar)}`;
                 if (qrUrlText) qrUrlText.textContent = urlEscuchar;
+            } else if (type === 'marco') {
+                const urlMarco = domain + '/marco_analogico';
+                if (qrTitle) qrTitle.textContent = 'MARCO ANALÓGICO';
+                if (qrSubtitle) qrSubtitle.textContent = 'Escanea para abrir el cuadro analógico en la tablet o navegador';
+                if (qrCodeImg) qrCodeImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=320x320&data=${encodeURIComponent(urlMarco)}`;
+                if (qrUrlText) qrUrlText.textContent = urlMarco;
             } else {
                 const urlVisualizar = domain + '/visualizar';
                 if (qrTitle) qrTitle.textContent = 'EL GRAN ORÁCULO';
@@ -908,6 +924,10 @@
         btnQRUI.addEventListener('click', () => showQRModal('visualizar'));
         if (btnQREscucharUI) {
             btnQREscucharUI.addEventListener('click', () => showQRModal('escuchar'));
+        }
+        const btnQRMarcoUI = document.getElementById('btnQRMarcoUI');
+        if (btnQRMarcoUI) {
+            btnQRMarcoUI.addEventListener('click', () => showQRModal('marco'));
         }
 
         // --- GESTIÓN UNIFICADA DE DOBLE TAP Y DESLIZAMIENTO VERTICAL DE OPACIDAD EN PANTALLA NEGRA ---
