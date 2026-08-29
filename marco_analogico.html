@@ -51,7 +51,7 @@
             overflow: hidden;
         }
 
-        /* CAPA 1: Carta Interactiva (Limpia y realista, ubicada detrás del marco transparente) */
+        /* CAPA 1: Carta Interactiva (Detrás del marco transparente) */
         .card-anchor {
             position: absolute;
             left: 11.6%;
@@ -69,10 +69,10 @@
             height: 100%;
             border-radius: 4%;
             overflow: hidden;
-            background: #ffffff;
+            background: #caa968;
         }
 
-        /* Cara posterior (Nuevo Dorso Bicycle Azul) */
+        /* Cara posterior (Dorso Vintage Oro/Ocre Bicycle) */
         .card-back-side {
             position: absolute;
             inset: 0;
@@ -83,7 +83,7 @@
             opacity: 1;
             transition: opacity 0.30s ease;
             z-index: 1;
-            background: #0d2b5c;
+            background: #1b170c;
         }
 
         .card-back-side img {
@@ -93,7 +93,7 @@
             display: block;
         }
 
-        /* Cara frontal (Carta Revelada: Dibujo limpio original de la carta) */
+        /* Cara frontal (Valores de la carta con el mismo tono ocre/oro pergamino del dorso) */
         .card-front-side {
             position: absolute;
             inset: 0;
@@ -103,7 +103,7 @@
             overflow: hidden;
             opacity: 0;
             transition: opacity 0.30s ease;
-            background: #ffffff;
+            background: linear-gradient(135deg, #dfc282 0%, #caa968 45%, #b5924e 100%);
             z-index: 2;
         }
 
@@ -115,15 +115,17 @@
             opacity: 0;
         }
 
-        /* Imagen vectorial de la carta sin máscaras artificiales */
+        /* Vector de la carta fundido con el tono oro/ocre del dorso */
         .card-front-side img.card-svg-art {
             width: 100%;
             height: 100%;
             object-fit: fill;
             display: block;
+            mix-blend-mode: multiply;
+            filter: sepia(0.65) saturate(1.2) contrast(1.1);
         }
 
-        /* CAPA 2: Fotografía PNG con Ventana Transparente (Solapa dedos y bordes de la carta con realismo total) */
+        /* CAPA 2: Fotografía PNG con Ventana Transparente */
         .base-photo {
             position: absolute;
             inset: 0;
@@ -136,7 +138,7 @@
             transition: opacity 0.3s ease;
         }
 
-        /* CAPA 3: Efectos aplicados a TODA LA FOTOGRAFÍA (Grano, pátina general y viñeteado unificado) */
+        /* CAPA 3: Efectos aplicados a TODA LA FOTOGRAFÍA MONTADA */
         .full-frame-wear-overlay {
             position: absolute;
             inset: 0;
@@ -321,14 +323,14 @@
 <body>
 
     <div class="photo-canvas-container" id="photoContainer">
-        <!-- 1. Carta Interactiva (Limpia y realista, detrás de la ventana transparente) -->
+        <!-- 1. Carta Interactiva (Con tono Ocre/Oro idéntico al dorso) -->
         <div class="card-anchor" id="cardAnchor" title="Toca para forzar revelación">
             <div class="card-container">
-                <!-- Dorso Bicycle Azul -->
+                <!-- Dorso Bicycle Vintage Oro -->
                 <div class="card-back-side">
                     <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
                 </div>
-                <!-- Frente con Carta Original -->
+                <!-- Frente con Valores en Tono Oro/Ocre a juego -->
                 <div class="card-front-side">
                     <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
                 </div>
@@ -558,7 +560,7 @@
         document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
         document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
 
-        // Revelación limpia y directa sin volteo
+        // Revelación limpia y directa con color oro/ocre unificado
         window.revealCard = function(valor, palo_id, fromTestSelector = false) {
             isRevealed = true;
             if (fromTestSelector) {
@@ -572,7 +574,7 @@
                 console.log('[MARCO] Polling detenido: carta mostrada.');
             }
 
-            console.log(`[MARCO] Mostrando carta limpia: ${valor} de ${palo_id} (Modo Prueba: ${isTestMode})`);
+            console.log(`[MARCO] Mostrando carta en tono vintage: ${valor} de ${palo_id} (Modo Prueba: ${isTestMode})`);
             const svgSrc = `cartas_svg/${valor}_${palo_id}.svg`;
             
             const tempImg = new Image();
