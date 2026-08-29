@@ -7,10 +7,12 @@
     <style>
         :root {
             --bg-frame: #030205;
-            --analog-sepia: 0.18;
-            --analog-brightness: 0.94;
-            --analog-contrast: 1.06;
-            --grain-opacity: 0.14;
+            --analog-sepia: 0.22;
+            --analog-brightness: 0.92;
+            --analog-contrast: 1.08;
+            --grain-opacity: 0.16;
+            --card-ocher-deg: 135deg;
+            --card-warmth: 0.88;
         }
 
         * {
@@ -56,6 +58,7 @@
             pointer-events: none;
         }
 
+        /* Área de la carta interactiva (ajustada milimétricamente al rectángulo de la mano) */
         .card-anchor {
             position: absolute;
             left: 10.866%;
@@ -73,7 +76,7 @@
             height: 100%;
             transform-style: preserve-3d;
             transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
-            border-radius: 4%;
+            border-radius: 4.5%;
             box-shadow: 0 3px 12px rgba(0, 0, 0, 0.65);
         }
 
@@ -88,40 +91,55 @@
             height: 100%;
             backface-visibility: hidden;
             -webkit-backface-visibility: hidden;
-            border-radius: 4%;
+            border-radius: 4.5%;
             overflow: hidden;
         }
 
+        /* Cara posterior (Dorso) */
         .card-back-side {
             transform: rotateY(0deg);
             background-color: #2b2318;
+            border: 1px solid rgba(50, 30, 10, 0.5);
         }
 
         .card-back-side img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: fill;
             display: block;
         }
 
+        /* Cara frontal (Carta revelada envejecida con degradado ocre analógico y luz direccional) */
         .card-front-side {
             transform: rotateY(180deg);
-            background: #edd8b4;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(80, 50, 20, 0.4);
-            box-shadow: inset 0 0 15px rgba(90, 60, 25, 0.45);
+            background: linear-gradient(var(--card-ocher-deg), #e6caa0 0%, #d4b27d 35%, #ad8a52 75%, #6a4f24 100%);
+            border: 1px solid rgba(45, 25, 8, 0.75);
+            box-shadow: inset 0 0 16px rgba(35, 18, 5, 0.75), inset 1px 1px 3px rgba(255, 235, 190, 0.3);
+            position: relative;
+            overflow: hidden;
         }
 
         .card-front-side img {
             width: 100%;
             height: 100%;
-            object-fit: contain;
+            object-fit: fill; /* Ajuste total a los bordes sin márgenes sobrantes */
             display: block;
-            filter: sepia(0.85) contrast(1.15) brightness(0.92);
+            filter: sepia(0.92) saturate(1.4) brightness(0.86) contrast(1.22);
+            mix-blend-mode: multiply; /* Funde perfectamente la tinta con el papel ocre */
         }
 
+        /* Sombra de oclusión ambiental proyectada por el arlequín */
+        .card-front-side::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(circle at 12% 15%, rgba(255,255,255,0.15) 0%, rgba(0,0,0,0) 50%, rgba(25,12,3,0.55) 100%),
+                        linear-gradient(to bottom right, rgba(0,0,0,0) 45%, rgba(18,9,2,0.50) 100%);
+            mix-blend-mode: multiply;
+        }
+
+        /* Dedos del payaso en primer plano */
         .fingers-overlay {
             position: absolute;
             inset: 0;
@@ -132,6 +150,7 @@
             object-fit: contain;
         }
 
+        /* Textura de grano y viñeteado fotográfico */
         .analog-grain-overlay {
             position: absolute;
             inset: 0;
@@ -322,7 +341,7 @@
                 <div>📡 <b>API:</b> <span id="diagUrl">...</span></div>
                 <div>⏱️ <b>Último poll:</b> <span id="diagTime">Esperando...</span></div>
                 <div>🃏 <b>Carta en servidor:</b> <span id="diagCard">Ninguna</span></div>
-                <div>🔄 <b>Estado:</b> <span id="diagStatus">Polling activo (5s)</span></div>
+                <div>🔄 <b>Estado:</b> <span id="diagStatus">Polling activo (4s)</span></div>
             </div>
 
             <div class="setting-row">
@@ -336,8 +355,8 @@
             </div>
 
             <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">18%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="18">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">22%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="22">
             </div>
 
             <div class="setting-row">
@@ -449,7 +468,6 @@
             try {
                 const fetchUrl = API_URL.includes('?') ? `${API_URL}&_t=${Date.now()}` : `${API_URL}?_t=${Date.now()}`;
                 
-                // Realizar petición con timeout de 5 segundos
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -473,13 +491,11 @@
                     const cardName = `${data.valor || ''} de ${data.palo_nombre || data.palo_id || ''}`;
                     updateDiag(API_URL, nowStr, cardName, isRevealed ? 'Revelada' : 'Polling activo');
 
-                    // Si es forzado (ej. clic manual o botón en menú)
                     if (forceRevealNow && data.valor && data.palo_id) {
                         window.revealCard(data.valor, data.palo_id);
                         return;
                     }
 
-                    // Inicializar primera lectura
                     if (lastVersion === null && lastUpdatedAt === null) {
                         lastVersion = data.version || 0;
                         lastUpdatedAt = data.updated_at || '';
@@ -487,7 +503,6 @@
                         return;
                     }
 
-                    // Si cambió la versión O el timestamp updated_at
                     const versionChanged = (data.version && data.version !== lastVersion);
                     const timeChanged = (data.updated_at && data.updated_at !== lastUpdatedAt);
 
@@ -519,20 +534,17 @@
             console.log('[MARCO] Polling iniciado cada 4s en:', API_URL);
         }
 
-        // Iniciar polling
         startPolling();
 
-        // Al tocar la carta directamente en pantalla: forzar consulta a la API y voltear
         cardAnchor.addEventListener('click', (e) => {
             e.stopPropagation();
             if (!isRevealed) {
-                pollApi(true); // Forzar revelación inmediata
+                pollApi(true);
             } else {
                 cardAnchor.classList.toggle('revealed');
             }
         });
 
-        // Configuración Secreta (mantener pulsado 2.5s en esquina)
         let pressTimer = null;
         function openSettings() {
             settingsModal.classList.add('show');
