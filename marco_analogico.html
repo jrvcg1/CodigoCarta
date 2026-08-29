@@ -35,7 +35,7 @@
             position: relative;
         }
 
-        /* Marco que replica las proporciones de la Tablet Huawei MediaPad T5 (16:10 portrait / 1023 x 1537) */
+        /* Marco responsive con proporciones exactas de la Tablet Huawei MediaPad T5 (1023 x 1537) */
         .tablet-device-frame {
             position: relative;
             height: 100vh;
@@ -63,13 +63,13 @@
             overflow: hidden;
         }
 
-        /* CAPA 1: Carta Interactiva (Ubicada detrás del marco transparente) */
+        /* CAPA 1: Carta Interactiva Completa (Detrás del marco transparente) */
         .card-anchor {
             position: absolute;
-            left: 11.6%;
-            top: 40.3%;
-            width: 19.3%;
-            height: 19.8%;
+            left: 10.6%;
+            top: 39.4%;
+            width: 21.4%;
+            height: 21.5%;
             z-index: 10;
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.25, 1, 0.35, 1);
@@ -79,19 +79,19 @@
             position: relative;
             width: 100%;
             height: 100%;
-            border-radius: 4%;
+            border-radius: 6%;
             overflow: hidden;
             background: #caa968;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
-        /* Cara posterior (Dorso Vintage Oro/Ocre Bicycle 1800) */
+        /* Cara posterior (Dorso Completo Vintage Bicycle 1800) */
         .card-back-side {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            border-radius: 4%;
+            border-radius: 6%;
             overflow: hidden;
             opacity: 1;
             transition: opacity 0.30s ease;
@@ -106,19 +106,19 @@
             display: block;
         }
 
-        /* Cara frontal (Valores de la carta en tono Ocre/Oro con margen de seguridad inferior) */
+        /* Cara frontal (Carta completa revelada en papel kraft/pergamino continuo) */
         .card-front-side {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            border-radius: 4%;
+            border-radius: 6%;
             overflow: hidden;
             opacity: 0;
             transition: opacity 0.30s ease;
             background: linear-gradient(135deg, #dfc282 0%, #caa968 45%, #b5924e 100%);
             z-index: 2;
-            padding: 2px 3px 6px 3px;
+            padding: 3px 4px 6px 4px;
             box-sizing: border-box;
         }
 
@@ -130,7 +130,7 @@
             opacity: 0;
         }
 
-        /* Imagen vectorial de la carta en multiply */
+        /* Vector litográfico de la carta fundido en el papel */
         .card-front-side img.card-svg-art {
             width: 100%;
             height: 100%;
@@ -140,7 +140,7 @@
             filter: sepia(0.65) saturate(1.2) contrast(1.1);
         }
 
-        /* CAPA 2: Fotografía PNG con Ventana Transparente */
+        /* CAPA 2: Fotografía PNG con Ventana Transparente (Dedos y bordes solapados) */
         .base-photo {
             position: absolute;
             inset: 0;
@@ -200,7 +200,26 @@
             background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(15,8,3,0.65) 100%);
         }
 
-        /* Notificación discreta de carga o error */
+        .status-dot {
+            position: fixed;
+            bottom: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.2);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+        .status-dot.pulse {
+            background: rgba(16, 185, 129, 0.9);
+            box-shadow: 0 0 8px #10b981;
+        }
+        .status-dot.error {
+            background: rgba(239, 68, 68, 0.9);
+            box-shadow: 0 0 8px #ef4444;
+        }
+
         .toast-msg {
             position: fixed;
             bottom: 24px;
@@ -222,7 +241,6 @@
             opacity: 1;
         }
 
-        /* Zona secreta y botón discreto de configuración */
         .secret-tap-zone {
             position: fixed;
             top: 0;
@@ -368,28 +386,28 @@
 
     <div class="tablet-device-frame">
         <div class="photo-canvas-container" id="photoContainer">
-            <!-- 1. Carta Interactiva (Click para revelar/ocultar) -->
-            <div class="card-anchor" id="cardAnchor" title="Toca la carta para revelar">
+            <!-- 1. Carta Interactiva Completa -->
+            <div class="card-anchor" id="cardAnchor" title="Toca para revelar/ocultar">
                 <div class="card-container">
                     <!-- Dorso Vintage Oro -->
                     <div class="card-back-side">
-                        <img id="cardBackImg" src="/cartas_svg/dorso_card_crop.jpg" onerror="this.src='/static/dorso_card_crop.jpg'" alt="Dorso">
+                        <img id="cardBackImg" src="static/dorso_card_crop.jpg" onerror="this.src='cartas_svg/dorso_card_crop.jpg'" alt="Dorso">
                     </div>
-                    <!-- Frente con Carta en tono pergamino a juego -->
+                    <!-- Frente en Papel Kraft Continuo -->
                     <div class="card-front-side">
-                        <img class="card-svg-art" id="cardFrontImg" src="/cartas_svg/K_corazones.svg" alt="Carta Revelada">
+                        <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
                     </div>
                 </div>
             </div>
 
             <!-- 2. Fotografía PNG con Ventana Transparente -->
-            <img class="base-photo" id="basePhoto" src="/static/fondos/fondo_6.png" alt="Fondo Marco" onerror="this.src='/cartas_svg/fondo_oraculo_dorso.jpg'">
+            <img class="base-photo" id="basePhoto" src="static/fondos/fondo_6.png" alt="Fondo Marco" onerror="this.src='cartas_svg/fondo_oraculo_dorso.jpg'">
 
             <!-- 3. Máscara de Desgaste Fotográfico para TODA la Imagen Montada -->
-            <img class="full-frame-wear-overlay" id="fullWearOverlay" src="/static/full_frame_vintage_mask.jpg" onerror="this.src='/cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
+            <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
 
             <!-- 4. Micro-polvo y fibras analógicas -->
-            <img class="full-frame-dust-overlay" src="/static/full_frame_dust.png" onerror="this.src='/cartas_svg/full_frame_dust.png'" alt="Polvo Analógico">
+            <img class="full-frame-dust-overlay" src="static/full_frame_dust.png" onerror="this.src='cartas_svg/full_frame_dust.png'" alt="Polvo Analógico">
 
             <!-- 5. Grano analógico y viñeteado general -->
             <div class="analog-grain-overlay" id="grainOverlay"></div>
@@ -397,10 +415,9 @@
         </div>
     </div>
 
-    <!-- Botón discreto de ajustes y zona secreta -->
+    <div class="status-dot" id="statusDot" title="Diagnóstico"></div>
     <div class="btn-settings-toggle" id="btnOpenSettings" title="Configuración">⚙️</div>
     <div class="secret-tap-zone" id="secretZone" title="Mantener 2s para configurar"></div>
-
     <div class="toast-msg" id="toastMsg"></div>
 
     <!-- Modal de Configuración -->
@@ -409,25 +426,38 @@
             <h3>⚙️ Configuración del Marco</h3>
             
             <div class="info-badge">
-                <div>✨ <b>Modo Revelación Web:</b> Clic sobre la carta (Sin polling continuo).</div>
-                <div>📱 <b>Formato:</b> Huawei MediaPad T5 (10.1" 16:10).</div>
+                <div>📡 <b>Estado:</b> <span id="diagStatus">Sincronizado</span></div>
+                <div>🃏 <b>Carta actual:</b> <span id="diagCard">Dorso inicial</span></div>
             </div>
 
             <div class="setting-row">
-                <label>🖼️ Fondo Fotográfico del Marco (PNG con ventana):</label>
-                <select id="bgSelect">                    <option value="/static/fondos/fondo_1.png">Fondo 1 - Oráculo Clásico</option>
-                    <option value="/static/fondos/fondo_2.png">Fondo 2 - Noche Misterio</option>
-                    <option value="/static/fondos/fondo_3.png">Fondo 3 - Marco Antiguo</option>
-                    <option value="/static/fondos/fondo_4.png">Fondo 4 - Placa Iluminada</option>
-                    <option value="/static/fondos/fondo_5.png">Fondo 5 - Escena Mágica</option>
-                    <option value="/static/fondos/fondo_6.png">Fondo 6 - Arlequín Luna</option>
+                <label>⚡ Modo de Revelación:</label>
+                <select id="modeSelect">
+                    <option value="auto">📡 Automático (Polling cada 4s por voz / Manos Libres)</option>
+                    <option value="manual">👆 Manual (Revelar solo al tocar la carta)</option>
+                </select>
+            </div>
+
+            <div class="setting-row">
+                <label>🖼️ Fondo Fotográfico del Marco (PNG):</label>
+                <select id="bgSelect">                    <option value="static/fondos/fondo_1.png">Fondo 1 - Oráculo Clásico</option>
+                    <option value="static/fondos/fondo_2.png">Fondo 2 - Noche Misterio</option>
+                    <option value="static/fondos/fondo_3.png">Fondo 3 - Marco Antiguo</option>
+                    <option value="static/fondos/fondo_4.png">Fondo 4 - Placa Iluminada</option>
+                    <option value="static/fondos/fondo_5.png">Fondo 5 - Escena Mágica</option>
+                    <option value="static/fondos/fondo_6.png">Fondo 6 - Arlequín Luna</option>
 
                 </select>
             </div>
 
             <div class="setting-row">
                 <label>URL de la API:</label>
-                <input type="text" id="apiUrlInput" value="/api/carta_actual">
+                <input type="text" id="apiUrlInput" value="https://codigo-carta.vercel.app/api/carta_actual">
+            </div>
+
+            <div class="setting-row" id="rowBright">
+                <label>Brillo de Hardware (Tablet): <span id="brightVal">30%</span></label>
+                <input type="range" id="brightSlider" min="5" max="100" value="30">
             </div>
 
             <div class="setting-row">
@@ -520,23 +550,32 @@
     </div>
 
     <script>
-        const FONDOS_CONFIG = {"/static/fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "11.7%", "top": "40.3%", "width": "18.7%", "height": "19.3%"}, "/static/fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "20.2%", "top": "39.1%", "width": "18.2%", "height": "19.5%"}, "/static/fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "21.8%", "top": "41.4%", "width": "17.6%", "height": "18.7%"}, "/static/fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "29.1%", "top": "40.7%", "width": "19.4%", "height": "20.3%"}, "/static/fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "15.3%", "top": "41.7%", "width": "23.0%", "height": "23.9%"}, "/static/fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna", "left": "11.6%", "top": "40.3%", "width": "19.3%", "height": "19.8%"}};
+        const FONDOS_CONFIG = {"static/fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "10.5%", "top": "39.4%", "width": "21.0%", "height": "21.2%"}, "static/fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "19.1%", "top": "38.2%", "width": "20.5%", "height": "21.3%"}, "static/fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "20.7%", "top": "40.6%", "width": "19.7%", "height": "20.4%"}, "static/fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "27.7%", "top": "39.8%", "width": "22.0%", "height": "22.2%"}, "static/fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "13.8%", "top": "40.5%", "width": "26.0%", "height": "26.3%"}, "static/fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna", "left": "10.6%", "top": "39.4%", "width": "21.4%", "height": "21.5%"}};
 
-        let API_URL = localStorage.getItem('marco_api_url') || '/api/carta_actual';
-        let currentBg = localStorage.getItem('marco_selected_bg') || '/static/fondos/fondo_6.png';
+        let API_URL = localStorage.getItem('marco_api_url') || (window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
+        let currentBg = localStorage.getItem('marco_selected_bg') || 'static/fondos/fondo_6.png';
+        let currentMode = localStorage.getItem('marco_mode') || (window.Android ? 'auto' : 'manual');
         let isRevealed = false;
         let isTestMode = false;
         let isFetching = false;
         let activeCardName = '';
+        let lastVersion = null;
+        let lastUpdatedAt = null;
+        let pollingTimer = null;
+        const POLLING_INTERVAL_MS = 4000;
 
         const basePhoto = document.getElementById('basePhoto');
         const bgSelect = document.getElementById('bgSelect');
+        const modeSelect = document.getElementById('modeSelect');
         const cardAnchor = document.getElementById('cardAnchor');
         const cardFrontImg = document.getElementById('cardFrontImg');
         const settingsModal = document.getElementById('settingsModal');
         const secretZone = document.getElementById('secretZone');
         const btnOpenSettings = document.getElementById('btnOpenSettings');
+        const statusDot = document.getElementById('statusDot');
         const toastMsg = document.getElementById('toastMsg');
+        const diagStatus = document.getElementById('diagStatus');
+        const diagCard = document.getElementById('diagCard');
 
         function showToast(msg) {
             if (!toastMsg) return;
@@ -545,10 +584,21 @@
             setTimeout(() => toastMsg.classList.remove('show'), 2500);
         }
 
-        // Aplicar fondo y calibrar coordenadas exactas de la ventana transparente
+        function setDeviceBrightness(valPercent) {
+            const floatVal = valPercent / 100.0;
+            if (window.Android && window.Android.setBrightness) {
+                try {
+                    window.Android.setBrightness(floatVal);
+                } catch(e) {
+                    console.log('Bridge Android error:', e);
+                }
+            }
+        }
+
+        // Aplicar fondo y calibrar coordenadas exactas
         function applyBackground(bgKey) {
             if (!FONDOS_CONFIG[bgKey]) {
-                bgKey = '/static/fondos/fondo_6.png';
+                bgKey = 'static/fondos/fondo_6.png';
             }
             currentBg = bgKey;
             basePhoto.src = currentBg;
@@ -564,6 +614,7 @@
         }
 
         applyBackground(currentBg);
+        modeSelect.value = currentMode;
 
         bgSelect.addEventListener('change', (e) => {
             const newBg = e.target.value;
@@ -574,15 +625,17 @@
         });
 
         // Restaurar configuraciones persistentes
+        const savedBright = localStorage.getItem('marco_brightness') || 30;
         const savedSepia = localStorage.getItem('marco_sepia') || 18;
         const savedGrain = localStorage.getItem('marco_grain') || 18;
         const savedFullWear = localStorage.getItem('marco_full_wear') || 75;
 
+        setDeviceBrightness(savedBright);
         document.documentElement.style.setProperty('--analog-sepia', (savedSepia / 100.0));
         document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
         document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
 
-        // Revelación limpia y directa
+        // Revelación limpia y directa sin volteo
         window.revealCard = function(valor, palo_id, fromTestSelector = false) {
             isRevealed = true;
             if (fromTestSelector) {
@@ -590,7 +643,12 @@
             }
             activeCardName = `${valor} de ${palo_id}`;
 
-            const svgSrc = `/cartas_svg/${valor}_${palo_id}.svg`;
+            if (currentMode === 'auto' && pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+            }
+
+            const svgSrc = `cartas_svg/${valor}_${palo_id}.svg`;
             
             const tempImg = new Image();
             tempImg.onload = () => {
@@ -602,6 +660,13 @@
                 cardAnchor.classList.add('revealed');
             };
             tempImg.src = svgSrc;
+
+            if (statusDot) {
+                statusDot.className = 'status-dot pulse';
+                setTimeout(() => statusDot.className = 'status-dot', 2500);
+            }
+            if (diagStatus) diagStatus.textContent = isTestMode ? 'Modo Prueba Fijo' : '¡Carta Revelada!';
+            if (diagCard) diagCard.textContent = activeCardName;
         };
 
         function resetToDorso() {
@@ -609,10 +674,80 @@
             isTestMode = false;
             activeCardName = '';
             cardAnchor.classList.remove('revealed');
+            lastVersion = null;
+            lastUpdatedAt = null;
             testCardSelect.value = '';
+            if (diagStatus) diagStatus.textContent = currentMode === 'auto' ? 'Polling activo (4s)' : 'Manual (Listo)';
+            if (diagCard) diagCard.textContent = 'Dorso inicial';
+            if (currentMode === 'auto') startPolling();
         }
 
-        // Al hacer clic sobre la carta: consulta única a la API (sin polling) o vuelve al dorso
+        async function pollApi(forceRevealNow = false) {
+            if ((isRevealed || isTestMode) && !forceRevealNow) return;
+
+            try {
+                const fetchUrl = API_URL.includes('?') ? `${API_URL}&_t=${Date.now()}` : `${API_URL}?_t=${Date.now()}`;
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+                const res = await fetch(fetchUrl, {
+                    method: 'GET',
+                    cache: 'no-store',
+                    headers: { 'Accept': 'application/json' },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+
+                if (res.ok) {
+                    const data = await res.json();
+                    if (statusDot) {
+                        statusDot.className = 'status-dot pulse';
+                        setTimeout(() => statusDot.className = 'status-dot', 600);
+                    }
+
+                    if (forceRevealNow && data.valor && data.palo_id) {
+                        window.revealCard(data.valor, data.palo_id, false);
+                        return;
+                    }
+
+                    if (lastVersion === null && lastUpdatedAt === null) {
+                        lastVersion = data.version || 0;
+                        lastUpdatedAt = data.updated_at || '';
+                        return;
+                    }
+
+                    const versionChanged = (data.version && data.version !== lastVersion);
+                    const timeChanged = (data.updated_at && data.updated_at !== lastUpdatedAt);
+
+                    if ((versionChanged || timeChanged) && data.valor && data.palo_id) {
+                        window.revealCard(data.valor, data.palo_id, false);
+                    }
+                } else {
+                    if (statusDot) {
+                        statusDot.className = 'status-dot error';
+                        setTimeout(() => statusDot.className = 'status-dot', 800);
+                    }
+                }
+            } catch (err) {
+                if (statusDot) {
+                    statusDot.className = 'status-dot error';
+                    setTimeout(() => statusDot.className = 'status-dot', 800);
+                }
+            }
+        }
+
+        function startPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+            if (currentMode !== 'auto' || isTestMode || isRevealed) return;
+            pollApi();
+            pollingTimer = setInterval(() => pollApi(false), POLLING_INTERVAL_MS);
+        }
+
+        if (currentMode === 'auto') {
+            startPolling();
+        }
+
+        // Al hacer clic en la carta
         async function handleCardClick(e) {
             if (e) e.stopPropagation();
 
@@ -620,33 +755,9 @@
                 if (isFetching) return;
                 isFetching = true;
                 showToast('Consultando oráculo...');
-
-                try {
-                    const fetchUrl = API_URL.includes('?') ? `${API_URL}&_t=${Date.now()}` : `${API_URL}?_t=${Date.now()}`;
-                    const res = await fetch(fetchUrl, {
-                        method: 'GET',
-                        cache: 'no-store',
-                        headers: { 'Accept': 'application/json' }
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.valor && data.palo_id) {
-                            window.revealCard(data.valor, data.palo_id, false);
-                        } else {
-                            showToast('Aún no hay carta transmitida en el servidor');
-                        }
-                    } else {
-                        showToast('Error HTTP ' + res.status);
-                    }
-                } catch (err) {
-                    console.error('Error al consultar carta:', err);
-                    showToast('Error de conexión con el servidor');
-                } finally {
-                    isFetching = false;
-                }
+                await pollApi(true);
+                isFetching = false;
             } else {
-                // Si ya está revelada, al hacer clic vuelve al dorso
                 resetToDorso();
             }
         }
@@ -680,6 +791,8 @@
         });
 
         const apiUrlInput = document.getElementById('apiUrlInput');
+        const brightSlider = document.getElementById('brightSlider');
+        const brightVal = document.getElementById('brightVal');
         const sepiaSlider = document.getElementById('sepiaSlider');
         const sepiaVal = document.getElementById('sepiaVal');
         const grainSlider = document.getElementById('grainSlider');
@@ -692,12 +805,20 @@
         const btnForceCheck = document.getElementById('btnForceCheck');
 
         apiUrlInput.value = API_URL;
+        brightSlider.value = savedBright;
+        brightVal.textContent = savedBright + '%';
         sepiaSlider.value = savedSepia;
         sepiaVal.textContent = savedSepia + '%';
         grainSlider.value = savedGrain;
         grainVal.textContent = savedGrain + '%';
         fullWearSlider.value = savedFullWear;
         fullWearVal.textContent = savedFullWear + '%';
+
+        brightSlider.addEventListener('input', (e) => {
+            const v = e.target.value;
+            brightVal.textContent = v + '%';
+            setDeviceBrightness(v);
+        });
 
         sepiaSlider.addEventListener('input', (e) => {
             const v = e.target.value;
@@ -726,14 +847,26 @@
         });
 
         btnSave.addEventListener('click', () => {
-            API_URL = apiUrlInput.value.trim() || '/api/carta_actual';
+            API_URL = apiUrlInput.value.trim() || 'https://codigo-carta.vercel.app/api/carta_actual';
+            currentMode = modeSelect.value;
+            localStorage.setItem('marco_mode', currentMode);
             localStorage.setItem('marco_api_url', API_URL);
             localStorage.setItem('marco_selected_bg', currentBg);
+            localStorage.setItem('marco_brightness', brightSlider.value);
             localStorage.setItem('marco_sepia', sepiaSlider.value);
             localStorage.setItem('marco_grain', grainSlider.value);
             localStorage.setItem('marco_full_wear', fullWearSlider.value);
 
             settingsModal.classList.remove('show');
+
+            if (currentMode === 'auto') {
+                startPolling();
+            } else {
+                if (pollingTimer) {
+                    clearInterval(pollingTimer);
+                    pollingTimer = null;
+                }
+            }
         });
 
         btnResetDorso.addEventListener('click', () => {
@@ -743,7 +876,7 @@
 
         btnForceCheck.addEventListener('click', () => {
             settingsModal.classList.remove('show');
-            handleCardClick();
+            pollApi(true);
         });
     </script>
 </body>
