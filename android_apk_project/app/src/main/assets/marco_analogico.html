@@ -7,12 +7,11 @@
     <style>
         :root {
             --bg-frame: #020104;
-            --analog-sepia: 0.22;
-            --analog-brightness: 0.92;
-            --analog-contrast: 1.08;
-            --grain-opacity: 0.22;
-            --full-wear-opacity: 0.85;
-            --card-wear-opacity: 0.85;
+            --analog-sepia: 0.18;
+            --analog-brightness: 0.94;
+            --analog-contrast: 1.06;
+            --grain-opacity: 0.18;
+            --full-wear-opacity: 0.75;
         }
 
         * {
@@ -52,7 +51,7 @@
             overflow: hidden;
         }
 
-        /* CAPA 1: Carta Interactiva (Ubicada por debajo del marco transparente) */
+        /* CAPA 1: Carta Interactiva (Limpia y realista, ubicada detrás del marco transparente) */
         .card-anchor {
             position: absolute;
             left: 11.6%;
@@ -70,9 +69,10 @@
             height: 100%;
             border-radius: 4%;
             overflow: hidden;
+            background: #ffffff;
         }
 
-        /* Cara posterior (Dorso) */
+        /* Cara posterior (Nuevo Dorso Bicycle Azul) */
         .card-back-side {
             position: absolute;
             inset: 0;
@@ -81,9 +81,9 @@
             border-radius: 4%;
             overflow: hidden;
             opacity: 1;
-            transition: opacity 0.35s ease;
+            transition: opacity 0.30s ease;
             z-index: 1;
-            background: #2b1f14;
+            background: #0d2b5c;
         }
 
         .card-back-side img {
@@ -93,7 +93,7 @@
             display: block;
         }
 
-        /* Cara frontal (Carta Revelada: Papel Ocre Real + SVG en Multiply + Máscara de Desgaste) */
+        /* Cara frontal (Carta Revelada: Dibujo limpio original de la carta) */
         .card-front-side {
             position: absolute;
             inset: 0;
@@ -102,17 +102,12 @@
             border-radius: 4%;
             overflow: hidden;
             opacity: 0;
-            transition: opacity 0.35s ease;
-            background: #2b1f14;
-            border: 1px solid rgba(40, 20, 5, 0.85);
-            box-shadow: 
-                inset 1px 1px 2px rgba(255, 235, 190, 0.4),
-                inset -1px -1px 2px rgba(20, 10, 2, 0.25),
-                inset 0 0 6px rgba(35, 18, 5, 0.30);
+            transition: opacity 0.30s ease;
+            background: #ffffff;
             z-index: 2;
         }
 
-        /* Sustitución directa: al revelarse, aparece el frente sin volteo 3D */
+        /* Sustitución limpia al revelarse */
         .card-anchor.revealed .card-front-side {
             opacity: 1;
         }
@@ -120,57 +115,15 @@
             opacity: 0;
         }
 
-        /* Papel Ocre con grietas */
-        .card-bg-paper {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            display: block;
-            z-index: 1;
-        }
-
-        /* Tinta litográfica de la carta en Multiply */
+        /* Imagen vectorial de la carta sin máscaras artificiales */
         .card-front-side img.card-svg-art {
-            position: absolute;
-            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: fill;
             display: block;
-            z-index: 2;
-            filter: sepia(0.85) saturate(1.35) brightness(0.88) contrast(1.25);
-            mix-blend-mode: multiply;
         }
 
-        /* Máscara de arañazos de la carta en Multiply */
-        .card-wear-mask {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            display: block;
-            z-index: 3;
-            mix-blend-mode: multiply;
-            opacity: var(--card-wear-opacity);
-            pointer-events: none;
-        }
-
-        /* Sombra ambiental sobre la carta */
-        .card-front-side::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 4;
-            background: radial-gradient(circle at 15% 15%, rgba(255,255,255,0.14) 0%, rgba(0,0,0,0) 70%, rgba(25,12,3,0.12) 100%),
-                        linear-gradient(to bottom right, rgba(0,0,0,0) 80%, rgba(18,9,2,0.10) 100%);
-            mix-blend-mode: multiply;
-        }
-
-        /* CAPA 2: Fotografía PNG con Ventana Transparente (por encima de la carta, los dedos y bordes solapan a la perfección) */
+        /* CAPA 2: Fotografía PNG con Ventana Transparente (Solapa dedos y bordes de la carta con realismo total) */
         .base-photo {
             position: absolute;
             inset: 0;
@@ -183,7 +136,7 @@
             transition: opacity 0.3s ease;
         }
 
-        /* CAPA 3: Efectos de envejecimiento para toda la fotografía */
+        /* CAPA 3: Efectos aplicados a TODA LA FOTOGRAFÍA (Grano, pátina general y viñeteado unificado) */
         .full-frame-wear-overlay {
             position: absolute;
             inset: 0;
@@ -205,7 +158,7 @@
             pointer-events: none;
             z-index: 26;
             mix-blend-mode: screen;
-            opacity: 0.75;
+            opacity: 0.65;
         }
 
         .analog-grain-overlay {
@@ -368,32 +321,30 @@
 <body>
 
     <div class="photo-canvas-container" id="photoContainer">
-        <!-- 1. Carta Interactiva (Por debajo del marco con ventana transparente) -->
+        <!-- 1. Carta Interactiva (Limpia y realista, detrás de la ventana transparente) -->
         <div class="card-anchor" id="cardAnchor" title="Toca para forzar revelación">
             <div class="card-container">
-                <!-- Dorso -->
+                <!-- Dorso Bicycle Azul -->
                 <div class="card-back-side">
                     <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
                 </div>
-                <!-- Frente con Carta Sustituida -->
+                <!-- Frente con Carta Original -->
                 <div class="card-front-side">
-                    <img class="card-bg-paper" src="static/paper_vintage_ocher.jpg" onerror="this.src='cartas_svg/paper_vintage_ocher.jpg'" alt="Papel Ocre">
                     <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
-                    <img class="card-wear-mask" src="static/card_wear_mask.jpg" onerror="this.src='cartas_svg/card_wear_mask.jpg'" alt="Desgaste">
                 </div>
             </div>
         </div>
 
-        <!-- 2. Fotografía PNG de Fondo con Ventana Transparente (Solapa dedos y bordes en primer plano) -->
+        <!-- 2. Fotografía PNG de Fondo con Ventana Transparente -->
         <img class="base-photo" id="basePhoto" src="fondos/fondo_6.png" alt="Fondo Marco" onerror="this.src='cartas_svg/fondo_oraculo_dorso.jpg'">
 
-        <!-- 3. Máscara de Desgaste Fotográfico para TODA la Imagen -->
+        <!-- 3. Máscara de Desgaste Fotográfico para TODA la Imagen Asentada -->
         <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
 
-        <!-- 4. Micro-polvo y fibras de película analógica -->
+        <!-- 4. Micro-polvo y fibras analógicas -->
         <img class="full-frame-dust-overlay" src="static/full_frame_dust.png" onerror="this.src='cartas_svg/full_frame_dust.png'" alt="Polvo Analógico">
 
-        <!-- 5. Grano de película analógica y viñeteado de época -->
+        <!-- 5. Grano de película analógica y viñeteado general -->
         <div class="analog-grain-overlay" id="grainOverlay"></div>
         <div class="analog-vignette"></div>
     </div>
@@ -419,7 +370,7 @@
                     <option value="fondos/fondo_3.png">Fondo 3 - Marco Antiguo</option>
                     <option value="fondos/fondo_4.png">Fondo 4 - Placa Iluminada</option>
                     <option value="fondos/fondo_5.png">Fondo 5 - Escena Mágica</option>
-                    <option value="fondos/fondo_6.png">Fondo 6 - Arlequín Luna (Original)</option>
+                    <option value="fondos/fondo_6.png">Fondo 6 - Arlequín Luna</option>
 
                 </select>
             </div>
@@ -435,23 +386,18 @@
             </div>
 
             <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">22%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="22">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">18%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="18">
             </div>
 
             <div class="setting-row">
-                <label>Grano Analógico de Película: <span id="grainVal">22%</span></label>
-                <input type="range" id="grainSlider" min="0" max="60" value="22">
+                <label>Grano Analógico de Película: <span id="grainVal">18%</span></label>
+                <input type="range" id="grainSlider" min="0" max="60" value="18">
             </div>
 
             <div class="setting-row">
-                <label>Desgaste de Toda la Fotografía: <span id="fullWearVal">85%</span></label>
-                <input type="range" id="fullWearSlider" min="0" max="100" value="85">
-            </div>
-
-            <div class="setting-row">
-                <label>Intensidad de Desgaste (Carta): <span id="wearVal">85%</span></label>
-                <input type="range" id="wearSlider" min="20" max="100" value="85">
+                <label>Desgaste de Toda la Fotografía: <span id="fullWearVal">75%</span></label>
+                <input type="range" id="fullWearSlider" min="0" max="100" value="75">
             </div>
 
             <div class="setting-row">
@@ -529,7 +475,7 @@
     </div>
 
     <script>
-        const FONDOS_CONFIG = {"fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "11.7%", "top": "40.3%", "width": "18.7%", "height": "19.3%"}, "fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "20.2%", "top": "39.1%", "width": "18.2%", "height": "19.5%"}, "fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "21.8%", "top": "41.4%", "width": "17.6%", "height": "18.7%"}, "fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "29.1%", "top": "40.7%", "width": "19.4%", "height": "20.3%"}, "fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "15.3%", "top": "41.7%", "width": "23.0%", "height": "23.9%"}, "fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna (Original)", "left": "11.6%", "top": "40.3%", "width": "19.3%", "height": "19.8%"}};
+        const FONDOS_CONFIG = {"fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "11.7%", "top": "40.3%", "width": "18.7%", "height": "19.3%"}, "fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "20.2%", "top": "39.1%", "width": "18.2%", "height": "19.5%"}, "fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "21.8%", "top": "41.4%", "width": "17.6%", "height": "18.7%"}, "fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "29.1%", "top": "40.7%", "width": "19.4%", "height": "20.3%"}, "fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "15.3%", "top": "41.7%", "width": "23.0%", "height": "23.9%"}, "fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna", "left": "11.6%", "top": "40.3%", "width": "19.3%", "height": "19.8%"}};
 
         let API_URL = localStorage.getItem('marco_api_url') || 'https://codigo-carta.vercel.app/api/carta_actual';
         let currentBg = localStorage.getItem('marco_selected_bg') || 'fondos/fondo_6.png';
@@ -591,7 +537,6 @@
             }
         }
 
-        // Inicializar Fondo seleccionado
         applyBackground(currentBg);
 
         bgSelect.addEventListener('change', (e) => {
@@ -604,18 +549,16 @@
 
         // Restaurar configuraciones persistentes
         const savedBright = localStorage.getItem('marco_brightness') || 30;
-        const savedSepia = localStorage.getItem('marco_sepia') || 22;
-        const savedGrain = localStorage.getItem('marco_grain') || 22;
-        const savedFullWear = localStorage.getItem('marco_full_wear') || 85;
-        const savedCardWear = localStorage.getItem('marco_card_wear') || 85;
+        const savedSepia = localStorage.getItem('marco_sepia') || 18;
+        const savedGrain = localStorage.getItem('marco_grain') || 18;
+        const savedFullWear = localStorage.getItem('marco_full_wear') || 75;
 
         setDeviceBrightness(savedBright);
         document.documentElement.style.setProperty('--analog-sepia', (savedSepia / 100.0));
         document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
         document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
-        document.documentElement.style.setProperty('--card-wear-opacity', (savedCardWear / 100.0));
 
-        // Revelación con sustitución directa
+        // Revelación limpia y directa sin volteo
         window.revealCard = function(valor, palo_id, fromTestSelector = false) {
             isRevealed = true;
             if (fromTestSelector) {
@@ -629,7 +572,7 @@
                 console.log('[MARCO] Polling detenido: carta mostrada.');
             }
 
-            console.log(`[MARCO] Sustituyendo carta: ${valor} de ${palo_id} (Modo Prueba: ${isTestMode})`);
+            console.log(`[MARCO] Mostrando carta limpia: ${valor} de ${palo_id} (Modo Prueba: ${isTestMode})`);
             const svgSrc = `cartas_svg/${valor}_${palo_id}.svg`;
             
             const tempImg = new Image();
@@ -768,8 +711,6 @@
         const grainVal = document.getElementById('grainVal');
         const fullWearSlider = document.getElementById('fullWearSlider');
         const fullWearVal = document.getElementById('fullWearVal');
-        const wearSlider = document.getElementById('wearSlider');
-        const wearVal = document.getElementById('wearVal');
         const testCardSelect = document.getElementById('testCardSelect');
         const btnSave = document.getElementById('btnSave');
         const btnResetDorso = document.getElementById('btnResetDorso');
@@ -784,8 +725,6 @@
         grainVal.textContent = savedGrain + '%';
         fullWearSlider.value = savedFullWear;
         fullWearVal.textContent = savedFullWear + '%';
-        wearSlider.value = savedCardWear;
-        wearVal.textContent = savedCardWear + '%';
 
         brightSlider.addEventListener('input', (e) => {
             const v = e.target.value;
@@ -811,12 +750,6 @@
             document.documentElement.style.setProperty('--full-wear-opacity', (v / 100.0));
         });
 
-        wearSlider.addEventListener('input', (e) => {
-            const v = e.target.value;
-            wearVal.textContent = v + '%';
-            document.documentElement.style.setProperty('--card-wear-opacity', (v / 100.0));
-        });
-
         testCardSelect.addEventListener('change', (e) => {
             const val = e.target.value;
             if (val) {
@@ -833,7 +766,6 @@
             localStorage.setItem('marco_sepia', sepiaSlider.value);
             localStorage.setItem('marco_grain', grainSlider.value);
             localStorage.setItem('marco_full_wear', fullWearSlider.value);
-            localStorage.setItem('marco_card_wear', wearSlider.value);
 
             settingsModal.classList.remove('show');
 
