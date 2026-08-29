@@ -52,57 +52,46 @@
             overflow: hidden;
         }
 
-        /* Fotografía base del arlequín y la luna */
+        /* Fotografía base seleccionada (Arlequín y Luna / Fondos personalizados) */
         .base-photo {
             width: 100%;
             height: 100%;
             object-fit: contain;
             display: block;
             pointer-events: none;
+            transition: opacity 0.3s ease;
         }
 
-        /* Área de la carta interactiva (ajustada al milímetro con el hueco de las manos) */
+        /* Área de la carta interactiva (ajustada al marco interior de la carta) */
         .card-anchor {
             position: absolute;
             left: 10.866%;
             top: 38.965%;
             width: 20.411%;
             height: 19.824%;
-            perspective: 1000px;
             z-index: 10;
             cursor: pointer;
         }
 
-        .card-flipper {
+        .card-container {
             position: relative;
             width: 100%;
             height: 100%;
-            transform-style: preserve-3d;
-            transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
-            border-radius: 4.5%;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.75);
+            border-radius: 4%;
+            overflow: hidden;
         }
 
-        .card-anchor.revealed .card-flipper {
-            transform: rotateY(180deg);
-        }
-
-        .card-side {
+        /* Cara posterior (Dorso / Imagen original) */
+        .card-back-side {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
-            border-radius: 4.5%;
+            border-radius: 4%;
             overflow: hidden;
-        }
-
-        /* Cara posterior (Dorso original) */
-        .card-back-side {
-            transform: rotateY(0deg);
-            background-color: #2b2318;
-            border: 1px solid rgba(50, 30, 10, 0.5);
+            opacity: 1;
+            transition: opacity 0.35s ease;
+            z-index: 1;
         }
 
         .card-back-side img {
@@ -112,21 +101,34 @@
             display: block;
         }
 
-        /* Cara frontal (Papel Ocre Real + SVG en Multiply + Máscara de Desgaste Real) */
+        /* Cara frontal (Carta Revelada: Papel Ocre Real + SVG en Multiply + Máscara de Desgaste) */
         .card-front-side {
-            transform: rotateY(180deg);
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 4%;
+            overflow: hidden;
+            opacity: 0;
+            transition: opacity 0.35s ease;
             background: #2b1f14;
-            border-radius: 4.5%;
             border: 1px solid rgba(40, 20, 5, 0.85);
             box-shadow: 
                 inset 1px 1px 2px rgba(255, 235, 190, 0.4),
                 inset -1px -1px 2px rgba(20, 10, 2, 0.25),
                 inset 0 0 6px rgba(35, 18, 5, 0.30);
-            position: relative;
-            overflow: hidden;
+            z-index: 2;
         }
 
-        /* Capa 1: Fondo de Papel Ocre con grietas de tiempo */
+        /* Sustitución directa: al revelarse, aparece el frente de inmediato sin volteo 3D */
+        .card-anchor.revealed .card-front-side {
+            opacity: 1;
+        }
+        .card-anchor.revealed .card-back-side {
+            opacity: 0;
+        }
+
+        /* Capa 1: Fondo de Papel Ocre con grietas */
         .card-bg-paper {
             position: absolute;
             inset: 0;
@@ -150,7 +152,7 @@
             mix-blend-mode: multiply;
         }
 
-        /* Capa 3: Máscara de arañazos, manchas y bordes rotos de la carta en Multiply */
+        /* Capa 3: Máscara de arañazos y bordes de la carta en Multiply */
         .card-wear-mask {
             position: absolute;
             inset: 0;
@@ -164,7 +166,7 @@
             pointer-events: none;
         }
 
-        /* Capa 4: Sombra direccional ambiental ultraligera (esquina inferior derecha despejada para leer índices/números) */
+        /* Capa 4: Sombra direccional ambiental suave */
         .card-front-side::after {
             content: '';
             position: absolute;
@@ -189,7 +191,6 @@
 
         /* --- EFECTOS DE ENVEJECIMIENTO PARA TODA LA FOTOGRAFÍA --- */
 
-        /* 1. Máscara de desgaste analógico general (Bordes erosionados, manchas de tiempo, arañazos) */
         .full-frame-wear-overlay {
             position: absolute;
             inset: 0;
@@ -202,7 +203,6 @@
             opacity: var(--full-wear-opacity);
         }
 
-        /* 2. Micro-polvo, motas de sales de plata y arañazos finos de placa fotográfica */
         .full-frame-dust-overlay {
             position: absolute;
             inset: 0;
@@ -215,7 +215,6 @@
             opacity: 0.75;
         }
 
-        /* 3. Textura de grano de película analógica de alta densidad */
         .analog-grain-overlay {
             position: absolute;
             inset: 0;
@@ -228,7 +227,6 @@
             mix-blend-mode: overlay;
         }
 
-        /* 4. Viñeteado fotográfico de lente antigua */
         .analog-vignette {
             position: absolute;
             inset: 0;
@@ -377,17 +375,17 @@
 <body>
 
     <div class="photo-canvas-container" id="photoContainer">
-        <!-- 1. Fotografía original base -->
-        <img class="base-photo" id="basePhoto" src="cartas_svg/fondo_oraculo_dorso.jpg" alt="Oráculo Analógico" onerror="this.src='static/base_dorso.jpg'">
+        <!-- 1. Fotografía de Fondo Seleccionada -->
+        <img class="base-photo" id="basePhoto" src="fondos/fondo_7.png" alt="Fondo" onerror="this.src='cartas_svg/fondo_oraculo_dorso.jpg'">
 
-        <!-- 2. Carta Interactiva (Dorso / Frente) -->
-        <div class="card-anchor" id="cardAnchor" title="Toca para forzar volteo">
-            <div class="card-flipper">
+        <!-- 2. Carta Interactiva (Sustitución Directa dentro del marco) -->
+        <div class="card-anchor" id="cardAnchor" title="Toca para forzar revelación">
+            <div class="card-container">
                 <!-- Dorso -->
                 <div class="card-side card-back-side">
                     <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
                 </div>
-                <!-- Frente con Papel Ocre Real + SVG + Máscara de Desgaste -->
+                <!-- Frente con Carta Sustituida -->
                 <div class="card-side card-front-side">
                     <img class="card-bg-paper" src="static/paper_vintage_ocher.jpg" onerror="this.src='cartas_svg/paper_vintage_ocher.jpg'" alt="Papel Ocre">
                     <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
@@ -399,7 +397,7 @@
         <!-- 3. Dedos del payaso en primer plano -->
         <img class="fingers-overlay" id="fingersOverlay" src="static/fingers_overlay.png" onerror="this.style.display='none'" alt="Dedos">
 
-        <!-- 4. Máscara de Desgaste Fotográfico para TODA la Imagen (Bordes erosionados, manchas, pátina) -->
+        <!-- 4. Máscara de Desgaste Fotográfico para TODA la Imagen -->
         <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
 
         <!-- 5. Micro-polvo y fibras de película analógica -->
@@ -420,8 +418,22 @@
             <div class="diagnostic-box" id="diagnosticBox">
                 <div>📡 <b>API:</b> <span id="diagUrl">...</span></div>
                 <div>⏱️ <b>Último poll:</b> <span id="diagTime">Esperando...</span></div>
-                <div>🃏 <b>Carta en servidor:</b> <span id="diagCard">Ninguna</span></div>
+                <div>🃏 <b>Carta mostrada:</b> <span id="diagCard">Ninguna (Dorso)</span></div>
                 <div>🔄 <b>Estado:</b> <span id="diagStatus">Polling activo (4s)</span></div>
+            </div>
+
+            <div class="setting-row">
+                <label>🖼️ Fondo Fotográfico del Marco:</label>
+                <select id="bgSelect">
+                    <option value="fondos/fondo_7.png">Fondo 1 - Dorso Clásico (Original)</option>
+                    <option value="fondos/fondo_6.png">Fondo 2 - Rey de Corazones</option>
+                    <option value="fondos/fondo_1.png">Fondo 3 - Oráculo Vintage 1</option>
+                    <option value="fondos/fondo_2.png">Fondo 4 - Noche Misterio</option>
+                    <option value="fondos/fondo_3.png">Fondo 5 - Marco Antiguo</option>
+                    <option value="fondos/fondo_4.png">Fondo 6 - Placa Iluminada</option>
+                    <option value="fondos/fondo_5.png">Fondo 7 - Escena Mágica</option>
+
+                </select>
             </div>
 
             <div class="setting-row">
@@ -455,9 +467,8 @@
             </div>
 
             <div class="setting-row">
-                <label>Probar Carta Manualmente:</label>
-                <select id="testCardSelect">
-<option value="">-- Seleccionar Carta para probar --</option>
+                <label>🧪 Probar Carta (Se mantendrá fija al guardar):</label>
+                <select id="testCardSelect"><option value="">-- Seleccionar Carta para probar --</option>
                     <optgroup label="Corazones (♥)">
                         <option value="A_corazones">As de Corazones (A♥)</option>
                         <option value="2_corazones">2 de Corazones (2♥)</option>
@@ -522,15 +533,16 @@
             </div>
 
             <div class="setting-actions">
-                <button class="btn btn-gold" id="btnForceCheck">⚡ Forzar Consulta y Revelar Ahora</button>
+                <button class="btn btn-gold" id="btnSave">💾 Guardar Parámetros y Mantener Visualización</button>
                 <button class="btn btn-dark" id="btnResetDorso">🔄 Reiniciar al Dorso y Reanudar Polling</button>
-                <button class="btn btn-gold" id="btnSave">Guardar y Cerrar</button>
+                <button class="btn btn-gold" id="btnForceCheck">⚡ Forzar Consulta a la API Ahora</button>
             </div>
         </div>
     </div>
 
     <script>
         let API_URL = localStorage.getItem('marco_api_url') || 'https://codigo-carta.vercel.app/api/carta_actual';
+        let currentBg = localStorage.getItem('marco_selected_bg') || 'fondos/fondo_7.png';
         let isRevealed = false;
         let isTestMode = false;
         let activeCardName = '';
@@ -539,6 +551,8 @@
         let pollingTimer = null;
         const POLLING_INTERVAL_MS = 4000;
 
+        const basePhoto = document.getElementById('basePhoto');
+        const bgSelect = document.getElementById('bgSelect');
         const cardAnchor = document.getElementById('cardAnchor');
         const cardFrontImg = document.getElementById('cardFrontImg');
         const statusDot = document.getElementById('statusDot');
@@ -553,8 +567,8 @@
         function updateDiag(url, time, card, status) {
             if (diagUrl) diagUrl.textContent = url || API_URL;
             if (diagTime) diagTime.textContent = time || new Date().toLocaleTimeString();
-            if (diagCard) diagCard.textContent = card || 'Ninguna';
-            if (diagStatus) diagStatus.textContent = status || (isRevealed ? 'Carta Revelada (Polling detenido)' : 'Polling activo');
+            if (diagCard) diagCard.textContent = card || (isRevealed ? activeCardName : 'Ninguna (Dorso)');
+            if (diagStatus) diagStatus.textContent = status || (isTestMode ? 'Modo Prueba Fijo (Polling en pausa)' : (isRevealed ? 'Carta Revelada (Polling detenido)' : 'Polling activo (4s)'));
         }
 
         function setDeviceBrightness(valPercent) {
@@ -568,6 +582,20 @@
             }
         }
 
+        // Inicializar Fondo seleccionado
+        basePhoto.src = currentBg;
+        bgSelect.value = currentBg;
+
+        bgSelect.addEventListener('change', (e) => {
+            const newBg = e.target.value;
+            if (newBg) {
+                currentBg = newBg;
+                basePhoto.src = currentBg;
+                localStorage.setItem('marco_selected_bg', currentBg);
+            }
+        });
+
+        // Restaurar configuraciones persistentes
         const savedBright = localStorage.getItem('marco_brightness') || 30;
         const savedSepia = localStorage.getItem('marco_sepia') || 22;
         const savedGrain = localStorage.getItem('marco_grain') || 22;
@@ -580,18 +608,21 @@
         document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
         document.documentElement.style.setProperty('--card-wear-opacity', (savedCardWear / 100.0));
 
-        window.revealCard = function(valor, palo_id, fromTest = false) {
+        // Revelación con sustitución directa dentro del marco (sin giro 3D)
+        window.revealCard = function(valor, palo_id, fromTestSelector = false) {
             isRevealed = true;
-            if (fromTest) isTestMode = true;
+            if (fromTestSelector) {
+                isTestMode = true;
+            }
             activeCardName = `${valor} de ${palo_id}`;
 
             if (pollingTimer) {
                 clearInterval(pollingTimer);
                 pollingTimer = null;
-                console.log('[MARCO] Polling detenido tras revelación exitosa.');
+                console.log('[MARCO] Polling detenido: carta mostrada.');
             }
 
-            console.log(`[MARCO] Revelando carta: ${valor} de ${palo_id}`);
+            console.log(`[MARCO] Sustituyendo carta: ${valor} de ${palo_id} (Modo Prueba: ${isTestMode})`);
             const svgSrc = `cartas_svg/${valor}_${palo_id}.svg`;
             
             const tempImg = new Image();
@@ -609,7 +640,7 @@
                 statusDot.className = 'status-dot pulse';
                 setTimeout(() => statusDot.className = 'status-dot', 2500);
             }
-            updateDiag(API_URL, new Date().toLocaleTimeString(), `${valor} de ${palo_id}`, '¡Carta Revelada!');
+            updateDiag(API_URL, new Date().toLocaleTimeString(), activeCardName, isTestMode ? 'Modo Prueba Fijo (Polling en pausa)' : '¡Carta Revelada!');
         };
 
         function resetToDorso() {
@@ -620,12 +651,12 @@
             lastVersion = null;
             lastUpdatedAt = null;
             testCardSelect.value = '';
-            updateDiag(API_URL, new Date().toLocaleTimeString(), 'Reiniciado a Dorso', 'Polling activo (4s)');
+            updateDiag(API_URL, new Date().toLocaleTimeString(), 'Dorso (Inicializado)', 'Polling activo (4s)');
             startPolling();
         }
 
         async function pollApi(forceRevealNow = false) {
-            if (isRevealed && !forceRevealNow) return;
+            if ((isRevealed || isTestMode) && !forceRevealNow) return;
 
             try {
                 const fetchUrl = API_URL.includes('?') ? `${API_URL}&_t=${Date.now()}` : `${API_URL}?_t=${Date.now()}`;
@@ -654,7 +685,7 @@
                     updateDiag(API_URL, nowStr, cardName, isRevealed ? 'Revelada' : 'Polling activo');
 
                     if (forceRevealNow && data.valor && data.palo_id) {
-                        window.revealCard(data.valor, data.palo_id);
+                        window.revealCard(data.valor, data.palo_id, false);
                         return;
                     }
 
@@ -670,7 +701,7 @@
 
                     if ((versionChanged || timeChanged) && data.valor && data.palo_id) {
                         console.log('[MARCO] ¡Detectado cambio de carta en servidor!');
-                        window.revealCard(data.valor, data.palo_id);
+                        window.revealCard(data.valor, data.palo_id, false);
                     }
                 } else {
                     if (statusDot) {
@@ -691,6 +722,7 @@
 
         function startPolling() {
             if (pollingTimer) clearInterval(pollingTimer);
+            if (isTestMode || isRevealed) return;
             pollApi();
             pollingTimer = setInterval(() => pollApi(false), POLLING_INTERVAL_MS);
             console.log('[MARCO] Polling iniciado cada 4s en:', API_URL);
@@ -702,8 +734,6 @@
             e.stopPropagation();
             if (!isRevealed) {
                 pollApi(true);
-            } else {
-                cardAnchor.classList.toggle('revealed');
             }
         });
 
@@ -788,25 +818,30 @@
             }
         });
 
-        btnForceCheck.addEventListener('click', () => {
-            pollApi(true);
-            settingsModal.classList.remove('show');
-        });
-
         btnSave.addEventListener('click', () => {
             API_URL = apiUrlInput.value.trim() || 'https://codigo-carta.vercel.app/api/carta_actual';
             localStorage.setItem('marco_api_url', API_URL);
+            localStorage.setItem('marco_selected_bg', currentBg);
             localStorage.setItem('marco_brightness', brightSlider.value);
             localStorage.setItem('marco_sepia', sepiaSlider.value);
             localStorage.setItem('marco_grain', grainSlider.value);
             localStorage.setItem('marco_full_wear', fullWearSlider.value);
             localStorage.setItem('marco_card_wear', wearSlider.value);
+
             settingsModal.classList.remove('show');
-            if (!isRevealed && !isTestMode) startPolling();
+
+            if (!isRevealed && !isTestMode) {
+                startPolling();
+            }
         });
 
         btnResetDorso.addEventListener('click', () => {
             resetToDorso();
+            settingsModal.classList.remove('show');
+        });
+
+        btnForceCheck.addEventListener('click', () => {
+            pollApi(true);
             settingsModal.classList.remove('show');
         });
     </script>
