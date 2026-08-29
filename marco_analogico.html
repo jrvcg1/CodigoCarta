@@ -7,11 +7,11 @@
     <style>
         :root {
             --bg-frame: #030205;
-            --analog-sepia: 0.22;
-            --analog-brightness: 0.92;
-            --analog-contrast: 1.08;
-            --grain-opacity: 0.16;
-            --card-ocher-deg: 135deg;
+            --analog-sepia: 0.20;
+            --analog-brightness: 0.94;
+            --analog-contrast: 1.06;
+            --grain-opacity: 0.15;
+            --card-wear-opacity: 0.92;
         }
 
         * {
@@ -57,7 +57,7 @@
             pointer-events: none;
         }
 
-        /* Área de la carta interactiva (ajustada al hueco exacto de la mano) */
+        /* Área de la carta interactiva (ajustada al milímetro con el marco del payaso) */
         .card-anchor {
             position: absolute;
             left: 10.866%;
@@ -94,7 +94,7 @@
             overflow: hidden;
         }
 
-        /* Cara posterior (Dorso) */
+        /* Cara posterior (Dorso original) */
         .card-back-side {
             transform: rotateY(0deg);
             background-color: #2b2318;
@@ -108,50 +108,65 @@
             display: block;
         }
 
-        /* Cara frontal (Carta revelada envejecida con degradado ocre, luz direccional y relieve 3D) */
+        /* Cara frontal (Carta con Papel Ocre Real + SVG en Multiply + Máscara de Desgaste Real) */
         .card-front-side {
             transform: rotateY(180deg);
-            background: linear-gradient(var(--card-ocher-deg), #e8cc9e 0%, #d4b079 35%, #aa874e 75%, #664c22 100%);
-            /* Bisel de grosor del naipe (luz en top-left y sombra en bottom-right) */
-            border: 1px solid rgba(40, 20, 5, 0.8);
+            background: #2b1f14;
+            border-radius: 4.5%;
+            border: 1px solid rgba(40, 20, 5, 0.85);
             box-shadow: 
-                inset 1px 1px 2px rgba(255, 240, 200, 0.4),
-                inset -1px -1px 3px rgba(30, 15, 5, 0.7),
-                inset 0 0 16px rgba(40, 20, 5, 0.65);
+                inset 1px 1px 2px rgba(255, 235, 190, 0.4),
+                inset -1px -1px 3px rgba(20, 10, 2, 0.8),
+                inset 0 0 14px rgba(35, 18, 5, 0.65);
             position: relative;
             overflow: hidden;
         }
 
-        /* Imagen SVG de la carta fundida con el papel ocre */
-        .card-front-side img.card-svg-art {
+        /* Capa 1: Fondo de Papel Ocre con grietas de tiempo */
+        .card-bg-paper {
+            position: absolute;
+            inset: 0;
             width: 100%;
             height: 100%;
             object-fit: fill;
             display: block;
-            filter: sepia(0.92) saturate(1.4) brightness(0.86) contrast(1.22);
+            z-index: 1;
+        }
+
+        /* Capa 2: Tinta litográfica de la carta en Multiply */
+        .card-front-side img.card-svg-art {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            display: block;
+            z-index: 2;
+            filter: sepia(0.85) saturate(1.35) brightness(0.88) contrast(1.25);
             mix-blend-mode: multiply;
         }
 
-        /* Máscara de desgaste físico: manchas de humedad, dobleces, pátina de dedos y erosión */
+        /* Capa 3: Máscara de arañazos, manchas y bordes rotos en Multiply */
         .card-wear-mask {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: fill;
-            pointer-events: none;
+            display: block;
+            z-index: 3;
             mix-blend-mode: multiply;
-            opacity: 0.88;
-            z-index: 5;
+            opacity: var(--card-wear-opacity);
+            pointer-events: none;
         }
 
-        /* Sombra de oclusión ambiental proyectada por el arlequín */
+        /* Capa 4: Sombra direccional ambiental proyectada por el cuerpo del arlequín */
         .card-front-side::after {
             content: '';
             position: absolute;
             inset: 0;
             pointer-events: none;
-            z-index: 6;
+            z-index: 4;
             background: radial-gradient(circle at 12% 15%, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0) 50%, rgba(25,12,3,0.55) 100%),
                         linear-gradient(to bottom right, rgba(0,0,0,0) 45%, rgba(18,9,2,0.50) 100%);
             mix-blend-mode: multiply;
@@ -168,7 +183,7 @@
             object-fit: contain;
         }
 
-        /* Textura de grano y viñeteado fotográfico general */
+        /* Textura de grano y viñeteado general */
         .analog-grain-overlay {
             position: absolute;
             inset: 0;
@@ -337,10 +352,11 @@
                 <div class="card-side card-back-side">
                     <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
                 </div>
-                <!-- Frente con Carta, Textura de Desgaste y Sombra -->
+                <!-- Frente con Papel Ocre Real + SVG + Máscara de Desgaste -->
                 <div class="card-side card-front-side">
+                    <img class="card-bg-paper" src="static/paper_vintage_ocher.jpg" onerror="this.src='cartas_svg/paper_vintage_ocher.jpg'" alt="Papel Ocre">
                     <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
-                    <img class="card-wear-mask" src="static/card_wear_mask.png" onerror="this.src='cartas_svg/card_wear_mask.png'" alt="Desgaste">
+                    <img class="card-wear-mask" src="static/card_wear_mask.jpg" onerror="this.src='cartas_svg/card_wear_mask.jpg'" alt="Desgaste">
                 </div>
             </div>
         </div>
@@ -376,8 +392,13 @@
             </div>
 
             <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">22%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="22">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">20%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="20">
+            </div>
+
+            <div class="setting-row">
+                <label>Intensidad de Desgaste (Máscara): <span id="wearVal">92%</span></label>
+                <input type="range" id="wearSlider" min="20" max="100" value="92">
             </div>
 
             <div class="setting-row">
@@ -389,6 +410,7 @@
                     <option value="Q_diamantes">Reina de Diamantes (Q♦)</option>
                     <option value="J_treboles">Jota de Tréboles (J♣)</option>
                     <option value="7_diamantes">7 de Diamantes (7♦)</option>
+                    <option value="7_treboles">7 de Tréboles (7♣)</option>
                     <option value="8_treboles">8 de Tréboles (8♣)</option>
                     <option value="10_corazones">10 de Corazones (10♥)</option>
                     <option value="3_picas">3 de Picas (3♠)</option>
@@ -586,6 +608,8 @@
         const brightVal = document.getElementById('brightVal');
         const sepiaSlider = document.getElementById('sepiaSlider');
         const sepiaVal = document.getElementById('sepiaVal');
+        const wearSlider = document.getElementById('wearSlider');
+        const wearVal = document.getElementById('wearVal');
         const testCardSelect = document.getElementById('testCardSelect');
         const btnSave = document.getElementById('btnSave');
         const btnResetDorso = document.getElementById('btnResetDorso');
@@ -605,6 +629,12 @@
             const v = e.target.value;
             sepiaVal.textContent = v + '%';
             document.documentElement.style.setProperty('--analog-sepia', (v / 100.0));
+        });
+
+        wearSlider.addEventListener('input', (e) => {
+            const v = e.target.value;
+            wearVal.textContent = v + '%';
+            document.documentElement.style.setProperty('--card-wear-opacity', (v / 100.0));
         });
 
         testCardSelect.addEventListener('change', (e) => {
