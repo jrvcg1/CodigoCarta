@@ -1,0 +1,504 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Marco Analógico - Oráculo</title>
+    <style>
+        :root {
+            --bg-frame: #030205;
+            --analog-sepia: 0.18;
+            --analog-brightness: 0.94;
+            --analog-contrast: 1.06;
+            --grain-opacity: 0.14;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        html, body {
+            width: 100vw;
+            height: 100vh;
+            background-color: var(--bg-frame);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            position: relative;
+        }
+
+        .photo-canvas-container {
+            position: relative;
+            height: 100vh;
+            max-width: 100vw;
+            aspect-ratio: 681 / 1024;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #050407;
+            box-shadow: 0 0 60px rgba(0, 0, 0, 0.95);
+            filter: sepia(var(--analog-sepia)) brightness(var(--analog-brightness)) contrast(var(--analog-contrast));
+            transition: filter 0.3s ease;
+        }
+
+        .base-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            pointer-events: none;
+        }
+
+        .card-anchor {
+            position: absolute;
+            left: 10.866%;
+            top: 38.965%;
+            width: 20.411%;
+            height: 19.824%;
+            perspective: 1000px;
+            z-index: 10;
+        }
+
+        .card-flipper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transform-style: preserve-3d;
+            transition: transform 0.85s cubic-bezier(0.25, 1, 0.35, 1);
+            border-radius: 4%;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.65);
+        }
+
+        .card-anchor.revealed .card-flipper {
+            transform: rotateY(180deg);
+        }
+
+        .card-side {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 4%;
+            overflow: hidden;
+        }
+
+        .card-back-side {
+            transform: rotateY(0deg);
+            background-color: #2b2318;
+        }
+
+        .card-back-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .card-front-side {
+            transform: rotateY(180deg);
+            background: #edd8b4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(80, 50, 20, 0.4);
+            box-shadow: inset 0 0 15px rgba(90, 60, 25, 0.45);
+        }
+
+        .card-front-side img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+            filter: sepia(0.85) contrast(1.15) brightness(0.92);
+        }
+
+        .fingers-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 20;
+            object-fit: contain;
+        }
+
+        .analog-grain-overlay {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 30;
+            opacity: var(--grain-opacity);
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+            mix-blend-mode: overlay;
+        }
+
+        .analog-vignette {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 31;
+            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%);
+        }
+
+        .status-dot {
+            position: fixed;
+            bottom: 8px;
+            right: 8px;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.2);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+        .status-dot.active {
+            background: rgba(16, 185, 129, 0.6);
+            box-shadow: 0 0 6px #10b981;
+        }
+        .status-dot.error {
+            background: rgba(239, 68, 68, 0.7);
+        }
+
+        .settings-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .settings-modal.show {
+            display: flex;
+        }
+
+        .settings-card {
+            background: #14111d;
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            border-radius: 16px;
+            padding: 24px;
+            width: min(90vw, 420px);
+            color: #f1ebd8;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+        }
+
+        .settings-card h3 {
+            font-size: 1.2rem;
+            color: #d4af37;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .setting-row {
+            margin-bottom: 16px;
+        }
+
+        .setting-row label {
+            display: block;
+            font-size: 0.85rem;
+            color: #a89bbd;
+            margin-bottom: 6px;
+        }
+
+        .setting-row input[type="text"], .setting-row select {
+            width: 100%;
+            padding: 10px;
+            background: #1e1a2b;
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+        }
+
+        .setting-row input[type="range"] {
+            width: 100%;
+            accent-color: #d4af37;
+        }
+
+        .setting-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-gold {
+            background: #d4af37;
+            color: #000;
+        }
+        .btn-gold:hover {
+            background: #f1cf68;
+        }
+
+        .btn-dark {
+            background: #2a253b;
+            color: #d4af37;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .secret-tap-zone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="photo-canvas-container" id="photoContainer">
+        <img class="base-photo" id="basePhoto" src="cartas_svg/fondo_oraculo_dorso.jpg" alt="Oráculo Analógico" onerror="this.src='static/base_dorso.jpg'">
+
+        <div class="card-anchor" id="cardAnchor">
+            <div class="card-flipper">
+                <div class="card-side card-back-side">
+                    <img id="cardBackImg" src="cartas_svg/dorso_card_crop.jpg" onerror="this.src='static/dorso_card_crop.jpg'" alt="Dorso">
+                </div>
+                <div class="card-side card-front-side">
+                    <img id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
+                </div>
+            </div>
+        </div>
+
+        <img class="fingers-overlay" id="fingersOverlay" src="static/fingers_overlay.png" onerror="this.style.display='none'" alt="Dedos">
+
+        <div class="analog-grain-overlay"></div>
+        <div class="analog-vignette"></div>
+    </div>
+
+    <div class="status-dot" id="statusDot"></div>
+    <div class="secret-tap-zone" id="secretZone"></div>
+
+    <div class="settings-modal" id="settingsModal">
+        <div class="settings-card">
+            <h3>⚙️ Configuración del Marco</h3>
+            
+            <div class="setting-row">
+                <label>URL de la API (Polling 5s):</label>
+                <input type="text" id="apiUrlInput" value="/api/carta_actual">
+            </div>
+
+            <div class="setting-row">
+                <label>Brillo de Hardware (Tablet): <span id="brightVal">30%</span></label>
+                <input type="range" id="brightSlider" min="5" max="100" value="30">
+            </div>
+
+            <div class="setting-row">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">20%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="20">
+            </div>
+
+            <div class="setting-row">
+                <label>Probar Carta Manualmente:</label>
+                <select id="testCardSelect">
+                    <option value="">-- Seleccionar Carta --</option>
+                    <option value="A_picas">As de Picas (A♠)</option>
+                    <option value="K_corazones">Rey de Corazones (K♥)</option>
+                    <option value="Q_diamantes">Reina de Diamantes (Q♦)</option>
+                    <option value="J_treboles">Jota de Tréboles (J♣)</option>
+                    <option value="7_diamantes">7 de Diamantes (7♦)</option>
+                    <option value="8_treboles">8 de Tréboles (8♣)</option>
+                    <option value="10_corazones">10 de Corazones (10♥)</option>
+                    <option value="3_picas">3 de Picas (3♠)</option>
+                </select>
+            </div>
+
+            <div class="setting-actions">
+                <button class="btn btn-gold" id="btnSave">Guardar y Cerrar</button>
+                <button class="btn btn-dark" id="btnResetDorso">Reiniciar al Dorso</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let API_URL = localStorage.getItem('marco_api_url') || 'https://codigo-carta.vercel.app/api/carta_actual';
+        let isRevealed = false;
+        let initialVersion = null;
+        let pollingTimer = null;
+        const POLLING_INTERVAL_MS = 5000;
+
+        const cardAnchor = document.getElementById('cardAnchor');
+        const cardFrontImg = document.getElementById('cardFrontImg');
+        const statusDot = document.getElementById('statusDot');
+        const settingsModal = document.getElementById('settingsModal');
+        const secretZone = document.getElementById('secretZone');
+
+        function setDeviceBrightness(valPercent) {
+            const floatVal = valPercent / 100.0;
+            if (window.Android && window.Android.setBrightness) {
+                try {
+                    window.Android.setBrightness(floatVal);
+                } catch(e) {
+                    console.log('Bridge Android no disponible', e);
+                }
+            }
+        }
+
+        const savedBright = localStorage.getItem('marco_brightness') || 30;
+        setDeviceBrightness(savedBright);
+
+        function revealCard(valor, palo_id) {
+            if (isRevealed) return;
+            isRevealed = true;
+
+            if (pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+                console.log('[MARCO] Polling detenido tras revelación exitosa.');
+            }
+
+            console.log(`[MARCO] Revelando carta: ${valor} de ${palo_id}`);
+            const svgSrc = `cartas_svg/${valor}_${palo_id}.svg`;
+            
+            const tempImg = new Image();
+            tempImg.onload = () => {
+                cardFrontImg.src = svgSrc;
+                cardAnchor.classList.add('revealed');
+            };
+            tempImg.onerror = () => {
+                cardFrontImg.src = svgSrc;
+                cardAnchor.classList.add('revealed');
+            };
+            tempImg.src = svgSrc;
+
+            if (statusDot) {
+                statusDot.classList.add('active');
+                setTimeout(() => statusDot.classList.remove('active'), 2000);
+            }
+        }
+
+        function resetToDorso() {
+            isRevealed = false;
+            cardAnchor.classList.remove('revealed');
+            initialVersion = null;
+            startPolling();
+        }
+
+        async function pollApi() {
+            if (isRevealed) return;
+
+            try {
+                const fetchUrl = API_URL.includes('?') ? `${API_URL}&_t=${Date.now()}` : `${API_URL}?_t=${Date.now()}`;
+                const res = await fetch(fetchUrl, { cache: 'no-store' });
+                
+                if (res.ok) {
+                    const data = await res.json();
+                    
+                    if (initialVersion === null) {
+                        initialVersion = data.version || 0;
+                        console.log('[MARCO] Versión inicial sincronizada:', initialVersion);
+                        return;
+                    }
+
+                    if (data.version && data.version > initialVersion && data.valor && data.palo_id) {
+                        revealCard(data.valor, data.palo_id);
+                    }
+                }
+            } catch (err) {
+                console.error('[MARCO] Error polling API:', err);
+                if (statusDot) {
+                    statusDot.classList.add('error');
+                    setTimeout(() => statusDot.classList.remove('error'), 1000);
+                }
+            }
+        }
+
+        function startPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+            pollApi();
+            pollingTimer = setInterval(pollApi, POLLING_INTERVAL_MS);
+            console.log('[MARCO] Polling iniciado cada 5s en:', API_URL);
+        }
+
+        startPolling();
+
+        let pressTimer = null;
+        secretZone.addEventListener('touchstart', (e) => {
+            pressTimer = setTimeout(() => {
+                settingsModal.classList.add('show');
+            }, 2500);
+        });
+        secretZone.addEventListener('touchend', () => clearTimeout(pressTimer));
+        secretZone.addEventListener('mousedown', () => {
+            pressTimer = setTimeout(() => {
+                settingsModal.classList.add('show');
+            }, 2500);
+        });
+        secretZone.addEventListener('mouseup', () => clearTimeout(pressTimer));
+
+        const apiUrlInput = document.getElementById('apiUrlInput');
+        const brightSlider = document.getElementById('brightSlider');
+        const brightVal = document.getElementById('brightVal');
+        const sepiaSlider = document.getElementById('sepiaSlider');
+        const sepiaVal = document.getElementById('sepiaVal');
+        const testCardSelect = document.getElementById('testCardSelect');
+        const btnSave = document.getElementById('btnSave');
+        const btnResetDorso = document.getElementById('btnResetDorso');
+
+        apiUrlInput.value = API_URL;
+        brightSlider.value = savedBright;
+        brightVal.textContent = savedBright + '%';
+
+        brightSlider.addEventListener('input', (e) => {
+            const v = e.target.value;
+            brightVal.textContent = v + '%';
+            setDeviceBrightness(v);
+        });
+
+        sepiaSlider.addEventListener('input', (e) => {
+            const v = e.target.value;
+            sepiaVal.textContent = v + '%';
+            document.documentElement.style.setProperty('--analog-sepia', (v / 100.0));
+        });
+
+        testCardSelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val) {
+                const parts = val.split('_');
+                revealCard(parts[0], parts[1]);
+            }
+        });
+
+        btnSave.addEventListener('click', () => {
+            API_URL = apiUrlInput.value.trim() || '/api/carta_actual';
+            localStorage.setItem('marco_api_url', API_URL);
+            localStorage.setItem('marco_brightness', brightSlider.value);
+            settingsModal.classList.remove('show');
+            if (!isRevealed) startPolling();
+        });
+
+        btnResetDorso.addEventListener('click', () => {
+            resetToDorso();
+            settingsModal.classList.remove('show');
+        });
+    </script>
+</body>
+</html>

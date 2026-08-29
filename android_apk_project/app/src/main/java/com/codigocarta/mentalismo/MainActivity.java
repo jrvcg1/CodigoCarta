@@ -1,40 +1,45 @@
 package com.codigocarta.mentalismo;
 
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
-import android.webkit.PermissionRequest;
 import android.webkit.WebChromeClient;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private static final int REQUEST_MIC_PERMISSION = 101;
     private WebView webView;
-    public float savedBrightness = -1.0f;
+    public float currentBrightness = 0.30f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // --- PANTALLA COMPLETA E INMERSIVA Y MANTENER PANTALLA ENCENDIDA ---
+        // Pantalla siempre encendida sin bloqueo ni salvapantallas
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        
+        applyBrightness(currentBrightness);
         setImmersiveMode();
 
         setContentView(R.layout.activity_main);
 
-        webView = findViewById(R.id.webView);
+        webView = (WebView) findViewById(R.id.webView);
         configureWebView();
+    }
 
-        checkPermissions();
+    public void applyBrightness(float val) {
+        try {
+            WindowManager.LayoutParams lp = getWindow().getAttributes();
+            lp.screenBrightness = Math.max(0.05f, Math.min(1.0f, val));
+            getWindow().setAttributes(lp);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setImmersiveMode() {
@@ -62,36 +67,18 @@ public class MainActivity extends Activity {
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
         webSettings.setAllowFileAccess(true);
+        webSettings.setAllowContentAccess(true);
+        webSettings.setAllowFileAccessFromFileURLs(true);
+        webSettings.setAllowUniversalAccessFromFileURLs(true);
         webSettings.setMediaPlaybackRequiresUserGesture(false);
         webSettings.setDatabaseEnabled(true);
+        webSettings.setCacheMode(WebSettings.LOAD_DEFAULT);
 
         webView.addJavascriptInterface(new WebAppInterface(this), "Android");
-
         webView.setWebViewClient(new CustomWebViewClient());
-        webView.setWebChromeClient(new CustomWebChromeClient(this));
+        webView.setWebChromeClient(new WebChromeClient());
 
-        webView.loadUrl("https://codigo-carta.vercel.app/probar_voz");
-    }
-
-    private void checkPermissions() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            if (checkSelfPermission(android.Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.RECORD_AUDIO}, REQUEST_MIC_PERMISSION);
-            }
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == REQUEST_MIC_PERMISSION) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permiso de Micrófono Concedido", Toast.LENGTH_SHORT).show();
-                webView.reload();
-            } else {
-                Toast.makeText(this, "Permiso de Micrófono requerido", Toast.LENGTH_LONG).show();
-            }
-        }
+        webView.loadUrl("file:///android_asset/marco_analogico.html");
     }
 }
 
@@ -100,32 +87,6 @@ class CustomWebViewClient extends WebViewClient {
     public boolean shouldOverrideUrlLoading(WebView view, String url) {
         view.loadUrl(url);
         return true;
-    }
-}
-
-class CustomWebChromeClient extends WebChromeClient {
-    private final Activity activity;
-
-    public CustomWebChromeClient(Activity act) {
-        this.activity = act;
-    }
-
-    @Override
-    public void onPermissionRequest(final PermissionRequest request) {
-        activity.runOnUiThread(new GrantPermissionRunnable(request));
-    }
-}
-
-class GrantPermissionRunnable implements Runnable {
-    private final PermissionRequest request;
-
-    public GrantPermissionRunnable(PermissionRequest req) {
-        this.request = req;
-    }
-
-    @Override
-    public void run() {
-        request.grant(request.getResources());
     }
 }
 
@@ -138,57 +99,23 @@ class WebAppInterface {
 
     @JavascriptInterface
     public void setBrightness(final float val) {
-        activity.runOnUiThread(new SetBrightnessRunnable(activity, val));
+        activity.runOnUiThread(new BrightnessRunnable(activity, val));
     }
 }
 
-class SetBrightnessRunnable implements Runnable {
+class BrightnessRunnable implements Runnable {
     private final MainActivity activity;
     private final float val;
 
-    public SetBrightnessRunnable(MainActivity act, float v) {
+    public BrightnessRunnable(MainActivity act, float v) {
         this.activity = act;
         this.val = v;
     }
 
     @Override
     public void run() {
-        try {
-            WindowManager.LayoutParams lp = activity.getWindow().getAttributes();
-            if (val <= 0.05f) {
-                // Guardar el brillo previo del dispositivo antes de bajarlo al mínimo
-                float currentBright = lp.screenBrightness;
-                if (currentBright > 0.05f) {
-                    activity.savedBrightness = currentBright;
-                } else {
-                    try {
-                        int sysBright = android.provider.Settings.System.getInt(
-                                activity.getContentResolver(),
-                                android.provider.Settings.System.SCREEN_BRIGHTNESS
-                        );
-                        activity.savedBrightness = sysBright / 255.0f;
-                    } catch (Exception e) {
-                        activity.savedBrightness = 0.85f;
-                    }
-                }
-
-                if (activity.savedBrightness < 0.2f) {
-                    activity.savedBrightness = 0.85f;
-                }
-
-                // Asignar brillo al 1% (mínimo)
-                lp.screenBrightness = 0.01f;
-            } else {
-                // RESTAURAR EL BRILLO DE PANTALLA
-                float restoreVal = activity.savedBrightness;
-                if (restoreVal <= 0.05f) {
-                    restoreVal = 0.85f; // Brillo normal por defecto si no existía valor guardado
-                }
-                lp.screenBrightness = restoreVal;
-            }
-            activity.getWindow().setAttributes(lp);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (activity != null) {
+            activity.applyBrightness(val);
         }
     }
 }

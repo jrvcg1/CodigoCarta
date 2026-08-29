@@ -46,6 +46,10 @@ cartas_dir = os.path.join(os.path.dirname(__file__), "cartas_svg")
 if os.path.exists(cartas_dir):
     app.mount("/cartas_svg", StaticFiles(directory=cartas_dir), name="cartas_svg")
 
+static_dir = os.path.join(os.path.dirname(__file__), "static")
+if os.path.exists(static_dir):
+    app.mount("/static", StaticFiles(directory=static_dir), name="static")
+
 
 # -------------------------------------------------------------------
 # Modelos Pydantic para Request / Response
@@ -986,7 +990,14 @@ def probar_voz_web():
     if os.path.exists(html_path_fallback):
         with open(html_path_fallback, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse(content="Archivo de interfaz no encontrado.", status_code=404)
+@app.get("/marco_analogico", response_class=HTMLResponse, summary="Marco de Fotos Analógico para Tablet", tags=["Visualización"])
+def marco_analogico_web():
+    """Servicio de la interfaz del marco de fotos analógico interactivo para tablets (marco_analogico.html)."""
+    html_path = os.path.join(os.path.dirname(__file__), "marco_analogico.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="Archivo marco_analogico.html no encontrado.", status_code=404)
 
 
 if __name__ == "__main__":
