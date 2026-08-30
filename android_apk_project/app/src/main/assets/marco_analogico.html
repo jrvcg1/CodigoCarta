@@ -35,7 +35,7 @@
             position: relative;
         }
 
-        /* Marco responsive exacto para Tablet MediaPad T5 (1023 x 1537) */
+        /* Marco responsive con proporciones exactas de la Tablet Huawei MediaPad T5 (1023 x 1537) */
         .tablet-device-frame {
             position: relative;
             height: 100vh;
@@ -63,13 +63,13 @@
             overflow: hidden;
         }
 
-        /* CAPA 1: Carta Interactiva Completa (Detrás del marco transparente) */
+        /* CAPA 1: Carta Interactiva Completa (Ajustada 100% a la ventana) */
         .card-anchor {
             position: absolute;
-            left: 10.6%;
-            top: 39.4%;
-            width: 21.4%;
-            height: 21.5%;
+            left: 11.05%;
+            top: 39.82%;
+            width: 20.53%;
+            height: 20.63%;
             z-index: 10;
             cursor: pointer;
             transition: all 0.25s cubic-bezier(0.25, 1, 0.35, 1);
@@ -79,26 +79,27 @@
             position: relative;
             width: 100%;
             height: 100%;
-            border-radius: 6%;
+            border-radius: 4px;
             overflow: hidden;
             background: #caa968;
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
-        /* Cara posterior (Dorso Completo Vintage) */
+        /* Cara posterior: El Dorso entero se adapta a la ventana conservando todos sus márgenes */
         .card-back-side {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            border-radius: 6%;
+            border-radius: 4px;
             overflow: hidden;
             display: block;
             opacity: 1;
             visibility: visible;
             transition: opacity 0.25s ease, visibility 0.25s ease;
             z-index: 1;
-            background: #1b170c;
+            background: #caa968;
+            box-sizing: border-box;
         }
 
         .card-back-side img {
@@ -106,15 +107,16 @@
             height: 100%;
             object-fit: fill;
             display: block;
+            border-radius: 3px;
         }
 
-        /* Cara frontal (Carta completa con fondo kraft sólido que cubre 100% el dorso) */
+        /* Cara frontal (Carta completa revelada que cubre 100% el dorso) */
         .card-front-side {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
-            border-radius: 6%;
+            border-radius: 4px;
             overflow: hidden;
             display: none;
             opacity: 0;
@@ -397,7 +399,7 @@
             <!-- 1. Carta Interactiva Completa -->
             <div class="card-anchor" id="cardAnchor" title="Toca para revelar/ocultar">
                 <div class="card-container">
-                    <!-- Dorso Vintage Oro -->
+                    <!-- Dorso Vintage Completo adaptado sin recortes -->
                     <div class="card-back-side">
                         <img id="cardBackImg" src="static/dorso_card_crop.jpg" onerror="this.src='cartas_svg/dorso_card_crop.jpg'" alt="Dorso">
                     </div>
@@ -558,7 +560,7 @@
     </div>
 
     <script>
-        const FONDOS_CONFIG = {"static/fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "10.5%", "top": "39.4%", "width": "21.0%", "height": "21.2%"}, "static/fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "19.1%", "top": "38.2%", "width": "20.5%", "height": "21.3%"}, "static/fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "20.7%", "top": "40.6%", "width": "19.7%", "height": "20.4%"}, "static/fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "27.7%", "top": "39.8%", "width": "22.0%", "height": "22.2%"}, "static/fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "13.8%", "top": "40.5%", "width": "26.0%", "height": "26.3%"}, "static/fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna", "left": "10.6%", "top": "39.4%", "width": "21.4%", "height": "21.5%"}};
+        const FONDOS_CONFIG = {"static/fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "static/fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "static/fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "static/fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "static/fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}, "static/fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna", "left": "11.05%", "top": "39.82%", "width": "20.53%", "height": "20.63%"}};
 
         let API_URL = localStorage.getItem('marco_api_url') || (window.location.origin && window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
         let currentBg = localStorage.getItem('marco_selected_bg') || 'static/fondos/fondo_6.png';
@@ -603,16 +605,6 @@
             }
         }
 
-        function syncApiUrlToAndroid(url) {
-            if (window.Android && window.Android.setApiUrl) {
-                try {
-                    window.Android.setApiUrl(url);
-                } catch(e) {
-                    console.log('Bridge Android error:', e);
-                }
-            }
-        }
-
         // Aplicar fondo y calibrar coordenadas exactas
         function applyBackground(bgKey) {
             if (!FONDOS_CONFIG[bgKey]) {
@@ -633,7 +625,6 @@
 
         applyBackground(currentBg);
         modeSelect.value = currentMode;
-        syncApiUrlToAndroid(API_URL);
 
         bgSelect.addEventListener('change', (e) => {
             const newBg = e.target.value;
@@ -654,7 +645,7 @@
         document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
         document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
 
-        // Revelación limpia y directa: cubre 100% el dorso sin dejar ningún píxel visible
+        // Revelación limpia y directa
         window.revealCard = function(valor, palo_id, fromTestSelector = false) {
             isRevealed = true;
             if (fromTestSelector) {
@@ -876,7 +867,6 @@
             localStorage.setItem('marco_grain', grainSlider.value);
             localStorage.setItem('marco_full_wear', fullWearSlider.value);
 
-            syncApiUrlToAndroid(API_URL);
             settingsModal.classList.remove('show');
 
             if (currentMode === 'auto') {
