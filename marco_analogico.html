@@ -7,11 +7,11 @@
     <style>
         :root {
             --bg-frame: #050407;
-            --analog-sepia: 0.18;
-            --analog-brightness: 0.94;
-            --analog-contrast: 1.06;
-            --grain-opacity: 0.18;
-            --full-wear-opacity: 0.75;
+            --analog-sepia: 0.16;
+            --analog-brightness: 0.96;
+            --analog-contrast: 1.05;
+            --grain-opacity: 0.16;
+            --full-wear-opacity: 0.70;
         }
 
         * {
@@ -35,13 +35,13 @@
             position: relative;
         }
 
-        /* Marco responsive con proporciones de la Tablet Huawei MediaPad T5 (1023 x 1537) */
+        /* Marco responsive con proporciones exactas de la Tablet Huawei MediaPad T5 (1024 x 1536) */
         .tablet-device-frame {
             position: relative;
             height: 100vh;
             max-height: 100vh;
             max-width: 100vw;
-            aspect-ratio: 1023 / 1537;
+            aspect-ratio: 1024 / 1536;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -61,96 +61,10 @@
             filter: sepia(var(--analog-sepia)) brightness(var(--analog-brightness)) contrast(var(--analog-contrast));
             transition: filter 0.3s ease;
             overflow: hidden;
-        }
-
-        /* CAPA 1: Carta Interactiva Completa */
-        .card-anchor {
-            position: absolute;
-            left: 11.05%;
-            top: 39.82%;
-            width: 20.53%;
-            height: 20.63%;
-            z-index: 10;
             cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.25, 1, 0.35, 1);
         }
 
-        .card-container {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            border-radius: 4px;
-            overflow: hidden;
-            background: #caa968;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-        }
-
-        /* Cara posterior (Dorso Completo Vintage) */
-        .card-back-side {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 4px;
-            overflow: hidden;
-            display: block;
-            opacity: 1;
-            visibility: visible;
-            transition: opacity 0.25s ease, visibility 0.25s ease;
-            z-index: 1;
-            background: #caa968;
-            box-sizing: border-box;
-        }
-
-        .card-back-side img {
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            display: block;
-            border-radius: 3px;
-        }
-
-        /* Cara frontal (Carta completa revelada en papel kraft continuo con proyección litográfica) */
-        .card-front-side {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            border-radius: 4px;
-            overflow: hidden;
-            display: none;
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.25s ease, visibility 0.25s ease;
-            background: linear-gradient(135deg, #dfc282 0%, #caa968 45%, #b5924e 100%);
-            z-index: 2;
-            padding: 3px 4px 6px 4px;
-            box-sizing: border-box;
-        }
-
-        /* Estado Revelado: La cara frontal cubre 100% y el dorso queda totalmente oculto */
-        .card-anchor.revealed .card-front-side {
-            display: block !important;
-            opacity: 1 !important;
-            visibility: visible !important;
-        }
-        .card-anchor.revealed .card-back-side {
-            display: none !important;
-            opacity: 0 !important;
-            visibility: hidden !important;
-        }
-
-        /* Vector litográfico proyectado sobre el papel */
-        .card-front-side img.card-svg-art {
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            display: block;
-            mix-blend-mode: multiply;
-            filter: sepia(0.65) saturate(1.2) contrast(1.1);
-        }
-
-        /* CAPA 2: Fotografía PNG con Ventana Transparente (Dedos y bordes solapados) */
+        /* CAPA 1: Fotografía Base Completa (Dorso o Carta en Blanco con papel continuo) */
         .base-photo {
             position: absolute;
             inset: 0;
@@ -158,12 +72,39 @@
             height: 100%;
             object-fit: contain;
             display: block;
-            pointer-events: none;
-            z-index: 20;
-            transition: opacity 0.3s ease;
+            z-index: 10;
+            transition: opacity 0.30s ease;
         }
 
-        /* CAPA 3: Efectos aplicados a TODA LA FOTOGRAFÍA MONTADA */
+        /* CAPA 2: Proyección de Tinta Litográfica Directa en Multiply */
+        .ink-anchor {
+            position: absolute;
+            left: 21.30%;
+            top: 36.78%;
+            width: 30.95%;
+            height: 26.37%;
+            z-index: 20;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.30s ease;
+            mix-blend-mode: multiply;
+            padding: 4px 6px;
+            box-sizing: border-box;
+        }
+
+        .ink-anchor.revealed {
+            opacity: 1;
+        }
+
+        .ink-anchor img.ink-svg {
+            width: 100%;
+            height: 100%;
+            object-fit: fill;
+            display: block;
+            filter: sepia(0.65) saturate(1.3) contrast(1.15);
+        }
+
+        /* CAPA 3: Efectos de Película Analógica para Toda la Fotografía */
         .full-frame-wear-overlay {
             position: absolute;
             inset: 0;
@@ -395,23 +336,14 @@
 <body>
 
     <div class="tablet-device-frame">
-        <div class="photo-canvas-container" id="photoContainer">
-            <!-- 1. Carta Interactiva Completa -->
-            <div class="card-anchor" id="cardAnchor" title="Toca para revelar/ocultar">
-                <div class="card-container">
-                    <!-- Dorso Vintage Completo adaptado sin recortes -->
-                    <div class="card-back-side">
-                        <img id="cardBackImg" src="static/dorso_card_crop.jpg" onerror="this.src='cartas_svg/dorso_card_crop.jpg'" alt="Dorso">
-                    </div>
-                    <!-- Frente en Papel Kraft Continuo (Cubre 100% el dorso) -->
-                    <div class="card-front-side">
-                        <img class="card-svg-art" id="cardFrontImg" src="cartas_svg/K_corazones.svg" alt="Carta Revelada">
-                    </div>
-                </div>
-            </div>
+        <div class="photo-canvas-container" id="photoContainer" title="Toca para revelar o reiniciar">
+            <!-- 1. Fotografía Base Completa (Dorso / Carta en blanco sin recortes) -->
+            <img class="base-photo" id="basePhoto" src="static/fondos/gitana_dorso.jpg" alt="Fotografía Mágica">
 
-            <!-- 2. Fotografía PNG con Ventana Transparente -->
-            <img class="base-photo" id="basePhoto" src="static/fondos/fondo_8.png" alt="Fondo Marco" onerror="this.src='cartas_svg/fondo_oraculo_dorso.jpg'">
+            <!-- 2. Proyección de Tinta Litográfica sobre la Carta en Blanco -->
+            <div class="ink-anchor" id="inkAnchor">
+                <img class="ink-svg" id="inkSvg" src="cartas_svg/4_corazones.svg" alt="Tinta Revelada">
+            </div>
 
             <!-- 3. Máscara de Desgaste Fotográfico para TODA la Imagen Montada -->
             <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
@@ -444,21 +376,16 @@
                 <label>⚡ Modo de Revelación:</label>
                 <select id="modeSelect">
                     <option value="auto">📡 Automático (Polling cada 4s por voz / Manos Libres)</option>
-                    <option value="manual">👆 Manual (Revelar solo al tocar la carta)</option>
+                    <option value="manual">👆 Manual (Revelar solo al tocar la pantalla)</option>
                 </select>
             </div>
 
             <div class="setting-row">
-                <label>🖼️ Fondo Fotográfico del Marco (PNG):</label>
-                <select id="bgSelect">                    <option value="static/fondos/fondo_8.png">Arlequín Luna (Original)</option>
-                    <option value="static/fondos/fondo_1.png">Oráculo Clásico</option>
-                    <option value="static/fondos/fondo_2.png">Noche Misterio</option>
-                    <option value="static/fondos/fondo_3.png">Marco Antiguo</option>
-                    <option value="static/fondos/fondo_4.png">Placa Iluminada</option>
-                    <option value="static/fondos/fondo_5.png">Escena Mágica</option>
-                    <option value="static/fondos/fondo_6.png">Conejo de Alicia</option>
-                    <option value="static/fondos/fondo_7.png">Gato Elegante</option>
-                    <option value="static/fondos/fondo_9.png">Pulpo Ilusionista</option>
+                <label>🎭 Personaje / Escena del Cuadro:</label>
+                <select id="themeSelect">                    <option value="gitana">🔮 La Vidente / Gitana</option>
+                    <option value="buho">🦉 El Búho Sabio</option>
+                    <option value="conejo">🐇 El Conejo en la Luna</option>
+                    <option value="arlequin">🌙 El Arlequín en la Luna</option>
 
                 </select>
             </div>
@@ -474,18 +401,18 @@
             </div>
 
             <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">18%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="18">
+                <label>Tono Sepia Analógico: <span id="sepiaVal">16%</span></label>
+                <input type="range" id="sepiaSlider" min="0" max="80" value="16">
             </div>
 
             <div class="setting-row">
-                <label>Grano Analógico de Película: <span id="grainVal">18%</span></label>
-                <input type="range" id="grainSlider" min="0" max="60" value="18">
+                <label>Grano Analógico de Película: <span id="grainVal">16%</span></label>
+                <input type="range" id="grainSlider" min="0" max="60" value="16">
             </div>
 
             <div class="setting-row">
-                <label>Desgaste de Toda la Fotografía: <span id="fullWearVal">75%</span></label>
-                <input type="range" id="fullWearSlider" min="0" max="100" value="75">
+                <label>Desgaste de Toda la Fotografía: <span id="fullWearVal">70%</span></label>
+                <input type="range" id="fullWearSlider" min="0" max="100" value="70">
             </div>
 
             <div class="setting-row">
@@ -563,10 +490,10 @@
     </div>
 
     <script>
-        const FONDOS_CONFIG = {"static/fondos/fondo_8.png": {"label": "Arlequ\u00edn Luna (Original)", "left": "11.05%", "top": "39.82%", "width": "20.53%", "height": "20.63%"}, "static/fondos/fondo_1.png": {"label": "Or\u00e1culo Cl\u00e1sico", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "static/fondos/fondo_2.png": {"label": "Noche Misterio", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "static/fondos/fondo_3.png": {"label": "Marco Antiguo", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "static/fondos/fondo_4.png": {"label": "Placa Iluminada", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "static/fondos/fondo_5.png": {"label": "Escena M\u00e1gica", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}, "static/fondos/fondo_6.png": {"label": "Conejo de Alicia", "left": "10.80%", "top": "39.50%", "width": "20.50%", "height": "20.50%"}, "static/fondos/fondo_7.png": {"label": "Gato Elegante", "left": "10.80%", "top": "32.50%", "width": "21.00%", "height": "21.00%"}, "static/fondos/fondo_9.png": {"label": "Pulpo Ilusionista", "left": "10.80%", "top": "39.50%", "width": "20.50%", "height": "20.50%"}};
+        const THEMES_CONFIG = {"gitana": {"label": "\ud83d\udd2e La Vidente / Gitana", "dorso": "static/fondos/gitana_dorso.jpg", "blank": "static/fondos/gitana_blank.jpg", "left": "21.30%", "top": "36.78%", "width": "30.95%", "height": "26.37%"}, "buho": {"label": "\ud83e\udd89 El B\u00faho Sabio", "dorso": "static/fondos/buho_dorso.jpg", "blank": "static/fondos/buho_blank.jpg", "left": "14.16%", "top": "33.53%", "width": "25.39%", "height": "23.44%"}, "conejo": {"label": "\ud83d\udc07 El Conejo en la Luna", "dorso": "static/fondos/conejo_dorso.jpg", "blank": "static/fondos/conejo_blank.jpg", "left": "17.09%", "top": "36.46%", "width": "23.44%", "height": "21.16%"}, "arlequin": {"label": "\ud83c\udf19 El Arlequ\u00edn en la Luna", "dorso": "static/fondos/arlequin_dorso.jpg", "blank": "static/fondos/arlequin_blank.jpg", "left": "12.70%", "top": "35.48%", "width": "24.41%", "height": "23.11%"}};
 
         let API_URL = localStorage.getItem('marco_api_url') || (window.location.origin && window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
-        let currentBg = localStorage.getItem('marco_selected_bg') || 'static/fondos/fondo_8.png';
+        let currentThemeKey = localStorage.getItem('marco_selected_theme') || 'gitana';
         let currentMode = localStorage.getItem('marco_mode') || (window.Android ? 'auto' : 'manual');
         let isRevealed = false;
         let isTestMode = false;
@@ -578,10 +505,11 @@
         const POLLING_INTERVAL_MS = 4000;
 
         const basePhoto = document.getElementById('basePhoto');
-        const bgSelect = document.getElementById('bgSelect');
+        const inkAnchor = document.getElementById('inkAnchor');
+        const inkSvg = document.getElementById('inkSvg');
+        const themeSelect = document.getElementById('themeSelect');
         const modeSelect = document.getElementById('modeSelect');
-        const cardAnchor = document.getElementById('cardAnchor');
-        const cardFrontImg = document.getElementById('cardFrontImg');
+        const photoContainer = document.getElementById('photoContainer');
         const settingsModal = document.getElementById('settingsModal');
         const secretZone = document.getElementById('secretZone');
         const btnOpenSettings = document.getElementById('btnOpenSettings');
@@ -608,47 +536,50 @@
             }
         }
 
-        // Aplicar fondo y calibrar coordenadas exactas
-        function applyBackground(bgKey) {
-            if (!FONDOS_CONFIG[bgKey]) {
-                bgKey = 'static/fondos/fondo_8.png';
+        // Aplicar el tema seleccionado y calibrar posición de tinta
+        function applyTheme(themeKey) {
+            if (!THEMES_CONFIG[themeKey]) {
+                themeKey = 'gitana';
             }
-            currentBg = bgKey;
-            basePhoto.src = currentBg;
-            bgSelect.value = currentBg;
+            currentThemeKey = themeKey;
+            themeSelect.value = currentThemeKey;
+            const theme = THEMES_CONFIG[currentThemeKey];
 
-            const cfg = FONDOS_CONFIG[currentBg];
-            if (cfg) {
-                cardAnchor.style.left = cfg.left;
-                cardAnchor.style.top = cfg.top;
-                cardAnchor.style.width = cfg.width;
-                cardAnchor.style.height = cfg.height;
+            inkAnchor.style.left = theme.left;
+            inkAnchor.style.top = theme.top;
+            inkAnchor.style.width = theme.width;
+            inkAnchor.style.height = theme.height;
+
+            if (isRevealed) {
+                basePhoto.src = theme.blank;
+            } else {
+                basePhoto.src = theme.dorso;
             }
         }
 
-        applyBackground(currentBg);
+        applyTheme(currentThemeKey);
         modeSelect.value = currentMode;
 
-        bgSelect.addEventListener('change', (e) => {
-            const newBg = e.target.value;
-            if (newBg) {
-                applyBackground(newBg);
-                localStorage.setItem('marco_selected_bg', currentBg);
+        themeSelect.addEventListener('change', (e) => {
+            const newTheme = e.target.value;
+            if (newTheme) {
+                applyTheme(newTheme);
+                localStorage.setItem('marco_selected_theme', currentThemeKey);
             }
         });
 
         // Restaurar configuraciones persistentes
         const savedBright = localStorage.getItem('marco_brightness') || 30;
-        const savedSepia = localStorage.getItem('marco_sepia') || 18;
-        const savedGrain = localStorage.getItem('marco_grain') || 18;
-        const savedFullWear = localStorage.getItem('marco_full_wear') || 75;
+        const savedSepia = localStorage.getItem('marco_sepia') || 16;
+        const savedGrain = localStorage.getItem('marco_grain') || 16;
+        const savedFullWear = localStorage.getItem('marco_full_wear') || 70;
 
         setDeviceBrightness(savedBright);
         document.documentElement.style.setProperty('--analog-sepia', (savedSepia / 100.0));
         document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
         document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
 
-        // Revelación limpia y directa
+        // Revelación Limpia por Proyección Litográfica de Tinta
         window.revealCard = function(valor, palo_id, fromTestSelector = false) {
             isRevealed = true;
             if (fromTestSelector) {
@@ -661,18 +592,13 @@
                 pollingTimer = null;
             }
 
+            const theme = THEMES_CONFIG[currentThemeKey] || THEMES_CONFIG['gitana'];
             const svgSrc = `cartas_svg/${valor}_${palo_id}.svg`;
-            
-            const tempImg = new Image();
-            tempImg.onload = () => {
-                cardFrontImg.src = svgSrc;
-                cardAnchor.classList.add('revealed');
-            };
-            tempImg.onerror = () => {
-                cardFrontImg.src = svgSrc;
-                cardAnchor.classList.add('revealed');
-            };
-            tempImg.src = svgSrc;
+
+            // Cambia la foto base al lienzo con carta en blanco y proyecta la tinta
+            basePhoto.src = theme.blank;
+            inkSvg.src = svgSrc;
+            inkAnchor.classList.add('revealed');
 
             if (statusDot) {
                 statusDot.className = 'status-dot pulse';
@@ -686,7 +612,11 @@
             isRevealed = false;
             isTestMode = false;
             activeCardName = '';
-            cardAnchor.classList.remove('revealed');
+            inkAnchor.classList.remove('revealed');
+            
+            const theme = THEMES_CONFIG[currentThemeKey] || THEMES_CONFIG['gitana'];
+            basePhoto.src = theme.dorso;
+
             lastVersion = null;
             lastUpdatedAt = null;
             testCardSelect.value = '';
@@ -760,11 +690,11 @@
             startPolling();
         }
 
-        // Al hacer clic en la carta
-        async function handleCardClick(e) {
-            if (e) e.stopPropagation();
+        // Al hacer clic en la pantalla
+        async function handleScreenClick(e) {
+            if (settingsModal.classList.contains('show')) return;
 
-            if (!cardAnchor.classList.contains('revealed')) {
+            if (!isRevealed) {
                 if (isFetching) return;
                 isFetching = true;
                 showToast('Consultando oráculo...');
@@ -775,7 +705,7 @@
             }
         }
 
-        cardAnchor.addEventListener('click', handleCardClick);
+        photoContainer.addEventListener('click', handleScreenClick);
 
         // Control del menú de configuración
         let pressTimer = null;
@@ -783,20 +713,20 @@
             settingsModal.classList.add('show');
         }
 
-        btnOpenSettings.addEventListener('click', openSettings);
+        btnOpenSettings.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openSettings();
+        });
         secretZone.addEventListener('touchstart', () => pressTimer = setTimeout(openSettings, 2000));
         secretZone.addEventListener('touchend', () => clearTimeout(pressTimer));
         secretZone.addEventListener('mousedown', () => pressTimer = setTimeout(openSettings, 2000));
         secretZone.addEventListener('mouseup', () => clearTimeout(pressTimer));
 
-        // Doble clic en cualquier parte de la imagen para abrir la configuración
-        const photoContainer = document.getElementById('photoContainer');
-        if (photoContainer) {
-            photoContainer.addEventListener('dblclick', (e) => {
-                e.stopPropagation();
-                openSettings();
-            });
-        }
+        // Doble clic en cualquier parte para abrir ajustes
+        photoContainer.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            openSettings();
+        });
         document.body.addEventListener('dblclick', (e) => {
             if (!settingsModal.classList.contains('show')) {
                 openSettings();
@@ -864,7 +794,7 @@
             currentMode = modeSelect.value;
             localStorage.setItem('marco_mode', currentMode);
             localStorage.setItem('marco_api_url', API_URL);
-            localStorage.setItem('marco_selected_bg', currentBg);
+            localStorage.setItem('marco_selected_theme', currentThemeKey);
             localStorage.setItem('marco_brightness', brightSlider.value);
             localStorage.setItem('marco_sepia', sepiaSlider.value);
             localStorage.setItem('marco_grain', grainSlider.value);
