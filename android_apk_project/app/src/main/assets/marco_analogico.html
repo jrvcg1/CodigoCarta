@@ -35,7 +35,7 @@
             position: relative;
         }
 
-        /* Marco responsive con proporciones exactas de la Tablet Huawei MediaPad T5 (1023 x 1537) */
+        /* Marco responsive con proporciones de la Tablet Huawei MediaPad T5 (1023 x 1537) */
         .tablet-device-frame {
             position: relative;
             height: 100vh;
@@ -63,7 +63,7 @@
             overflow: hidden;
         }
 
-        /* CAPA 1: Carta Interactiva Completa (Ajustada 100% a la ventana) */
+        /* CAPA 1: Carta Interactiva Completa */
         .card-anchor {
             position: absolute;
             left: 11.05%;
@@ -85,7 +85,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.4);
         }
 
-        /* Cara posterior: El Dorso entero se adapta a la ventana conservando todos sus márgenes */
+        /* Cara posterior (Dorso Completo Vintage) */
         .card-back-side {
             position: absolute;
             inset: 0;
@@ -110,7 +110,7 @@
             border-radius: 3px;
         }
 
-        /* Cara frontal (Carta completa revelada que cubre 100% el dorso) */
+        /* Cara frontal (Carta completa revelada en papel kraft continuo con proyección litográfica) */
         .card-front-side {
             position: absolute;
             inset: 0;
@@ -140,7 +140,7 @@
             visibility: hidden !important;
         }
 
-        /* Vector litográfico de la carta fundido en el papel */
+        /* Vector litográfico proyectado sobre el papel */
         .card-front-side img.card-svg-art {
             width: 100%;
             height: 100%;
@@ -411,7 +411,7 @@
             </div>
 
             <!-- 2. Fotografía PNG con Ventana Transparente -->
-            <img class="base-photo" id="basePhoto" src="static/fondos/fondo_6.png" alt="Fondo Marco" onerror="this.src='cartas_svg/fondo_oraculo_dorso.jpg'">
+            <img class="base-photo" id="basePhoto" src="static/fondos/fondo_8.png" alt="Fondo Marco" onerror="this.src='cartas_svg/fondo_oraculo_dorso.jpg'">
 
             <!-- 3. Máscara de Desgaste Fotográfico para TODA la Imagen Montada -->
             <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
@@ -450,12 +450,15 @@
 
             <div class="setting-row">
                 <label>🖼️ Fondo Fotográfico del Marco (PNG):</label>
-                <select id="bgSelect">                    <option value="static/fondos/fondo_1.png">Fondo 1 - Oráculo Clásico</option>
-                    <option value="static/fondos/fondo_2.png">Fondo 2 - Noche Misterio</option>
-                    <option value="static/fondos/fondo_3.png">Fondo 3 - Marco Antiguo</option>
-                    <option value="static/fondos/fondo_4.png">Fondo 4 - Placa Iluminada</option>
-                    <option value="static/fondos/fondo_5.png">Fondo 5 - Escena Mágica</option>
-                    <option value="static/fondos/fondo_6.png">Fondo 6 - Arlequín Luna</option>
+                <select id="bgSelect">                    <option value="static/fondos/fondo_8.png">Arlequín Luna (Original)</option>
+                    <option value="static/fondos/fondo_1.png">Oráculo Clásico</option>
+                    <option value="static/fondos/fondo_2.png">Noche Misterio</option>
+                    <option value="static/fondos/fondo_3.png">Marco Antiguo</option>
+                    <option value="static/fondos/fondo_4.png">Placa Iluminada</option>
+                    <option value="static/fondos/fondo_5.png">Escena Mágica</option>
+                    <option value="static/fondos/fondo_6.png">Conejo de Alicia</option>
+                    <option value="static/fondos/fondo_7.png">Gato Elegante</option>
+                    <option value="static/fondos/fondo_9.png">Pulpo Ilusionista</option>
 
                 </select>
             </div>
@@ -560,10 +563,10 @@
     </div>
 
     <script>
-        const FONDOS_CONFIG = {"static/fondos/fondo_1.png": {"label": "Fondo 1 - Or\u00e1culo Cl\u00e1sico", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "static/fondos/fondo_2.png": {"label": "Fondo 2 - Noche Misterio", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "static/fondos/fondo_3.png": {"label": "Fondo 3 - Marco Antiguo", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "static/fondos/fondo_4.png": {"label": "Fondo 4 - Placa Iluminada", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "static/fondos/fondo_5.png": {"label": "Fondo 5 - Escena M\u00e1gica", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}, "static/fondos/fondo_6.png": {"label": "Fondo 6 - Arlequ\u00edn Luna", "left": "11.05%", "top": "39.82%", "width": "20.53%", "height": "20.63%"}};
+        const FONDOS_CONFIG = {"static/fondos/fondo_8.png": {"label": "Arlequ\u00edn Luna (Original)", "left": "11.05%", "top": "39.82%", "width": "20.53%", "height": "20.63%"}, "static/fondos/fondo_1.png": {"label": "Or\u00e1culo Cl\u00e1sico", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "static/fondos/fondo_2.png": {"label": "Noche Misterio", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "static/fondos/fondo_3.png": {"label": "Marco Antiguo", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "static/fondos/fondo_4.png": {"label": "Placa Iluminada", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "static/fondos/fondo_5.png": {"label": "Escena M\u00e1gica", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}, "static/fondos/fondo_6.png": {"label": "Conejo de Alicia", "left": "10.80%", "top": "39.50%", "width": "20.50%", "height": "20.50%"}, "static/fondos/fondo_7.png": {"label": "Gato Elegante", "left": "10.80%", "top": "32.50%", "width": "21.00%", "height": "21.00%"}, "static/fondos/fondo_9.png": {"label": "Pulpo Ilusionista", "left": "10.80%", "top": "39.50%", "width": "20.50%", "height": "20.50%"}};
 
         let API_URL = localStorage.getItem('marco_api_url') || (window.location.origin && window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
-        let currentBg = localStorage.getItem('marco_selected_bg') || 'static/fondos/fondo_6.png';
+        let currentBg = localStorage.getItem('marco_selected_bg') || 'static/fondos/fondo_8.png';
         let currentMode = localStorage.getItem('marco_mode') || (window.Android ? 'auto' : 'manual');
         let isRevealed = false;
         let isTestMode = false;
@@ -608,7 +611,7 @@
         // Aplicar fondo y calibrar coordenadas exactas
         function applyBackground(bgKey) {
             if (!FONDOS_CONFIG[bgKey]) {
-                bgKey = 'static/fondos/fondo_6.png';
+                bgKey = 'static/fondos/fondo_8.png';
             }
             currentBg = bgKey;
             basePhoto.src = currentBg;
