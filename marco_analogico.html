@@ -35,7 +35,7 @@
             position: relative;
         }
 
-        /* Marco responsive exacto para Huawei MediaPad T5 (1024 x 1536) */
+        /* Marco responsive con proporciones exactas de la Tablet Huawei MediaPad T5 (1024 x 1536) */
         .tablet-device-frame {
             position: relative;
             height: 100vh;
@@ -88,7 +88,11 @@
             opacity: 0;
             transition: opacity 0.30s ease;
             mix-blend-mode: multiply;
-            padding: 4px 6px;
+            padding: 0;
+            margin: 0;
+            border: none;
+            outline: none;
+            background: transparent;
             box-sizing: border-box;
         }
 
@@ -101,6 +105,9 @@
             height: 100%;
             object-fit: fill;
             display: block;
+            border: none;
+            outline: none;
+            background: transparent;
             filter: sepia(0.65) saturate(1.3) contrast(1.15);
         }
 
@@ -383,10 +390,10 @@
             <div class="setting-row">
                 <label>🎭 Personaje / Escena del Cuadro (Todos los Fondos):</label>
                 <select id="themeSelect">                    <option value="pierrot">✨ Mago en la Luna Sonriente</option>
-                    <option value="gitana">🔮 La Vidente / Gitana (Vela y Bola)</option>
-                    <option value="buho">🦉 El Búho Sabio (Calavera y Libro)</option>
+                    <option value="gitana">🔮 La Vidente / Gitana</option>
+                    <option value="buho">🦉 El Búho Sabio</option>
                     <option value="conejo">🐇 El Conejo en la Luna</option>
-                    <option value="arlequin">🌙 El Arlequín en la Luna Clásico</option>
+                    <option value="arlequin">🌙 El Arlequín en la Luna</option>
                     <option value="gato">🎩 El Gato Aristócrata</option>
                     <option value="pulpo">🐙 El Pulpo Ilusionista</option>
                     <option value="oraculo_1">🏛️ Oráculo Clásico (Pedestal)</option>
@@ -498,7 +505,7 @@
     </div>
 
     <script>
-        const THEMES_CONFIG = {"pierrot": {"label": "\u2728 Mago en la Luna Sonriente", "dorso": "static/fondos/pierrot_dorso.jpg", "blank": "static/fondos/pierrot_blank.jpg", "left": "27.54%", "top": "37.11%", "width": "21.88%", "height": "22.01%"}, "gitana": {"label": "\ud83d\udd2e La Vidente / Gitana (Vela y Bola)", "dorso": "static/fondos/gitana_dorso.jpg", "blank": "static/fondos/gitana_blank.jpg", "left": "21.30%", "top": "36.78%", "width": "30.95%", "height": "26.37%"}, "buho": {"label": "\ud83e\udd89 El B\u00faho Sabio (Calavera y Libro)", "dorso": "static/fondos/buho_dorso.jpg", "blank": "static/fondos/buho_blank.jpg", "left": "14.16%", "top": "33.53%", "width": "25.39%", "height": "23.44%"}, "conejo": {"label": "\ud83d\udc07 El Conejo en la Luna", "dorso": "static/fondos/conejo_dorso.jpg", "blank": "static/fondos/conejo_blank.jpg", "left": "17.09%", "top": "36.46%", "width": "23.44%", "height": "21.16%"}, "arlequin": {"label": "\ud83c\udf19 El Arlequ\u00edn en la Luna Cl\u00e1sico", "dorso": "static/fondos/arlequin_dorso.jpg", "blank": "static/fondos/arlequin_blank.jpg", "left": "12.70%", "top": "35.48%", "width": "24.41%", "height": "23.11%"}, "gato": {"label": "\ud83c\udfa9 El Gato Arist\u00f3crata", "dorso": "static/fondos/gato_dorso.jpg", "blank": "static/fondos/gato_blank.jpg", "left": "10.74%", "top": "32.55%", "width": "20.51%", "height": "20.83%"}, "pulpo": {"label": "\ud83d\udc19 El Pulpo Ilusionista", "dorso": "static/fondos/pulpo_dorso.jpg", "blank": "static/fondos/pulpo_blank.jpg", "left": "10.74%", "top": "39.06%", "width": "20.51%", "height": "20.83%"}, "oraculo_1": {"label": "\ud83c\udfdb\ufe0f Or\u00e1culo Cl\u00e1sico (Pedestal)", "dorso": "static/fondos/fondo_1.png", "blank": "static/fondos/fondo_1.png", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "oraculo_2": {"label": "\ud83c\udf0c Noche Misterio", "dorso": "static/fondos/fondo_2.png", "blank": "static/fondos/fondo_2.png", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "oraculo_3": {"label": "\ud83d\uddbc\ufe0f Marco Antiguo Museo", "dorso": "static/fondos/fondo_3.png", "blank": "static/fondos/fondo_3.png", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "oraculo_4": {"label": "\ud83d\udd6f\ufe0f Placa Iluminada", "dorso": "static/fondos/fondo_4.png", "blank": "static/fondos/fondo_4.png", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "oraculo_5": {"label": "\ud83c\udfaa Escena M\u00e1gica", "dorso": "static/fondos/fondo_5.png", "blank": "static/fondos/fondo_5.png", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}};
+        const THEMES_CONFIG = {"pierrot": {"label": "\u2728 Mago en la Luna Sonriente", "dorso": "static/fondos/pierrot_dorso.jpg", "blank": "static/fondos/pierrot_blank.jpg", "left": "27.54%", "top": "37.11%", "width": "21.88%", "height": "22.01%"}, "gitana": {"label": "\ud83d\udd2e La Vidente / Gitana", "dorso": "static/fondos/gitana_dorso.jpg", "blank": "static/fondos/gitana_blank.jpg", "left": "21.29%", "top": "36.78%", "width": "30.96%", "height": "26.37%"}, "buho": {"label": "\ud83e\udd89 El B\u00faho Sabio", "dorso": "static/fondos/buho_dorso.jpg", "blank": "static/fondos/buho_blank.jpg", "left": "14.16%", "top": "33.53%", "width": "25.39%", "height": "23.44%"}, "conejo": {"label": "\ud83d\udc07 El Conejo en la Luna", "dorso": "static/fondos/conejo_dorso.jpg", "blank": "static/fondos/conejo_blank.jpg", "left": "17.09%", "top": "36.46%", "width": "23.44%", "height": "21.16%"}, "arlequin": {"label": "\ud83c\udf19 El Arlequ\u00edn en la Luna", "dorso": "static/fondos/arlequin_dorso.jpg", "blank": "static/fondos/arlequin_blank.jpg", "left": "12.70%", "top": "35.48%", "width": "24.41%", "height": "23.11%"}, "gato": {"label": "\ud83c\udfa9 El Gato Arist\u00f3crata", "dorso": "static/fondos/gato_dorso.jpg", "blank": "static/fondos/gato_blank.jpg", "left": "10.74%", "top": "32.55%", "width": "20.51%", "height": "20.83%"}, "pulpo": {"label": "\ud83d\udc19 El Pulpo Ilusionista", "dorso": "static/fondos/pulpo_dorso.jpg", "blank": "static/fondos/pulpo_blank.jpg", "left": "10.74%", "top": "39.06%", "width": "20.51%", "height": "20.83%"}, "oraculo_1": {"label": "\ud83c\udfdb\ufe0f Or\u00e1culo Cl\u00e1sico (Pedestal)", "dorso": "static/fondos/fondo_1.png", "blank": "static/fondos/fondo_1.png", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "oraculo_2": {"label": "\ud83c\udf0c Noche Misterio", "dorso": "static/fondos/fondo_2.png", "blank": "static/fondos/fondo_2.png", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "oraculo_3": {"label": "\ud83d\uddbc\ufe0f Marco Antiguo Museo", "dorso": "static/fondos/fondo_3.png", "blank": "static/fondos/fondo_3.png", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "oraculo_4": {"label": "\ud83d\udd6f\ufe0f Placa Iluminada", "dorso": "static/fondos/fondo_4.png", "blank": "static/fondos/fondo_4.png", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "oraculo_5": {"label": "\ud83c\udfaa Escena M\u00e1gica", "dorso": "static/fondos/fondo_5.png", "blank": "static/fondos/fondo_5.png", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}};
 
         let API_URL = localStorage.getItem('marco_api_url') || (window.location.origin && window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
         let currentThemeKey = localStorage.getItem('marco_selected_theme') || 'pierrot';

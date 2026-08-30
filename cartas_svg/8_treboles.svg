@@ -1,13 +1,7 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <!-- Created with Inkscape (http://www.inkscape.org/) --><svg xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:cc="http://creativecommons.org/ns#" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:svg="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="224.22508" height="312.80777" id="svg4423" version="1.1" inkscape:version="0.91 r13725" sodipodi:docname="8C.svg">
   <sodipodi:namedview id="base" pagecolor="none" bordercolor="#666666" borderopacity="1.0" inkscape:pageopacity="0.0" inkscape:pageshadow="2" inkscape:zoom="0.24748737" inkscape:cx="-590.92424" inkscape:cy="-159.99098" inkscape:document-units="px" inkscape:current-layer="layer1" showgrid="false" inkscape:snap-global="true" inkscape:snap-bbox="true" inkscape:snap-page="true" inkscape:window-width="690" inkscape:window-height="800" inkscape:window-x="830" inkscape:window-y="74" inkscape:window-maximized="0" fit-margin-top="0" fit-margin-left="0" fit-margin-right="0" fit-margin-bottom="0"/>
-  <defs id="defs4425"><filter id="envejecido" x="-15%" y="-15%" width="130%" height="130%" color-interpolation-filters="sRGB">
-      <feColorMatrix in="SourceGraphic" type="matrix" values="0.62 0.12 0.05 0 0.06                 0.05 0.70 0.05 0 0.06                 0.00 0.06 0.72 0 0.04                 0    0    0    1 0" result="warm"/>
-      <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="11" result="noise"/>
-      <feColorMatrix in="noise" type="matrix" values="0 0 0 0 0                 0 0 0 0 0                 0 0 0 0 0                 0 0 0 0.10 0" result="noiseAlpha"/>
-      <feComposite in="noiseAlpha" in2="warm" operator="over" result="grained"/>
-    </filter>
-<radialGradient id="vignette-grad" cx="50%" cy="46%" r="75%"><stop offset="55%" stop-color="#2a1a0a" stop-opacity="0"/><stop offset="85%" stop-color="#2a1a0a" stop-opacity="0.28"/><stop offset="100%" stop-color="#160d05" stop-opacity="0.55"/></radialGradient></defs>
+  
   <metadata id="metadata4428">
     <rdf:RDF>
       <cc:Work rdf:about="">
@@ -17,7 +11,7 @@
       </cc:Work>
     </rdf:RDF>
   </metadata>
-  <g id="layer1" inkscape:groupmode="layer" inkscape:label="8C" transform="translate(-259.9347,-369.7772)" filter="url(#envejecido)">
+  <g id="layer1" inkscape:groupmode="layer" inkscape:label="8C" transform="translate(-259.9347,-369.7772)" >
     <g transform="translate(380.17087,-760.44498)" id="g4753" style="display:inline">
       <g transform="translate(-1317.7109,540.76905)" style="display:inline" id="g3690">
         <g id="g8423">
