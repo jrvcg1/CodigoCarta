@@ -1,0 +1,9 @@
+android_apk_project/
+CodigoCarta_Marco_Analogico.apk
+*.apk
+.venv/
+app_assets/
+scratch/
+FondosMarco/
+qr_descarga_apk.png
+qr_marco_web.png
