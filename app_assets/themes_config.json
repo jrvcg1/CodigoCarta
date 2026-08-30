@@ -1,0 +1,65 @@
+{
+  "pierrot": {
+    "label": "\u2728 Mago en la Luna Sonriente",
+    "dorso": "static/fondos/pierrot_dorso.jpg",
+    "blank": "static/fondos/pierrot_blank.jpg",
+    "left": "27.54%",
+    "top": "37.11%",
+    "width": "21.88%",
+    "height": "22.01%"
+  },
+  "gitana": {
+    "label": "\ud83d\udd2e La Vidente / Gitana",
+    "dorso": "static/fondos/gitana_dorso.jpg",
+    "blank": "static/fondos/gitana_blank.jpg",
+    "left": "21.29%",
+    "top": "36.78%",
+    "width": "30.96%",
+    "height": "26.37%"
+  },
+  "buho": {
+    "label": "\ud83e\udd89 El B\u00faho Sabio",
+    "dorso": "static/fondos/buho_dorso.jpg",
+    "blank": "static/fondos/buho_blank.jpg",
+    "left": "14.16%",
+    "top": "33.53%",
+    "width": "25.39%",
+    "height": "23.44%"
+  },
+  "conejo": {
+    "label": "\ud83d\udc07 El Conejo en la Luna",
+    "dorso": "static/fondos/conejo_dorso.jpg",
+    "blank": "static/fondos/conejo_blank.jpg",
+    "left": "17.09%",
+    "top": "36.46%",
+    "width": "23.44%",
+    "height": "21.16%"
+  },
+  "arlequin": {
+    "label": "\ud83c\udf19 El Arlequ\u00edn en la Luna",
+    "dorso": "static/fondos/arlequin_dorso.jpg",
+    "blank": "static/fondos/arlequin_blank.jpg",
+    "left": "12.70%",
+    "top": "35.48%",
+    "width": "24.41%",
+    "height": "23.11%"
+  },
+  "gato": {
+    "label": "\ud83c\udfa9 El Gato Arist\u00f3crata",
+    "dorso": "static/fondos/gato_dorso.jpg",
+    "blank": "static/fondos/gato_blank.jpg",
+    "left": "10.74%",
+    "top": "32.55%",
+    "width": "20.51%",
+    "height": "20.83%"
+  },
+  "pulpo": {
+    "label": "\ud83d\udc19 El Pulpo Ilusionista",
+    "dorso": "static/fondos/pulpo_dorso.jpg",
+    "blank": "static/fondos/pulpo_blank.jpg",
+    "left": "10.74%",
+    "top": "39.06%",
+    "width": "20.51%",
+    "height": "20.83%"
+  }
+}
