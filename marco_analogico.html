@@ -5,15 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Marco Analógico - Oráculo</title>
     <style>
-        :root {
-            --bg-frame: #050407;
-            --analog-sepia: 0.16;
-            --analog-brightness: 0.96;
-            --analog-contrast: 1.05;
-            --grain-opacity: 0.16;
-            --full-wear-opacity: 0.70;
-        }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -26,7 +17,7 @@
         html, body {
             width: 100vw;
             height: 100vh;
-            background-color: var(--bg-frame);
+            background-color: #000000;
             overflow: hidden;
             display: flex;
             align-items: center;
@@ -35,7 +26,7 @@
             position: relative;
         }
 
-        /* Marco responsive con proporciones exactas de la Tablet Huawei MediaPad T5 (1024 x 1536) */
+        /* Contenedor del dispositivo ajustado al formato 1024x1536 de la tablet */
         .tablet-device-frame {
             position: relative;
             height: 100vh;
@@ -45,8 +36,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #020104;
-            box-shadow: 0 0 60px rgba(0, 0, 0, 0.95);
+            background: #000000;
             overflow: hidden;
         }
 
@@ -58,13 +48,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            filter: sepia(var(--analog-sepia)) brightness(var(--analog-brightness)) contrast(var(--analog-contrast));
-            transition: filter 0.3s ease;
             overflow: hidden;
             cursor: pointer;
         }
 
-        /* CAPA 1: Fotografía Base Completa (Dorso o Carta en blanco sin recortes) */
+        /* CAPA 1: Fotografía Base Completa (Dorso o Carta en blanco pixel-perfect) */
         .base-photo {
             position: absolute;
             inset: 0;
@@ -73,20 +61,20 @@
             object-fit: contain;
             display: block;
             z-index: 10;
-            transition: opacity 0.30s ease;
+            transition: opacity 0.20s ease;
         }
 
         /* CAPA 2: Proyección de Tinta Litográfica Directa en Multiply (CERO DOBLE MARCO) */
         .ink-anchor {
             position: absolute;
-            left: 27.54%;
-            top: 37.11%;
-            width: 21.88%;
-            height: 22.01%;
+            left: 35.80%;
+            top: 42.50%;
+            width: 16.50%;
+            height: 19.80%;
             z-index: 20;
             pointer-events: none;
             opacity: 0;
-            transition: opacity 0.30s ease;
+            transition: opacity 0.25s ease;
             mix-blend-mode: multiply;
             padding: 0;
             margin: 0;
@@ -108,54 +96,7 @@
             border: none;
             outline: none;
             background: transparent;
-            filter: sepia(0.65) saturate(1.3) contrast(1.15);
-        }
-
-        /* CAPA 3: Efectos de Película Analógica para Toda la Fotografía */
-        .full-frame-wear-overlay {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            pointer-events: none;
-            z-index: 25;
-            mix-blend-mode: multiply;
-            opacity: var(--full-wear-opacity);
-        }
-
-        .full-frame-dust-overlay {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: fill;
-            pointer-events: none;
-            z-index: 26;
-            mix-blend-mode: screen;
-            opacity: 0.65;
-        }
-
-        .analog-grain-overlay {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 30;
-            opacity: var(--grain-opacity);
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 500 500' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.95' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-            mix-blend-mode: overlay;
-        }
-
-        .analog-vignette {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 31;
-            background: radial-gradient(ellipse at center, rgba(0,0,0,0) 60%, rgba(15,8,3,0.65) 100%);
+            filter: contrast(1.1);
         }
 
         .status-dot {
@@ -344,23 +285,13 @@
 
     <div class="tablet-device-frame">
         <div class="photo-canvas-container" id="photoContainer" title="Toca para revelar o reiniciar">
-            <!-- 1. Fotografía Base Completa (Dorso o Carta en blanco sin recortes) -->
+            <!-- 1. Fotografía Base Completa (Dorso o Carta en blanco pixel-perfect) -->
             <img class="base-photo" id="basePhoto" src="static/fondos/pierrot_dorso.jpg" alt="Fotografía Mágica">
 
             <!-- 2. Proyección de Tinta Litográfica sobre la Carta en Blanco -->
             <div class="ink-anchor" id="inkAnchor">
                 <img class="ink-svg" id="inkSvg" src="cartas_svg/4_corazones.svg" alt="Tinta Revelada">
             </div>
-
-            <!-- 3. Máscara de Desgaste Fotográfico para TODA la Imagen Montada -->
-            <img class="full-frame-wear-overlay" id="fullWearOverlay" src="static/full_frame_vintage_mask.jpg" onerror="this.src='cartas_svg/full_frame_vintage_mask.jpg'" alt="Desgaste Cuadro">
-
-            <!-- 4. Micro-polvo y fibras analógicas -->
-            <img class="full-frame-dust-overlay" src="static/full_frame_dust.png" onerror="this.src='cartas_svg/full_frame_dust.png'" alt="Polvo Analógico">
-
-            <!-- 5. Grano analógico y viñeteado general -->
-            <div class="analog-grain-overlay" id="grainOverlay"></div>
-            <div class="analog-vignette"></div>
         </div>
     </div>
 
@@ -394,8 +325,6 @@
                     <option value="buho">🦉 El Búho Sabio</option>
                     <option value="conejo">🐇 El Conejo en la Luna</option>
                     <option value="arlequin">🌙 El Arlequín en la Luna</option>
-                    <option value="gato">🎩 El Gato Aristócrata</option>
-                    <option value="pulpo">🐙 El Pulpo Ilusionista</option>
                     <option value="oraculo_1">🏛️ Oráculo Clásico (Pedestal)</option>
                     <option value="oraculo_2">🌌 Noche Misterio</option>
                     <option value="oraculo_3">🖼️ Marco Antiguo Museo</option>
@@ -411,23 +340,8 @@
             </div>
 
             <div class="setting-row" id="rowBright">
-                <label>Brillo de Hardware (Tablet): <span id="brightVal">30%</span></label>
-                <input type="range" id="brightSlider" min="5" max="100" value="30">
-            </div>
-
-            <div class="setting-row">
-                <label>Tono Sepia Analógico: <span id="sepiaVal">16%</span></label>
-                <input type="range" id="sepiaSlider" min="0" max="80" value="16">
-            </div>
-
-            <div class="setting-row">
-                <label>Grano Analógico de Película: <span id="grainVal">16%</span></label>
-                <input type="range" id="grainSlider" min="0" max="60" value="16">
-            </div>
-
-            <div class="setting-row">
-                <label>Desgaste de Toda la Fotografía: <span id="fullWearVal">70%</span></label>
-                <input type="range" id="fullWearSlider" min="0" max="100" value="70">
+                <label>Brillo de Hardware (Tablet): <span id="brightVal">40%</span></label>
+                <input type="range" id="brightSlider" min="5" max="100" value="40">
             </div>
 
             <div class="setting-row">
@@ -505,7 +419,7 @@
     </div>
 
     <script>
-        const THEMES_CONFIG = {"pierrot": {"label": "\u2728 Mago en la Luna Sonriente", "dorso": "static/fondos/pierrot_dorso.jpg", "blank": "static/fondos/pierrot_blank.jpg", "left": "27.54%", "top": "37.11%", "width": "21.88%", "height": "22.01%"}, "gitana": {"label": "\ud83d\udd2e La Vidente / Gitana", "dorso": "static/fondos/gitana_dorso.jpg", "blank": "static/fondos/gitana_blank.jpg", "left": "21.29%", "top": "36.78%", "width": "30.96%", "height": "26.37%"}, "buho": {"label": "\ud83e\udd89 El B\u00faho Sabio", "dorso": "static/fondos/buho_dorso.jpg", "blank": "static/fondos/buho_blank.jpg", "left": "14.16%", "top": "33.53%", "width": "25.39%", "height": "23.44%"}, "conejo": {"label": "\ud83d\udc07 El Conejo en la Luna", "dorso": "static/fondos/conejo_dorso.jpg", "blank": "static/fondos/conejo_blank.jpg", "left": "17.09%", "top": "36.46%", "width": "23.44%", "height": "21.16%"}, "arlequin": {"label": "\ud83c\udf19 El Arlequ\u00edn en la Luna", "dorso": "static/fondos/arlequin_dorso.jpg", "blank": "static/fondos/arlequin_blank.jpg", "left": "12.70%", "top": "35.48%", "width": "24.41%", "height": "23.11%"}, "gato": {"label": "\ud83c\udfa9 El Gato Arist\u00f3crata", "dorso": "static/fondos/gato_dorso.jpg", "blank": "static/fondos/gato_blank.jpg", "left": "10.74%", "top": "32.55%", "width": "20.51%", "height": "20.83%"}, "pulpo": {"label": "\ud83d\udc19 El Pulpo Ilusionista", "dorso": "static/fondos/pulpo_dorso.jpg", "blank": "static/fondos/pulpo_blank.jpg", "left": "10.74%", "top": "39.06%", "width": "20.51%", "height": "20.83%"}, "oraculo_1": {"label": "\ud83c\udfdb\ufe0f Or\u00e1culo Cl\u00e1sico (Pedestal)", "dorso": "static/fondos/fondo_1.png", "blank": "static/fondos/fondo_1.png", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "oraculo_2": {"label": "\ud83c\udf0c Noche Misterio", "dorso": "static/fondos/fondo_2.png", "blank": "static/fondos/fondo_2.png", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "oraculo_3": {"label": "\ud83d\uddbc\ufe0f Marco Antiguo Museo", "dorso": "static/fondos/fondo_3.png", "blank": "static/fondos/fondo_3.png", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "oraculo_4": {"label": "\ud83d\udd6f\ufe0f Placa Iluminada", "dorso": "static/fondos/fondo_4.png", "blank": "static/fondos/fondo_4.png", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "oraculo_5": {"label": "\ud83c\udfaa Escena M\u00e1gica", "dorso": "static/fondos/fondo_5.png", "blank": "static/fondos/fondo_5.png", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}};
+        const THEMES_CONFIG = {"pierrot": {"label": "\u2728 Mago en la Luna Sonriente", "dorso": "static/fondos/pierrot_dorso.jpg", "blank": "static/fondos/pierrot_blank.jpg", "left": "35.35%", "top": "42.77%", "width": "15.31%", "height": "17.02%"}, "gitana": {"label": "\ud83d\udd2e La Vidente / Gitana", "dorso": "static/fondos/gitana_dorso.jpg", "blank": "static/fondos/gitana_blank.jpg", "left": "28.42%", "top": "42.06%", "width": "19.11%", "height": "17.29%"}, "buho": {"label": "\ud83e\udd89 El B\u00faho Sabio", "dorso": "static/fondos/buho_dorso.jpg", "blank": "static/fondos/buho_blank.jpg", "left": "25.68%", "top": "34.31%", "width": "20.26%", "height": "22.73%"}, "conejo": {"label": "\ud83d\udc07 El Conejo en la Luna", "dorso": "static/fondos/conejo_dorso.jpg", "blank": "static/fondos/conejo_blank.jpg", "left": "27.93%", "top": "40.10%", "width": "18.70%", "height": "19.57%"}, "arlequin": {"label": "\ud83c\udf19 El Arlequ\u00edn en la Luna", "dorso": "static/fondos/arlequin_dorso.jpg", "blank": "static/fondos/arlequin_blank.jpg", "left": "24.51%", "top": "38.02%", "width": "20.51%", "height": "23.09%"}, "oraculo_1": {"label": "\ud83c\udfdb\ufe0f Or\u00e1culo Cl\u00e1sico (Pedestal)", "dorso": "static/fondos/fondo_1.png", "blank": "static/fondos/fondo_1.png", "left": "10.95%", "top": "39.82%", "width": "20.14%", "height": "20.36%"}, "oraculo_2": {"label": "\ud83c\udf0c Noche Misterio", "dorso": "static/fondos/fondo_2.png", "blank": "static/fondos/fondo_2.png", "left": "19.55%", "top": "38.65%", "width": "19.65%", "height": "20.43%"}, "oraculo_3": {"label": "\ud83d\uddbc\ufe0f Marco Antiguo Museo", "dorso": "static/fondos/fondo_3.png", "blank": "static/fondos/fondo_3.png", "left": "21.11%", "top": "40.99%", "width": "18.87%", "height": "19.58%"}, "oraculo_4": {"label": "\ud83d\udd6f\ufe0f Placa Iluminada", "dorso": "static/fondos/fondo_4.png", "blank": "static/fondos/fondo_4.png", "left": "28.15%", "top": "40.21%", "width": "21.11%", "height": "21.41%"}, "oraculo_5": {"label": "\ud83c\udfaa Escena M\u00e1gica", "dorso": "static/fondos/fondo_5.png", "blank": "static/fondos/fondo_5.png", "left": "14.27%", "top": "40.99%", "width": "25.02%", "height": "25.37%"}};
 
         let API_URL = localStorage.getItem('marco_api_url') || (window.location.origin && window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
         let currentThemeKey = localStorage.getItem('marco_selected_theme') || 'pierrot';
@@ -583,16 +497,8 @@
             }
         });
 
-        // Restaurar configuraciones persistentes
-        const savedBright = localStorage.getItem('marco_brightness') || 30;
-        const savedSepia = localStorage.getItem('marco_sepia') || 16;
-        const savedGrain = localStorage.getItem('marco_grain') || 16;
-        const savedFullWear = localStorage.getItem('marco_full_wear') || 70;
-
+        const savedBright = localStorage.getItem('marco_brightness') || 40;
         setDeviceBrightness(savedBright);
-        document.documentElement.style.setProperty('--analog-sepia', (savedSepia / 100.0));
-        document.documentElement.style.setProperty('--grain-opacity', (savedGrain / 100.0));
-        document.documentElement.style.setProperty('--full-wear-opacity', (savedFullWear / 100.0));
 
         // Revelación Limpia por Proyección Litográfica de Tinta
         window.revealCard = function(valor, palo_id, fromTestSelector = false) {
@@ -737,7 +643,6 @@
         secretZone.addEventListener('mousedown', () => pressTimer = setTimeout(openSettings, 2000));
         secretZone.addEventListener('mouseup', () => clearTimeout(pressTimer));
 
-        // Doble clic en cualquier parte para abrir ajustes
         photoContainer.addEventListener('dblclick', (e) => {
             e.stopPropagation();
             openSettings();
@@ -751,12 +656,6 @@
         const apiUrlInput = document.getElementById('apiUrlInput');
         const brightSlider = document.getElementById('brightSlider');
         const brightVal = document.getElementById('brightVal');
-        const sepiaSlider = document.getElementById('sepiaSlider');
-        const sepiaVal = document.getElementById('sepiaVal');
-        const grainSlider = document.getElementById('grainSlider');
-        const grainVal = document.getElementById('grainVal');
-        const fullWearSlider = document.getElementById('fullWearSlider');
-        const fullWearVal = document.getElementById('fullWearVal');
         const testCardSelect = document.getElementById('testCardSelect');
         const btnSave = document.getElementById('btnSave');
         const btnResetDorso = document.getElementById('btnResetDorso');
@@ -765,35 +664,11 @@
         apiUrlInput.value = API_URL;
         brightSlider.value = savedBright;
         brightVal.textContent = savedBright + '%';
-        sepiaSlider.value = savedSepia;
-        sepiaVal.textContent = savedSepia + '%';
-        grainSlider.value = savedGrain;
-        grainVal.textContent = savedGrain + '%';
-        fullWearSlider.value = savedFullWear;
-        fullWearVal.textContent = savedFullWear + '%';
 
         brightSlider.addEventListener('input', (e) => {
             const v = e.target.value;
             brightVal.textContent = v + '%';
             setDeviceBrightness(v);
-        });
-
-        sepiaSlider.addEventListener('input', (e) => {
-            const v = e.target.value;
-            sepiaVal.textContent = v + '%';
-            document.documentElement.style.setProperty('--analog-sepia', (v / 100.0));
-        });
-
-        grainSlider.addEventListener('input', (e) => {
-            const v = e.target.value;
-            grainVal.textContent = v + '%';
-            document.documentElement.style.setProperty('--grain-opacity', (v / 100.0));
-        });
-
-        fullWearSlider.addEventListener('input', (e) => {
-            const v = e.target.value;
-            fullWearVal.textContent = v + '%';
-            document.documentElement.style.setProperty('--full-wear-opacity', (v / 100.0));
         });
 
         testCardSelect.addEventListener('change', (e) => {
@@ -811,9 +686,6 @@
             localStorage.setItem('marco_api_url', API_URL);
             localStorage.setItem('marco_selected_theme', currentThemeKey);
             localStorage.setItem('marco_brightness', brightSlider.value);
-            localStorage.setItem('marco_sepia', sepiaSlider.value);
-            localStorage.setItem('marco_grain', grainSlider.value);
-            localStorage.setItem('marco_full_wear', fullWearSlider.value);
 
             settingsModal.classList.remove('show');
 

@@ -1,0 +1,47 @@
+{
+  "pierrot": {
+    "label": "\u2728 Mago en la Luna Sonriente",
+    "dorso": "static/fondos/pierrot_dorso.jpg",
+    "blank": "static/fondos/pierrot_blank.jpg",
+    "left": "35.35%",
+    "top": "42.77%",
+    "width": "15.31%",
+    "height": "17.02%"
+  },
+  "gitana": {
+    "label": "\ud83d\udd2e La Vidente / Gitana",
+    "dorso": "static/fondos/gitana_dorso.jpg",
+    "blank": "static/fondos/gitana_blank.jpg",
+    "left": "28.42%",
+    "top": "42.06%",
+    "width": "19.11%",
+    "height": "17.29%"
+  },
+  "buho": {
+    "label": "\ud83e\udd89 El B\u00faho Sabio",
+    "dorso": "static/fondos/buho_dorso.jpg",
+    "blank": "static/fondos/buho_blank.jpg",
+    "left": "25.68%",
+    "top": "34.31%",
+    "width": "20.26%",
+    "height": "22.73%"
+  },
+  "conejo": {
+    "label": "\ud83d\udc07 El Conejo en la Luna",
+    "dorso": "static/fondos/conejo_dorso.jpg",
+    "blank": "static/fondos/conejo_blank.jpg",
+    "left": "27.93%",
+    "top": "40.10%",
+    "width": "18.70%",
+    "height": "19.57%"
+  },
+  "arlequin": {
+    "label": "\ud83c\udf19 El Arlequ\u00edn en la Luna",
+    "dorso": "static/fondos/arlequin_dorso.jpg",
+    "blank": "static/fondos/arlequin_blank.jpg",
+    "left": "24.51%",
+    "top": "38.02%",
+    "width": "20.51%",
+    "height": "23.09%"
+  }
+}
