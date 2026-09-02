@@ -5,3 +5,9 @@ __pycache__/
 env/
 venv/
 .pytest_cache/
+OUTPUT_52_CARTAS/
+android_video_project/out/
+android_apk_project/out/
+*.apk.idsig
+
+

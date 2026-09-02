@@ -1001,6 +1001,17 @@ def marco_analogico_web():
     return HTMLResponse(content="Archivo marco_analogico.html no encontrado.", status_code=404)
 
 
+@app.get("/video_revelacion", response_class=HTMLResponse, summary="Revelación de Carta en Vídeo para Tablet", tags=["Visualización"])
+@app.get("/video", response_class=HTMLResponse, summary="Revelación de Carta en Vídeo (Alias)", tags=["Visualización"])
+def video_revelacion_web():
+    """Servicio de la interfaz de revelación de carta en vídeo (video_revelacion.html)."""
+    html_path = os.path.join(os.path.dirname(__file__), "video_revelacion.html")
+    if os.path.exists(html_path):
+        with open(html_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse(content="Archivo video_revelacion.html no encontrado.", status_code=404)
+
+
 
 if __name__ == "__main__":
     import uvicorn

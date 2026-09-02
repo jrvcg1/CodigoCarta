@@ -1,9 +1,10 @@
 android_apk_project/
-CodigoCarta_Marco_Analogico.apk
+android_video_project/
+OUTPUT_52_CARTAS/
 *.apk
+*.apk.idsig
 .venv/
 app_assets/
 scratch/
 FondosMarco/
-qr_descarga_apk.png
-qr_marco_web.png
+qr_*.png

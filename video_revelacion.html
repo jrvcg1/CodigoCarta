@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Revelación en Vídeo — Código Carta</title>
+    <link rel="icon" type="image/png" href="favicon_bicycle.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #000000;
+            --gold-main: #d4af37;
+            --gold-light: #f3e5ab;
+            --gold-dark: #aa820a;
+            --panel-bg: rgba(18, 14, 10, 0.94);
+            --panel-border: rgba(212, 175, 55, 0.35);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -webkit-touch-callout: none;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-color);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: #f5f5f5;
+        }
+
+        /* Contenedor principal de vídeo y standby */
+        #stageContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000000;
+            cursor: pointer;
+        }
+
+        /* Imagen fija de standby (frame 0) */
+        #standbyImage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 10;
+            transition: opacity 0.4s ease;
+            opacity: 1;
+            pointer-events: none;
+        }
+
+        /* Reproductor de vídeo */
+        #revealVideo {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: 20;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            background: #000000;
+        }
+
+        #revealVideo.playing,
+        #revealVideo.revealed {
+            opacity: 1;
+        }
+
+        /* Zona secreta de doble toque */
+        #secretZone {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 30;
+            background: transparent;
+        }
+
+        /* Indicador discreto de sincronización */
+        #statusIndicator {
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 11px;
+            font-family: monospace;
+            color: rgba(255, 255, 255, 0.4);
+            z-index: 40;
+            pointer-events: none;
+            opacity: 0.7;
+            transition: opacity 0.3s ease;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background-color: #22c55e;
+            box-shadow: 0 0 8px #22c55e;
+            transition: background-color 0.3s ease;
+        }
+
+        .status-dot.fetching {
+            background-color: #eab308;
+            box-shadow: 0 0 8px #eab308;
+        }
+
+        .status-dot.error {
+            background-color: #ef4444;
+            box-shadow: 0 0 8px #ef4444;
+        }
+
+        /* Modal de Configuración Secreto */
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 1000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-backdrop.open {
+            display: flex;
+        }
+
+        .settings-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.9), 0 0 30px rgba(212, 175, 55, 0.15);
+            width: 100%;
+            max-width: 580px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(212, 175, 55, 0.2);
+            padding-bottom: 14px;
+        }
+
+        .settings-title {
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--gold-light);
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-close {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 24px;
+            cursor: pointer;
+            line-height: 1;
+            padding: 4px;
+        }
+
+        .btn-close:hover {
+            color: #ffffff;
+        }
+
+        .setting-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .setting-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-light);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .setting-input, .setting-select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 8px;
+            padding: 10px 14px;
+            color: #ffffff;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .setting-input:focus, .setting-select:focus {
+            border-color: var(--gold-main);
+            box-shadow: 0 0 10px rgba(212, 175, 55, 0.25);
+        }
+
+        .setting-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .setting-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .btn {
+            padding: 12px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold-main), var(--gold-dark));
+            color: #000000;
+            font-weight: 700;
+        }
+
+        .btn-gold:hover {
+            filter: brightness(1.15);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.35);
+        }
+
+        .btn-dark {
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-dark:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+
+        /* Mensaje flotante tipo toast */
+        .toast-banner {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-60px);
+            background: rgba(18, 14, 10, 0.96);
+            border: 1px solid var(--gold-main);
+            color: var(--gold-light);
+            padding: 10px 22px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 2000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.8);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            pointer-events: none;
+        }
+
+        .toast-banner.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="stageContainer">
+        <!-- Frame 0 estático de Standby -->
+        <img id="standbyImage" src="static/standby_frame.jpg" alt="Standby">
+
+        <!-- Reproductor de vídeo para las 52 cartas -->
+        <video id="revealVideo" playsinline preload="auto"></video>
+
+        <!-- Zona táctil para abrir ajustes con doble toque -->
+        <div id="secretZone"></div>
+
+        <!-- Indicador discreto de sincronización -->
+        <div id="statusIndicator">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="diagStatus">Standby</span>
+        </div>
+    </div>
+
+    <!-- Mensaje flotante Toast -->
+    <div class="toast-banner" id="toastMsg">Configuración guardada</div>
+
+    <!-- Modal de Configuración Secreto -->
+    <div class="modal-backdrop" id="settingsModal">
+        <div class="settings-card">
+            <div class="settings-header">
+                <div class="settings-title">
+                    <span>🎬</span> Control de Vídeo Revelación
+                </div>
+                <button class="btn-close" id="btnCloseSettings">&times;</button>
+            </div>
+
+            <!-- Probar carta manualmente -->
+            <div class="setting-group">
+                <label class="setting-label">🃏 Probar Carta Manualmente</label>
+                <select class="setting-select" id="cardTestSelect">
+                    <option value="">-- Seleccionar carta para disparar vídeo --</option>
+                    <optgroup label="♥️ Corazones">
+                        <option value="A_corazones">As de Corazones (A♥)</option>
+                        <option value="2_corazones">2 de Corazones (2♥)</option>
+                        <option value="3_corazones">3 de Corazones (3♥)</option>
+                        <option value="4_corazones">4 de Corazones (4♥)</option>
+                        <option value="5_corazones">5 de Corazones (5♥)</option>
+                        <option value="6_corazones">6 de Corazones (6♥)</option>
+                        <option value="7_corazones">7 de Corazones (7♥)</option>
+                        <option value="8_corazones">8 de Corazones (8♥)</option>
+                        <option value="9_corazones">9 de Corazones (9♥)</option>
+                        <option value="10_corazones">10 de Corazones (10♥)</option>
+                        <option value="J_corazones">Jota de Corazones (J♥)</option>
+                        <option value="Q_corazones">Reina de Corazones (Q♥)</option>
+                        <option value="K_corazones">Rey de Corazones (K♥)</option>
+                    </optgroup>
+                    <optgroup label="♠️ Picas">
+                        <option value="A_picas">As de Picas (A♠)</option>
+                        <option value="2_picas">2 de Picas (2♠)</option>
+                        <option value="3_picas">3 de Picas (3♠)</option>
+                        <option value="4_picas">4 de Picas (4♠)</option>
+                        <option value="5_picas">5 de Picas (5♠)</option>
+                        <option value="6_picas">6 de Picas (6♠)</option>
+                        <option value="7_picas">7 de Picas (7♠)</option>
+                        <option value="8_picas">8 de Picas (8♠)</option>
+                        <option value="9_picas">9 de Picas (9♠)</option>
+                        <option value="10_picas">10 de Picas (10♠)</option>
+                        <option value="J_picas">Jota de Picas (J♠)</option>
+                        <option value="Q_picas">Reina de Picas (Q♠)</option>
+                        <option value="K_picas">Rey de Picas (K♠)</option>
+                    </optgroup>
+                    <optgroup label="♦️ Diamantes">
+                        <option value="A_diamantes">As de Diamantes (A♦)</option>
+                        <option value="2_diamantes">2 de Diamantes (2♦)</option>
+                        <option value="3_diamantes">3 de Diamantes (3♦)</option>
+                        <option value="4_diamantes">4 de Diamantes (4♦)</option>
+                        <option value="5_diamantes">5 de Diamantes (5♦)</option>
+                        <option value="6_diamantes">6 de Diamantes (6♦)</option>
+                        <option value="7_diamantes">7 de Diamantes (7♦)</option>
+                        <option value="8_diamantes">8 de Diamantes (8♦)</option>
+                        <option value="9_diamantes">9 de Diamantes (9♦)</option>
+                        <option value="10_diamantes">10 de Diamantes (10♦)</option>
+                        <option value="J_diamantes">Jota de Diamantes (J♦)</option>
+                        <option value="Q_diamantes">Reina de Diamantes (Q♦)</option>
+                        <option value="K_diamantes">Rey de Diamantes (K♦)</option>
+                    </optgroup>
+                    <optgroup label="♣️ Tréboles">
+                        <option value="A_treboles">As de Tréboles (A♣)</option>
+                        <option value="2_treboles">2 de Tréboles (2♣)</option>
+                        <option value="3_treboles">3 de Tréboles (3♣)</option>
+                        <option value="4_treboles">4 de Tréboles (4♣)</option>
+                        <option value="5_treboles">5 de Tréboles (5♣)</option>
+                        <option value="6_treboles">6 de Tréboles (6♣)</option>
+                        <option value="7_treboles">7 de Tréboles (7♣)</option>
+                        <option value="8_treboles">8 de Tréboles (8♣)</option>
+                        <option value="9_treboles">9 de Tréboles (9♣)</option>
+                        <option value="10_treboles">10 de Tréboles (10♣)</option>
+                        <option value="J_treboles">Jota de Tréboles (J♣)</option>
+                        <option value="Q_treboles">Reina de Tréboles (Q♣)</option>
+                        <option value="K_treboles">Rey de Tréboles (K♣)</option>
+                    </optgroup>
+                </select>
+            </div>
+
+            <!-- Servidor API URL -->
+            <div class="setting-group">
+                <label class="setting-label">🌐 URL de Consulta API</label>
+                <input type="text" class="setting-input" id="apiUrlInput" placeholder="https://codigo-carta.vercel.app/api/carta_actual">
+            </div>
+
+            <!-- Ajuste de Imagen y Sonido -->
+            <div class="setting-row">
+                <div class="setting-group">
+                    <label class="setting-label">📺 Modo de Ajuste</label>
+                    <select class="setting-select" id="fitModeSelect">
+                        <option value="cover">Llenar Pantalla (Cover)</option>
+                        <option value="contain">Proporción 16:9 (Contain)</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label class="setting-label">🔊 Audio</label>
+                    <select class="setting-select" id="audioModeSelect">
+                        <option value="sound">Sonido Activado</option>
+                        <option value="muted">Silenciado (Mute)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Acciones -->
+            <div class="setting-actions">
+                <button class="btn btn-gold" id="btnSave">💾 Guardar Parámetros y Cerrar</button>
+                <button class="btn btn-dark" id="btnResetStandby">🔄 Reiniciar a Standby (Frame 0)</button>
+                <button class="btn btn-dark" id="btnForceCheck">⚡ Consultar Carta Actual a la API</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mapeo exhaustivo de las 52 cartas a sus archivos de vídeo
+        const CARD_TO_VIDEO = {
+            // Tréboles (clubs)
+            "A_treboles": "37_ace_of_clubs.mp4",
+            "2_treboles": "01_2_of_clubs.mp4",
+            "3_treboles": "05_3_of_clubs.mp4",
+            "4_treboles": "09_4_of_clubs.mp4",
+            "5_treboles": "13_5_of_clubs.mp4",
+            "6_treboles": "17_6_of_clubs.mp4",
+            "7_treboles": "21_7_of_clubs.mp4",
+            "8_treboles": "25_8_of_clubs.mp4",
+            "9_treboles": "29_9_of_clubs.mp4",
+            "10_treboles": "33_10_of_clubs.mp4",
+            "J_treboles": "41_jack_of_clubs.mp4",
+            "Q_treboles": "45_queen_of_clubs.mp4",
+            "K_treboles": "49_king_of_clubs.mp4",
+
+            // Diamantes (diamonds)
+            "A_diamantes": "38_ace_of_diamonds.mp4",
+            "2_diamantes": "02_2_of_diamonds.mp4",
+            "3_diamantes": "06_3_of_diamonds.mp4",
+            "4_diamantes": "10_4_of_diamonds.mp4",
+            "5_diamantes": "14_5_of_diamonds.mp4",
+            "6_diamantes": "18_6_of_diamonds.mp4",
+            "7_diamantes": "22_7_of_diamonds.mp4",
+            "8_diamantes": "26_8_of_diamonds.mp4",
+            "9_diamantes": "30_9_of_diamonds.mp4",
+            "10_diamantes": "34_10_of_diamonds.mp4",
+            "J_diamantes": "42_jack_of_diamonds.mp4",
+            "Q_diamantes": "46_queen_of_diamonds.mp4",
+            "K_diamantes": "50_king_of_diamonds.mp4",
+
+            // Corazones (hearts)
+            "A_corazones": "39_ace_of_hearts.mp4",
+            "2_corazones": "03_2_of_hearts.mp4",
+            "3_corazones": "07_3_of_hearts.mp4",
+            "4_corazones": "11_4_of_hearts.mp4",
+            "5_corazones": "15_5_of_hearts.mp4",
+            "6_corazones": "19_6_of_hearts.mp4",
+            "7_corazones": "23_7_of_hearts.mp4",
+            "8_corazones": "27_8_of_hearts.mp4",
+            "9_corazones": "31_9_of_hearts.mp4",
+            "10_corazones": "35_10_of_hearts.mp4",
+            "J_corazones": "43_jack_of_hearts.mp4",
+            "Q_corazones": "47_queen_of_hearts.mp4",
+            "K_corazones": "51_king_of_hearts.mp4",
+
+            // Picas (spades)
+            "A_picas": "40_ace_of_spades.mp4",
+            "2_picas": "04_2_of_spades.mp4",
+            "3_picas": "08_3_of_spades.mp4",
+            "4_picas": "12_4_of_spades.mp4",
+            "5_picas": "16_5_of_spades.mp4",
+            "6_picas": "20_6_of_spades.mp4",
+            "7_picas": "24_7_of_spades.mp4",
+            "8_picas": "28_8_of_spades.mp4",
+            "9_picas": "32_9_of_spades.mp4",
+            "10_picas": "36_10_of_spades.mp4",
+            "J_picas": "44_jack_of_spades.mp4",
+            "Q_picas": "48_queen_of_spades.mp4",
+            "K_picas": "52_king_of_spades.mp4"
+        };
+
+        // Estado del sistema
+        let API_URL = localStorage.getItem('video_api_url') || (window.location.origin && window.location.origin.includes('vercel.app') ? '/api/carta_actual' : 'https://codigo-carta.vercel.app/api/carta_actual');
+        let fitMode = localStorage.getItem('video_fit_mode') || 'cover';
+        let audioMode = localStorage.getItem('video_audio_mode') || 'sound';
+        let lastVersion = null;
+        let lastUpdatedAt = null;
+        let isPlaying = false;
+        let isFetching = false;
+        let pollingTimer = null;
+        const POLLING_INTERVAL_MS = 5000;
+
+        // Elementos del DOM
+        const revealVideo = document.getElementById('revealVideo');
+        const standbyImage = document.getElementById('standbyImage');
+        const secretZone = document.getElementById('secretZone');
+        const settingsModal = document.getElementById('settingsModal');
+        const btnCloseSettings = document.getElementById('btnCloseSettings');
+        const cardTestSelect = document.getElementById('cardTestSelect');
+        const apiUrlInput = document.getElementById('apiUrlInput');
+        const fitModeSelect = document.getElementById('fitModeSelect');
+        const audioModeSelect = document.getElementById('audioModeSelect');
+        const btnSave = document.getElementById('btnSave');
+        const btnResetStandby = document.getElementById('btnResetStandby');
+        const btnForceCheck = document.getElementById('btnForceCheck');
+        const statusDot = document.getElementById('statusDot');
+        const diagStatus = document.getElementById('diagStatus');
+        const toastMsg = document.getElementById('toastMsg');
+
+        // Función para mostrar mensajes toast
+        function showToast(msg) {
+            if (!toastMsg) return;
+            toastMsg.textContent = msg;
+            toastMsg.classList.add('show');
+            setTimeout(() => toastMsg.classList.remove('show'), 2500);
+        }
+
+        // Aplicar modo de ajuste de vídeo
+        function applyFitMode(mode) {
+            fitMode = mode;
+            revealVideo.style.objectFit = fitMode;
+            standbyImage.style.objectFit = fitMode;
+            fitModeSelect.value = fitMode;
+        }
+
+        // Aplicar modo de audio
+        function applyAudioMode(mode) {
+            audioMode = mode;
+            revealVideo.muted = (audioMode === 'muted');
+            audioModeSelect.value = audioMode;
+        }
+
+        // Obtener ruta del archivo de vídeo (funciona tanto en APK local como en Web)
+        function getVideoPath(videoFilename) {
+            // Si estamos en entorno web Vercel o servidor
+            if (window.location.protocol.startsWith('http')) {
+                return 'static/videos/' + videoFilename;
+            }
+            // Si estamos dentro del APK (file:///android_asset/...)
+            return 'videos/' + videoFilename;
+        }
+
+        // Reproducir vídeo de revelación de una carta
+        function playCardVideo(cardKey) {
+            const videoFilename = CARD_TO_VIDEO[cardKey];
+            if (!videoFilename) {
+                console.error('Carta no encontrada en el mapeo:', cardKey);
+                showToast('Carta no encontrada: ' + cardKey);
+                return;
+            }
+
+            const videoSrc = getVideoPath(videoFilename);
+            console.log('Reproduciendo vídeo de carta:', cardKey, '->', videoSrc);
+
+            isPlaying = true;
+            diagStatus.textContent = 'Revelando ' + cardKey.replace('_', ' ').toUpperCase();
+
+            revealVideo.src = videoSrc;
+            revealVideo.muted = (audioMode === 'muted');
+            revealVideo.classList.remove('revealed');
+            revealVideo.classList.add('playing');
+
+            // Ocultar standby cuando el vídeo esté listo para reproducir
+            revealVideo.oncanplay = () => {
+                standbyImage.style.opacity = '0';
+            };
+
+            const playPromise = revealVideo.play();
+            if (playPromise !== undefined) {
+                playPromise.then(() => {
+                    console.log('Vídeo iniciado correctamente');
+                }).catch(err => {
+                    console.warn('Auto-play con sonido bloqueado por navegador, reproduciendo en silencio:', err);
+                    revealVideo.muted = true;
+                    revealVideo.play();
+                });
+            }
+        }
+
+        // Al finalizar el vídeo: detener en el último fotograma estático
+        revealVideo.addEventListener('ended', () => {
+            console.log('Vídeo terminado -> Pausado en último frame');
+            isPlaying = false;
+            revealVideo.pause();
+            revealVideo.classList.remove('playing');
+            revealVideo.classList.add('revealed');
+            diagStatus.textContent = 'Revelada';
+        });
+
+        // Reiniciar al estado de Standby (Frame 0)
+        function resetToStandby() {
+            isPlaying = false;
+            revealVideo.pause();
+            revealVideo.currentTime = 0;
+            revealVideo.src = '';
+            revealVideo.classList.remove('playing', 'revealed');
+            standbyImage.style.opacity = '1';
+            diagStatus.textContent = 'Standby';
+            showToast('🔄 Reiniciado a Standby');
+        }
+
+        // Consulta de la carta actual al servidor API cada 5 segundos
+        async function fetchCartaActual() {
+            if (isFetching || isPlaying) return;
+            isFetching = true;
+            statusDot.className = 'status-dot fetching';
+
+            try {
+                const targetUrl = API_URL.includes('?') 
+                    ? `${API_URL}&_t=${Date.now()}` 
+                    : `${API_URL}?_t=${Date.now()}`;
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 4000);
+
+                const res = await fetch(targetUrl, {
+                    signal: controller.signal,
+                    cache: 'no-store'
+                });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+                const data = await res.json();
+                statusDot.className = 'status-dot';
+
+                if (data && data.valor && data.palo) {
+                    const cardKey = `${data.valor}_${data.palo}`.toLowerCase();
+                    const newVersion = data.version || 0;
+                    const newUpdatedAt = data.updated_at || '';
+
+                    // Inicializar en primera consulta
+                    if (lastVersion === null) {
+                        lastVersion = newVersion;
+                        lastUpdatedAt = newUpdatedAt;
+                        diagStatus.textContent = 'En línea';
+                        return;
+                    }
+
+                    // Detectar cambio de carta
+                    const isNewVersion = (newVersion > lastVersion);
+                    const isNewTimestamp = (newUpdatedAt && newUpdatedAt !== lastUpdatedAt);
+
+                    if (isNewVersion || isNewTimestamp) {
+                        console.log('¡Nuevo cambio detectado en API!', data);
+                        lastVersion = newVersion;
+                        lastUpdatedAt = newUpdatedAt;
+                        playCardVideo(cardKey);
+                    }
+                }
+            } catch(e) {
+                console.warn('Error en sondeo API:', e);
+                statusDot.className = 'status-dot error';
+            } finally {
+                isFetching = false;
+            }
+        }
+
+        // Iniciar polling
+        function startPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+            fetchCartaActual();
+            pollingTimer = setInterval(fetchCartaActual, POLLING_INTERVAL_MS);
+        }
+
+        // Manejador de doble toque para abrir configuración
+        let lastTapTime = 0;
+        secretZone.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTapTime < 350) {
+                openSettings();
+            }
+            lastTapTime = now;
+        });
+
+        secretZone.addEventListener('dblclick', () => {
+            openSettings();
+        });
+
+        // Abrir y Cerrar Modal de Ajustes
+        function openSettings() {
+            apiUrlInput.value = API_URL;
+            fitModeSelect.value = fitMode;
+            audioModeSelect.value = audioMode;
+            settingsModal.classList.add('open');
+        }
+
+        function closeSettings() {
+            settingsModal.classList.remove('open');
+        }
+
+        btnCloseSettings.addEventListener('click', closeSettings);
+
+        // Guardar ajustes
+        btnSave.addEventListener('click', () => {
+            const newUrl = apiUrlInput.value.trim();
+            if (newUrl) {
+                API_URL = newUrl;
+                localStorage.setItem('video_api_url', API_URL);
+            }
+            applyFitMode(fitModeSelect.value);
+            localStorage.setItem('video_fit_mode', fitMode);
+
+            applyAudioMode(audioModeSelect.value);
+            localStorage.setItem('video_audio_mode', audioMode);
+
+            closeSettings();
+            showToast('✅ Parámetros guardados');
+            fetchCartaActual();
+        });
+
+        // Probar carta manual
+        cardTestSelect.addEventListener('change', (e) => {
+            const selectedKey = e.target.value;
+            if (selectedKey) {
+                closeSettings();
+                playCardVideo(selectedKey);
+                cardTestSelect.value = '';
+            }
+        });
+
+        // Reiniciar a standby
+        btnResetStandby.addEventListener('click', () => {
+            closeSettings();
+            resetToStandby();
+        });
+
+        // Forzar chequeo
+        btnForceCheck.addEventListener('click', () => {
+            showToast('⚡ Consultando API...');
+            fetchCartaActual();
+        });
+
+        // Inicialización
+        applyFitMode(fitMode);
+        applyAudioMode(audioMode);
+        startPolling();
+    </script>
+</body>
+</html>
