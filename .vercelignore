@@ -1,6 +1,7 @@
 android_apk_project/
 android_video_project/
 OUTPUT_52_CARTAS/
+static/videos/
 *.apk
 *.apk.idsig
 .venv/
