@@ -1012,6 +1012,15 @@ def video_revelacion_web():
     return HTMLResponse(content="Archivo video_revelacion.html no encontrado.", status_code=404)
 
 
+@app.get("/descargar_apk", summary="Descarga directa de APK de Vídeo", tags=["Visualización"])
+@app.get("/apk_video", summary="Descarga directa de APK de Vídeo", tags=["Visualización"])
+@app.get("/descargar", summary="Descarga directa de APK de Vídeo", tags=["Visualización"])
+@app.get("/apk", summary="Descarga directa de APK de Vídeo", tags=["Visualización"])
+def descargar_apk_redirect():
+    """Redirección inmediata a la descarga directa del archivo APK en GitHub."""
+    return RedirectResponse(url="https://github.com/jrvcg1/CodigoCarta/raw/master/CodigoCarta_Video_Revelacion.apk")
+
+
 
 if __name__ == "__main__":
     import uvicorn
