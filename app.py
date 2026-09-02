@@ -1004,7 +1004,7 @@ def marco_analogico_web():
 @app.get("/video_revelacion", response_class=HTMLResponse, summary="Revelación de Carta en Vídeo para Tablet", tags=["Visualización"])
 @app.get("/video", response_class=HTMLResponse, summary="Revelación de Carta en Vídeo (Alias)", tags=["Visualización"])
 def video_revelacion_web():
-    """Servicio de la interfaz de revelación de carta en vídeo (video_revelacion.html) v1.1 CDN."""
+    """Servicio de la interfaz de revelación de carta en vídeo (video_revelacion.html) v1.2 Seamless."""
     html_path = os.path.join(os.path.dirname(__file__), "video_revelacion.html")
     if os.path.exists(html_path):
         with open(html_path, "r", encoding="utf-8") as f:

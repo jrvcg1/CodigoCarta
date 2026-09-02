@@ -46,6 +46,7 @@
             justify-content: center;
             background: #000000;
             cursor: pointer;
+            overflow: hidden;
         }
 
         /* Imagen fija de standby (frame 0) */
@@ -57,12 +58,13 @@
             height: 100%;
             object-fit: cover;
             z-index: 10;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.25s ease;
             opacity: 1;
             pointer-events: none;
+            background: #000000;
         }
 
-        /* Reproductor de vídeo */
+        /* Reproductor de vídeo sin fondo negro para evitar cualquier flash */
         #revealVideo {
             position: absolute;
             top: 0;
@@ -72,12 +74,11 @@
             object-fit: cover;
             z-index: 20;
             opacity: 0;
+            background: transparent;
             transition: opacity 0.2s ease;
-            background: #000000;
         }
 
-        #revealVideo.playing,
-        #revealVideo.revealed {
+        #revealVideo.active-rendering {
             opacity: 1;
         }
 
@@ -118,6 +119,12 @@
         .status-dot.fetching {
             background-color: #eab308;
             box-shadow: 0 0 8px #eab308;
+        }
+
+        .status-dot.stopped {
+            background-color: #6b7280;
+            box-shadow: none;
+            opacity: 0.3;
         }
 
         .status-dot.error {
@@ -301,10 +308,10 @@
 <body>
 
     <div id="stageContainer">
-        <!-- Frame 0 estático de Standby -->
+        <!-- Frame 0 estático de Standby (siempre visible debajo) -->
         <img id="standbyImage" src="static/standby_frame.jpg" alt="Standby">
 
-        <!-- Reproductor de vídeo para las 52 cartas -->
+        <!-- Reproductor de vídeo (inicialmente transparente para evitar pantalla en negro) -->
         <video id="revealVideo" playsinline preload="auto"></video>
 
         <!-- Zona táctil para abrir ajustes con doble toque -->
@@ -397,7 +404,7 @@
                 </select>
             </div>
 
-            <!-- Intervalo de Sondeo (Polling) y URL API -->
+            <!-- Intervalo de Sondeo (Polling) y Audio -->
             <div class="setting-row">
                 <div class="setting-group">
                     <label class="setting-label">⏱️ Intervalo de Sondeo</label>
@@ -434,7 +441,7 @@
             <!-- Acciones -->
             <div class="setting-actions">
                 <button class="btn btn-gold" id="btnSave">💾 Guardar Parámetros y Cerrar</button>
-                <button class="btn btn-dark" id="btnResetStandby">🔄 Reiniciar a Standby</button>
+                <button class="btn btn-dark" id="btnResetStandby">🔄 Reiniciar a Standby y Reanudar Sondeo</button>
                 <button class="btn btn-dark" id="btnForceCheck">⚡ Forzar Consulta API Ahora</button>
             </div>
         </div>
@@ -513,6 +520,7 @@
         let lastUpdatedAt = null;
         let lastCardKey = null;
         let isPlaying = false;
+        let isRevealed = false; // Bandera estricta: si es true, NO se realiza polling
         let isFetching = false;
         let pollingTimer = null;
 
@@ -558,11 +566,9 @@
 
         // Obtener ruta del archivo de vídeo (CDN para web/Vercel y local para APK Android)
         function getVideoPath(videoFilename) {
-            // Si estamos en entorno web (Vercel, localhost, etc.)
             if (window.location.protocol.startsWith('http')) {
                 return 'https://cdn.jsdelivr.net/gh/jrvcg1/CodigoCarta@master/static/videos/' + videoFilename;
             }
-            // Si estamos dentro del APK de Android (file:///android_asset/...)
             return 'videos/' + videoFilename;
         }
 
@@ -585,7 +591,26 @@
             return null;
         }
 
-        // Reproducir vídeo de revelación de una carta
+        // Detener sondeo (Polling) de forma garantizada y permanente
+        function stopPolling() {
+            if (pollingTimer) {
+                clearInterval(pollingTimer);
+                pollingTimer = null;
+            }
+            statusDot.className = 'status-dot stopped';
+            console.log('🛑 Sondeo (Polling) detenido permanentemente tras lanzamiento.');
+        }
+
+        // Iniciar polling solo cuando estamos en Standby
+        function startPolling() {
+            if (isRevealed || isPlaying) return; // Protección absoluta
+            if (pollingTimer) clearInterval(pollingTimer);
+            statusDot.className = 'status-dot';
+            fetchCartaActual();
+            pollingTimer = setInterval(fetchCartaActual, pollingInterval);
+        }
+
+        // Reproducir vídeo de revelación sin ningún flash negro
         function playCardVideo(cardKey) {
             const videoFilename = CARD_TO_VIDEO[cardKey];
             if (!videoFilename) {
@@ -594,56 +619,78 @@
                 return;
             }
 
-            const videoSrc = getVideoPath(videoFilename);
-            console.log('Reproduciendo vídeo:', cardKey, '->', videoSrc);
-
+            // 1. APAGAR EL POLLING INMEDIATAMENTE
+            stopPolling();
             isPlaying = true;
+            isRevealed = true;
 
+            const videoSrc = getVideoPath(videoFilename);
+            console.log('Lanzando vídeo con transición fluida (0ms negro):', cardKey, '->', videoSrc);
+
+            // Mantener imagen standby visible y vídeo transparente mientras carga y decodifica
+            standbyImage.style.opacity = '1';
+            revealVideo.classList.remove('active-rendering');
+            revealVideo.style.opacity = '0';
             revealVideo.src = videoSrc;
             revealVideo.muted = (audioMode === 'muted');
-            revealVideo.classList.remove('revealed');
-            revealVideo.classList.add('playing');
 
-            // Ocultar standby cuando el vídeo esté listo para reproducir
-            revealVideo.oncanplay = () => {
-                standbyImage.style.opacity = '0';
+            // Escuchar el momento exacto en que el vídeo realmente está pintando fotogramas activos
+            let transitionDone = false;
+            const onFrameReady = () => {
+                if (transitionDone) return;
+                if (revealVideo.currentTime > 0.01 || revealVideo.readyState >= 3) {
+                    transitionDone = true;
+                    revealVideo.classList.add('active-rendering');
+                    revealVideo.style.opacity = '1';
+                    // Desvanecer standby suavemente una vez que el vídeo ya está en pantalla
+                    standbyImage.style.opacity = '0';
+                    revealVideo.removeEventListener('timeupdate', onFrameReady);
+                    revealVideo.removeEventListener('playing', onFrameReady);
+                }
             };
+
+            revealVideo.addEventListener('playing', onFrameReady);
+            revealVideo.addEventListener('timeupdate', onFrameReady);
 
             const playPromise = revealVideo.play();
             if (playPromise !== undefined) {
                 playPromise.then(() => {
-                    console.log('Vídeo iniciado correctamente');
+                    console.log('Vídeo reproduciendo con éxito');
                 }).catch(err => {
-                    console.warn('Auto-play con sonido bloqueado, reproduciendo en silencio:', err);
+                    console.warn('Autoplay con sonido bloqueado por el navegador, reproduciendo en silencio:', err);
                     revealVideo.muted = true;
                     revealVideo.play();
                 });
             }
         }
 
-        // Al finalizar el vídeo: detener en el último fotograma estático
+        // Al finalizar el vídeo: congelar en el último fotograma y asegurar que el polling sigue apagado
         revealVideo.addEventListener('ended', () => {
-            console.log('Vídeo terminado -> Congelado en último frame');
+            console.log('Vídeo terminado -> Pausado en último frame. Sondeo apagado.');
             isPlaying = false;
+            isRevealed = true;
             revealVideo.pause();
-            revealVideo.classList.remove('playing');
-            revealVideo.classList.add('revealed');
+            stopPolling();
         });
 
-        // Reiniciar al estado de Standby (Frame 0)
+        // Reiniciar al estado de Standby (Frame 0) y reanudar polling
         function resetToStandby() {
             isPlaying = false;
+            isRevealed = false;
             revealVideo.pause();
             revealVideo.currentTime = 0;
             revealVideo.src = '';
-            revealVideo.classList.remove('playing', 'revealed');
+            revealVideo.classList.remove('active-rendering');
+            revealVideo.style.opacity = '0';
             standbyImage.style.opacity = '1';
             showToast('🔄 Reiniciado a Standby');
+            startPolling();
         }
 
         // Consulta de la carta actual al servidor API
         async function fetchCartaActual() {
-            if (isFetching || isPlaying) return;
+            // GARANTÍA: Si ya se ha lanzado el vídeo o se está mostrando la carta, NO hacer polling
+            if (isRevealed || isPlaying || isFetching) return;
             isFetching = true;
             statusDot.className = 'status-dot fetching';
 
@@ -700,13 +747,6 @@
             }
         }
 
-        // Iniciar polling configurable
-        function startPolling() {
-            if (pollingTimer) clearInterval(pollingTimer);
-            fetchCartaActual();
-            pollingTimer = setInterval(fetchCartaActual, pollingInterval);
-        }
-
         // Manejador de doble toque / doble clic para abrir configuración
         let lastTapTime = 0;
         secretZone.addEventListener('touchend', (e) => {
@@ -754,7 +794,9 @@
 
             closeSettings();
             showToast('✅ Parámetros guardados');
-            startPolling();
+            if (!isRevealed && !isPlaying) {
+                startPolling();
+            }
         });
 
         // Probar carta manual
@@ -776,6 +818,8 @@
         // Forzar chequeo
         btnForceCheck.addEventListener('click', () => {
             showToast('⚡ Consultando API...');
+            isRevealed = false;
+            isPlaying = false;
             lastVersion = -1; // Reset para forzar detección
             lastUpdatedAt = '';
             lastCardKey = '';
