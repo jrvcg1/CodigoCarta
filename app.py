@@ -1055,6 +1055,13 @@ def descargar_apk_marco_redirect():
     return RedirectResponse(url="https://github.com/jrvcg1/CodigoCarta/raw/master/CodigoCarta_Marco_Analogico.apk")
 
 
+@app.get("/descargar_consola", summary="Descarga directa de APK de Consola del Oráculo", tags=["Visualización"])
+@app.get("/apk_consola", summary="Descarga directa de APK de Consola del Oráculo", tags=["Visualización"])
+def descargar_apk_consola_redirect():
+    """Redirección inmediata a la descarga directa del archivo APK de la Consola del Oráculo en GitHub."""
+    return RedirectResponse(url="https://github.com/jrvcg1/CodigoCarta/raw/master/CodigoCarta_Consola.apk")
+
+
 
 if __name__ == "__main__":
     import uvicorn
