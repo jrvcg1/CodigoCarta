@@ -93,12 +93,13 @@
             bottom: 18px;
             right: 22px;
             font-family: 'Cinzel', monospace, sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            color: #2ecc71;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+            font-size: 10px;
+            font-weight: 900;
+            color: #00ff66;
+            text-shadow: 0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000;
             letter-spacing: 2px;
             pointer-events: none;
+            opacity: 1 !important;
         }
 
         .wallpaper-screen-mode {
@@ -119,10 +120,10 @@
             bottom: 18px;
             right: 22px;
             font-family: 'Cinzel', monospace, sans-serif;
-            font-size: 9px;
-            font-weight: 700;
-            color: #2ecc71;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95);
+            font-size: 10px;
+            font-weight: 900;
+            color: #00ff66;
+            text-shadow: 0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000;
             letter-spacing: 2px;
             pointer-events: none;
         }
@@ -1047,11 +1048,13 @@
         function setSecretPeekWaiting() {
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = '--';
-                wallpaperSecretPeek.style.color = '#2ecc71';
+                wallpaperSecretPeek.style.color = '#00ff66';
+                wallpaperSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
             }
             if (stealthSecretPeek) {
                 stealthSecretPeek.textContent = '--';
-                stealthSecretPeek.style.color = '#2ecc71';
+                stealthSecretPeek.style.color = '#00ff66';
+                stealthSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
             }
             if (qrSecretPeek) qrSecretPeek.textContent = '--';
         }
@@ -1060,11 +1063,13 @@
             let display = valStr || '--';
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = display;
-                wallpaperSecretPeek.style.color = '#2ecc71';
+                wallpaperSecretPeek.style.color = '#00ff66';
+                wallpaperSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
             }
             if (stealthSecretPeek) {
                 stealthSecretPeek.textContent = display;
-                stealthSecretPeek.style.color = '#2ecc71';
+                stealthSecretPeek.style.color = '#00ff66';
+                stealthSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
             }
             if (qrSecretPeek) qrSecretPeek.textContent = display;
         }
@@ -1073,10 +1078,12 @@
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = peekStr;
                 wallpaperSecretPeek.style.color = '#ffffff';
+                wallpaperSecretPeek.style.textShadow = '0 0 8px #ffffff, 0 0 16px rgba(255, 255, 255, 0.95), 0 1px 2px #000';
             }
             if (stealthSecretPeek) {
                 stealthSecretPeek.textContent = peekStr;
                 stealthSecretPeek.style.color = '#ffffff';
+                stealthSecretPeek.style.textShadow = '0 0 8px #ffffff, 0 0 16px rgba(255, 255, 255, 0.95), 0 1px 2px #000';
             }
             if (qrSecretPeek) qrSecretPeek.textContent = peekStr;
         }
@@ -1093,7 +1100,7 @@
                 document.body.classList.add('stealth-mode');
                 showStealthToast('🙈 PANTALLA NEGRA: Doble toque para restaurar');
                 if (window.Android && window.Android.setBrightness) {
-                    try { window.Android.setBrightness(0.01); } catch(e){}
+                    try { window.Android.setBrightness(1.0); } catch(e){}
                 }
             } else if (mode === 'wallpaper') {
                 document.body.classList.add('wallpaper-mode');
