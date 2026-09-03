@@ -346,10 +346,10 @@
             box-shadow: 0 0 8px rgba(217, 52, 43, 0.12);
         }
         .tile-conectar.listening {
-            border-color: #6DDE77;
-            color: #afffba;
-            background: linear-gradient(180deg, rgba(109, 222, 119, 0.35) 0%, rgba(10, 18, 12, 0.95) 100%);
-            box-shadow: 0 0 14px rgba(109, 222, 119, 0.4);
+            border-color: #6DDE77 !important;
+            color: #afffba !important;
+            background: linear-gradient(180deg, rgba(109, 222, 119, 0.35) 0%, rgba(10, 18, 12, 0.95) 100%) !important;
+            box-shadow: 0 0 14px rgba(109, 222, 119, 0.4) !important;
         }
 
         /* 2. Pantalla Negra */
@@ -775,31 +775,31 @@
             <!-- FILA 1: 5 BOTONES -->
             <div class="actions-row-top">
                 <!-- 1. Conectar -->
-                <button id="btnMic" class="btn-action-tile tile-conectar" title="Conectar o pausar escucha del micrófono">
+                <button id="btnMic" class="btn-action-tile tile-conectar" onclick="toggleMic()" title="Conectar o pausar escucha del micrófono">
                     <span class="tile-icon" id="micIcon">((•))</span>
                     <span class="tile-label" id="micText">CONECTAR</span>
                 </button>
 
                 <!-- 2. Pantalla Negra -->
-                <button id="btnHideUI" class="btn-action-tile tile-negra" title="Modo Pantalla Negra (Doble toque para restaurar)">
+                <button id="btnHideUI" class="btn-action-tile tile-negra" onclick="setScreenMode('black')" title="Modo Pantalla Negra (Doble toque para restaurar)">
                     <span class="tile-icon">🖥️</span>
                     <span class="tile-label">PANTALLA<br>NEGRA</span>
                 </button>
 
                 <!-- 3. Fondo -->
-                <button id="btnWallpaperUI" class="btn-action-tile tile-fondo" title="Modo Fondo Wallpaper (Doble toque para restaurar)">
+                <button id="btnWallpaperUI" class="btn-action-tile tile-fondo" onclick="setScreenMode('wallpaper')" title="Modo Fondo Wallpaper (Doble toque para restaurar)">
                     <span class="tile-icon">🖼️</span>
                     <span class="tile-label">FONDO</span>
                 </button>
 
                 <!-- 4. QR Visualizar -->
-                <button id="btnQRUI" class="btn-action-tile tile-qr-vis" title="Mostrar QR Espectador /visualizar">
+                <button id="btnQRUI" class="btn-action-tile tile-qr-vis" onclick="showQRModal('visualizar')" title="Mostrar QR Espectador /visualizar">
                     <span class="tile-icon">📱</span>
                     <span class="tile-label">QR<br>VISUALIZAR</span>
                 </button>
 
                 <!-- 5. QR Escuchar -->
-                <button id="btnQREscucharUI" class="btn-action-tile tile-qr-esc" title="Mostrar QR Revelación por Audio /escuchar">
+                <button id="btnQREscucharUI" class="btn-action-tile tile-qr-esc" onclick="showQRModal('escuchar')" title="Mostrar QR Revelación por Audio /escuchar">
                     <span class="tile-icon">🎧</span>
                     <span class="tile-label">QR<br>ESCUCHAR</span>
                 </button>
@@ -820,7 +820,7 @@
                 </a>
 
                 <!-- 8. QR Marco -->
-                <button id="btnQRMarcoUI" class="btn-action-tile tile-qr-marco" title="Mostrar QR Marco Analógico">
+                <button id="btnQRMarcoUI" class="btn-action-tile tile-qr-marco" onclick="showQRModal('marco')" title="Mostrar QR Marco Analógico">
                     <span class="tile-icon">📷</span>
                     <span class="tile-label">QR MARCO</span>
                 </button>
@@ -921,7 +921,10 @@
     </div>
 
     <script>
-        // --- LÓGICA DE MODOS DE PANTALLA (NORMAL, MODO SIGILOSO NEGRO, MODO QR, MODO FONDO) ---
+        // --- VARIABLES GLOBALES Y ELEMENTOS DOM ---
+        const btnMic = document.getElementById('btnMic');
+        const micIcon = document.getElementById('micIcon');
+        const micText = document.getElementById('micText');
         const btnHideUI = document.getElementById('btnHideUI');
         const btnWallpaperUI = document.getElementById('btnWallpaperUI');
         const btnQRUI = document.getElementById('btnQRUI');
@@ -935,7 +938,6 @@
         const wallpaperSecretPeek = document.getElementById('wallpaperSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
 
-        // Elementos dinámicos
         const keywordInput = document.getElementById('keywordInput');
         const kwDetectedName = document.getElementById('kwDetectedName');
         const interpCode = document.getElementById('interpCode');
@@ -947,6 +949,83 @@
         const serverTimeVal = document.getElementById('serverTimeVal');
         const logTimestampBadge = document.getElementById('logTimestampBadge');
         const transmitBigCheck = document.getElementById('transmitBigCheck');
+        const speechFeed = document.getElementById('speechFeed');
+        const calcBreakdownBox = document.getElementById('calcBreakdownBox');
+        const lockStatusBadge = document.getElementById('lockStatusBadge');
+        const cardTitle = document.getElementById('cardTitle');
+        const cardImg = document.getElementById('cardImg');
+        const phoneticDetail = document.getElementById('phoneticDetail');
+        const apiStatusTag = document.getElementById('apiStatusTag');
+        const apiJsonView = document.getElementById('apiJsonView');
+
+        let isListening = false;
+        let recognition = null;
+        let cardLocked = false;
+        let lastKwWordCount = -1;
+        let isRestarting = false;
+        let pendingCardTimer = null;
+        let watchdogInterval = null;
+        let proactiveCycleTimer = null;
+        let lastSpeechTime = Date.now();
+        let sessionStartTime = Date.now();
+        let wakeLock = null;
+
+        // --- FUNCIÓN TOGGLE MIC ACCESIBLE DESDE BOTÓN DIRECTO ---
+        function toggleMic() {
+            if (!recognition) {
+                recognition = createNewRecognition();
+            }
+            if (!recognition) {
+                alert('El reconocimiento de voz no está soportado en este navegador. Utiliza Google Chrome o Edge.');
+                return;
+            }
+
+            if (!isListening) {
+                isListening = true;
+                acquireWakeLock();
+                if (btnMic) btnMic.classList.add('listening');
+                if (micPulseDot) micPulseDot.classList.add('active');
+                if (micIcon) micIcon.textContent = '🟢';
+                if (micText) micText.textContent = 'ACTIVO';
+                if (waveStatusPill) {
+                    waveStatusPill.textContent = 'ACTIVO';
+                    waveStatusPill.style.color = '#afffba';
+                    waveStatusPill.style.borderColor = '#6DDE77';
+                }
+
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.log('Error al iniciar recognition:', e);
+                }
+
+                startProactiveCycling();
+
+                if (!watchdogInterval) {
+                    watchdogInterval = setInterval(() => {
+                        if (isListening && recognition && !isRestarting) {
+                            try { recognition.start(); } catch (e) {}
+                        }
+                    }, 2000);
+                }
+            } else {
+                isListening = false;
+                releaseWakeLock();
+                stopProactiveCycling();
+                if (btnMic) btnMic.classList.remove('listening');
+                if (micPulseDot) micPulseDot.classList.remove('active');
+                if (micIcon) micIcon.textContent = '((•))';
+                if (micText) micText.textContent = 'CONECTAR';
+                if (waveStatusPill) {
+                    waveStatusPill.textContent = 'EN ESPERA';
+                    waveStatusPill.style.color = '#D488FF';
+                    waveStatusPill.style.borderColor = 'rgba(154, 77, 255, 0.4)';
+                }
+                if (waveVolumeVal) waveVolumeVal.textContent = '0%';
+                if (watchdogInterval) { clearInterval(watchdogInterval); watchdogInterval = null; }
+                try { recognition.stop(); } catch(e) {}
+            }
+        }
 
         function promptEditKeyword() {
             let current = keywordInput.value || 'vale';
@@ -1060,12 +1139,6 @@
             }, 2400);
         }
 
-        if (btnHideUI) btnHideUI.addEventListener('click', () => setScreenMode('black'));
-        if (btnWallpaperUI) btnWallpaperUI.addEventListener('click', () => setScreenMode('wallpaper'));
-        if (btnQRUI) btnQRUI.addEventListener('click', () => showQRModal('visualizar'));
-        if (btnQREscucharUI) btnQREscucharUI.addEventListener('click', () => showQRModal('escuchar'));
-        if (btnQRMarcoUI) btnQRMarcoUI.addEventListener('click', () => showQRModal('marco'));
-
         // Gestos táctiles y doble tap
         let currentStealthOpacity = parseFloat(localStorage.getItem('stealth_opacity')) || 0.85;
 
@@ -1158,90 +1231,93 @@
         }
 
         function drawWaveform() {
-            if (!waveCanvas) return;
-            const ctx = waveCanvas.getContext('2d');
-            const width = waveCanvas.width;
-            const height = waveCanvas.height;
+            try {
+                if (!waveCanvas) return;
+                const ctx = waveCanvas.getContext('2d');
+                if (!ctx) return;
+                const width = waveCanvas.width;
+                const height = waveCanvas.height;
 
-            // Decaimiento suave de la energía de voz
-            if (isListening) {
-                voiceEnergy = Math.max(4, voiceEnergy * 0.92);
-            } else {
-                voiceEnergy = Math.max(0, voiceEnergy * 0.85);
-            }
-
-            let displayVol = Math.round(voiceEnergy);
-            if (waveVolumeVal) {
-                waveVolumeVal.textContent = isListening ? `${Math.max(1, displayVol)}%` : '0%';
-            }
-
-            ctx.clearRect(0, 0, width, height);
-
-            // Fondo oscuro
-            ctx.fillStyle = '#05030d';
-            ctx.fillRect(0, 0, width, height);
-
-            // Línea central de referencia
-            ctx.strokeStyle = 'rgba(154, 77, 255, 0.1)';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.moveTo(0, height / 2);
-            ctx.lineTo(width, height / 2);
-            ctx.stroke();
-
-            // Dibujar barras osciloscópicas reactivas
-            const barCount = 26;
-            const barWidth = (width / barCount) - 2.5;
-            const now = Date.now() * 0.004;
-
-            for (let i = 0; i < barCount; i++) {
-                let waveMod = Math.sin(now + i * 0.45) * 0.4 + Math.cos(now * 1.5 + i * 0.3) * 0.6;
-                let barPercent = (voiceEnergy / 100) * (0.4 + Math.abs(waveMod) * 0.6);
-
-                if (!isListening) barPercent = 0.04;
-
-                let barHeight = Math.max(3, barPercent * (height - 10));
-                let x = i * (barWidth + 2.5) + 3;
-                let y = (height - barHeight) / 2;
-
-                let grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
-                if (voiceEnergy > 45) {
-                    grad.addColorStop(0, '#6DDE77');
-                    grad.addColorStop(0.5, '#F3D785');
-                    grad.addColorStop(1, '#9A4DFF');
+                // Decaimiento suave de la energía de voz
+                if (isListening) {
+                    voiceEnergy = Math.max(4, voiceEnergy * 0.92);
                 } else {
-                    grad.addColorStop(0, '#D488FF');
-                    grad.addColorStop(0.5, '#9A4DFF');
-                    grad.addColorStop(1, '#4B1A8A');
+                    voiceEnergy = Math.max(0, voiceEnergy * 0.85);
                 }
 
-                ctx.fillStyle = grad;
-                ctx.shadowBlur = voiceEnergy > 30 ? 8 : 2;
-                ctx.shadowColor = '#9A4DFF';
+                let displayVol = Math.round(voiceEnergy);
+                if (waveVolumeVal) {
+                    waveVolumeVal.textContent = isListening ? `${Math.max(1, displayVol)}%` : '0%';
+                }
+
+                ctx.clearRect(0, 0, width, height);
+
+                // Fondo oscuro
+                ctx.fillStyle = '#05030d';
+                ctx.fillRect(0, 0, width, height);
+
+                // Línea central de referencia
+                ctx.strokeStyle = 'rgba(154, 77, 255, 0.12)';
+                ctx.lineWidth = 1;
                 ctx.beginPath();
-                ctx.roundRect(x, y, barWidth, barHeight, 2);
-                ctx.fill();
+                ctx.moveTo(0, height / 2);
+                ctx.lineTo(width, height / 2);
+                ctx.stroke();
+
+                // Dibujar barras osciloscópicas reactivas
+                const barCount = 26;
+                const barWidth = Math.max(2, (width / barCount) - 2.5);
+                const now = Date.now() * 0.004;
+
+                for (let i = 0; i < barCount; i++) {
+                    let waveMod = Math.sin(now + i * 0.45) * 0.4 + Math.cos(now * 1.5 + i * 0.3) * 0.6;
+                    let barPercent = (voiceEnergy / 100) * (0.35 + Math.abs(waveMod) * 0.65);
+
+                    if (!isListening) barPercent = 0.04;
+
+                    let barHeight = Math.max(3, barPercent * (height - 10));
+                    let x = i * (barWidth + 2.5) + 3;
+                    let y = (height - barHeight) / 2;
+
+                    let grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
+                    if (voiceEnergy > 45) {
+                        grad.addColorStop(0, '#6DDE77');
+                        grad.addColorStop(0.5, '#F3D785');
+                        grad.addColorStop(1, '#9A4DFF');
+                    } else {
+                        grad.addColorStop(0, '#D488FF');
+                        grad.addColorStop(0.5, '#9A4DFF');
+                        grad.addColorStop(1, '#4B1A8A');
+                    }
+
+                    ctx.fillStyle = grad;
+                    ctx.shadowBlur = voiceEnergy > 30 ? 6 : 0;
+                    ctx.shadowColor = '#9A4DFF';
+                    ctx.fillRect(x, y, barWidth, barHeight);
+                }
+
+                // Onda sinusoidal cian superpuesta
+                ctx.shadowBlur = isListening ? 8 : 0;
+                ctx.shadowColor = '#18C7E8';
+                ctx.strokeStyle = isListening ? 'rgba(24, 199, 232, 0.85)' : 'rgba(24, 199, 232, 0.2)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+
+                let sliceWidth = width / 24;
+                let xPos = 0;
+                let amp = isListening ? (voiceEnergy * 0.35 + 2) : 1;
+                let time = Date.now() * 0.006;
+
+                for (let i = 0; i <= 24; i++) {
+                    let yPos = (height / 2) + Math.sin(time + i * 0.5) * amp;
+                    if (i === 0) ctx.moveTo(xPos, yPos);
+                    else ctx.lineTo(xPos, yPos);
+                    xPos += sliceWidth;
+                }
+                ctx.stroke();
+            } catch(e) {
+                console.log('Waveform render error:', e);
             }
-
-            // Onda sinusoidal cian superpuesta
-            ctx.shadowBlur = 10;
-            ctx.shadowColor = '#18C7E8';
-            ctx.strokeStyle = isListening ? 'rgba(24, 199, 232, 0.85)' : 'rgba(24, 199, 232, 0.2)';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-
-            let sliceWidth = width / 24;
-            let xPos = 0;
-            let amp = isListening ? (voiceEnergy * 0.35 + 2) : 1;
-            let time = Date.now() * 0.006;
-
-            for (let i = 0; i <= 24; i++) {
-                let yPos = (height / 2) + Math.sin(time + i * 0.5) * amp;
-                if (i === 0) ctx.moveTo(xPos, yPos);
-                else ctx.lineTo(xPos, yPos);
-                xPos += sliceWidth;
-            }
-            ctx.stroke();
 
             waveAnimFrameId = requestAnimationFrame(drawWaveform);
         }
@@ -1431,32 +1507,6 @@
             };
         }
 
-        // --- ESTADO DE PROCESAMIENTO ---
-        const btnMic = document.getElementById('btnMic');
-        const micIcon = document.getElementById('micIcon');
-        const micText = document.getElementById('micText');
-        const kwAlert = document.getElementById('kwAlert');
-        const speechFeed = document.getElementById('speechFeed');
-        const calcBreakdownBox = document.getElementById('calcBreakdownBox');
-        const lockStatusBadge = document.getElementById('lockStatusBadge');
-        const cardTitle = document.getElementById('cardTitle');
-        const cardImg = document.getElementById('cardImg');
-        const phoneticDetail = document.getElementById('phoneticDetail');
-        const apiStatusTag = document.getElementById('apiStatusTag');
-        const apiJsonView = document.getElementById('apiJsonView');
-
-        let isListening = false;
-        let recognition = null;
-        let cardLocked = false;
-        let lastKwWordCount = -1;
-        let isRestarting = false;
-        let pendingCardTimer = null;
-        let watchdogInterval = null;
-        let proactiveCycleTimer = null;
-        let lastSpeechTime = Date.now();
-        let sessionStartTime = Date.now();
-        let wakeLock = null;
-
         async function acquireWakeLock() {
             try {
                 if ('wakeLock' in navigator) {
@@ -1610,7 +1660,7 @@
             } catch(e) {}
         }
 
-        // Inicializar objeto de reconocimiento
+        // Inicializar objeto de reconocimiento inicial
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             try {
                 recognition = createNewRecognition();
@@ -1618,61 +1668,6 @@
                 console.log('Error instanciando reconocimiento:', e);
             }
         }
-
-        // Listener del Botón CONECTAR
-        btnMic.addEventListener('click', () => {
-            if (!recognition) {
-                recognition = createNewRecognition();
-            }
-            if (!recognition) {
-                alert('El reconocimiento de voz no está soportado en este navegador. Utiliza Google Chrome o Edge.');
-                return;
-            }
-
-            if (!isListening) {
-                isListening = true;
-                acquireWakeLock();
-                btnMic.classList.add('listening');
-                micPulseDot.classList.add('active');
-                if (micIcon) micIcon.textContent = '🟢';
-                if (micText) micText.textContent = 'ACTIVO';
-                if (waveStatusPill) {
-                    waveStatusPill.textContent = 'ACTIVO';
-                    waveStatusPill.style.color = '#afffba';
-                    waveStatusPill.style.borderColor = '#6DDE77';
-                }
-
-                try {
-                    recognition.start();
-                } catch(e) {
-                    console.log('Error al invocar recognition.start():', e);
-                }
-
-                startProactiveCycling();
-
-                watchdogInterval = setInterval(() => {
-                    if (isListening && recognition && !isRestarting) {
-                        try { recognition.start(); } catch (e) {}
-                    }
-                }, 2000);
-            } else {
-                isListening = false;
-                releaseWakeLock();
-                stopProactiveCycling();
-                btnMic.classList.remove('listening');
-                micPulseDot.classList.remove('active');
-                if (micIcon) micIcon.textContent = '((•))';
-                if (micText) micText.textContent = 'CONECTAR';
-                if (waveStatusPill) {
-                    waveStatusPill.textContent = 'EN ESPERA';
-                    waveStatusPill.style.color = '#D488FF';
-                    waveStatusPill.style.borderColor = 'rgba(154, 77, 255, 0.4)';
-                }
-                if (waveVolumeVal) waveVolumeVal.textContent = '0%';
-                if (watchdogInterval) { clearInterval(watchdogInterval); watchdogInterval = null; }
-                try { recognition.stop(); } catch(e) {}
-            }
-        });
 
         function isKwMatch(w, kwInput) {
             if (!w) return false;
