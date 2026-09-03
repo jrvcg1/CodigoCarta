@@ -1044,8 +1044,15 @@ def video_revelacion_web():
 @app.get("/descargar", summary="Descarga directa de APK de Vídeo", tags=["Visualización"])
 @app.get("/apk", summary="Descarga directa de APK de Vídeo", tags=["Visualización"])
 def descargar_apk_redirect():
-    """Redirección inmediata a la descarga directa del archivo APK en GitHub."""
+    """Redirección inmediata a la descarga directa del archivo APK de Vídeo en GitHub."""
     return RedirectResponse(url="https://github.com/jrvcg1/CodigoCarta/raw/master/CodigoCarta_Video_Revelacion.apk")
+
+
+@app.get("/descargar_marco", summary="Descarga directa de APK de Marco Analógico", tags=["Visualización"])
+@app.get("/apk_marco", summary="Descarga directa de APK de Marco Analógico", tags=["Visualización"])
+def descargar_apk_marco_redirect():
+    """Redirección inmediata a la descarga directa del archivo APK de Marco Analógico en GitHub."""
+    return RedirectResponse(url="https://github.com/jrvcg1/CodigoCarta/raw/master/CodigoCarta_Marco_Analogico.apk")
 
 
 
