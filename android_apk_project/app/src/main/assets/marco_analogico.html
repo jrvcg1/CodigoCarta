@@ -797,7 +797,11 @@
         function returnToConsole() {
             showToast('🔮 Volviendo a la Consola...');
             setTimeout(() => {
-                window.location.href = '/probar_voz';
+                if (window.location.origin && window.location.origin.startsWith('http')) {
+                    window.location.href = window.location.origin + '/probar_voz';
+                } else {
+                    window.location.href = 'https://codigo-carta.vercel.app/probar_voz';
+                }
             }, 200);
         }
 
