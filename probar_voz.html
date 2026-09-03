@@ -3,23 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONSOLA DEL ORÁCULO — Sintonización de Señal & Transmisión del Escenario</title>
+    <title>CONECTAR CLAVE ORACULAR — Consola del Oráculo</title>
     <link rel="icon" type="image/svg+xml" href="/cartas_svg/dorso.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Montserrat:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;1,400&family=Space+Grotesk:wght@500;700&display=swap">
     <style>
         :root {
-            --bg-body: #050611;
-            --bg-panel-1: #090914;
-            --bg-panel-2: #070711;
-            --bg-card: rgba(14, 10, 24, 0.88);
-            --gold-light: #F1D37A;
+            --bg-body: #030206;
+            --bg-panel: #07050e;
+            --bg-card: rgba(12, 8, 22, 0.92);
+            --gold-light: #F3D785;
             --gold-main: #D4A84F;
             --gold-dark: #B8892E;
-            --border-gold: rgba(212, 168, 79, 0.75);
-            --border-gold-subtle: rgba(212, 168, 79, 0.35);
-            --text-gold: #F1D37A;
+            --border-gold: rgba(212, 168, 79, 0.65);
+            --border-card: rgba(212, 168, 79, 0.28);
+            --text-gold: #F3D785;
             --text-light: #f5f1fa;
             --text-lavender: #b3a5c9;
             --text-dim: #796f8c;
@@ -37,14 +36,15 @@
         }
 
         body {
-            background: radial-gradient(circle at 50% 12%, #110a24 0%, #080914 50%, #050611 100%);
+            background: #020104 radial-gradient(circle at 50% 10%, #120924 0%, #06040c 55%, #020104 100%);
             color: var(--text-light);
             font-family: 'Inter', system-ui, -apple-system, sans-serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 24px 14px 48px;
+            justify-content: center;
+            padding: 16px 8px 36px;
             user-select: none;
             -webkit-user-select: none;
             overflow-x: hidden;
@@ -142,7 +142,7 @@
         }
         .qr-title {
             font-family: 'Cinzel', serif;
-            font-size: clamp(20px, 4vw, 32px);
+            font-size: clamp(20px, 4vw, 30px);
             font-weight: 700;
             letter-spacing: 3px;
             color: var(--gold-light);
@@ -154,35 +154,35 @@
             font-size: 13px;
             color: var(--text-lavender);
             letter-spacing: 1.5px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             text-transform: uppercase;
         }
         .qr-box {
             background: #ffffff;
-            padding: 16px;
-            border-radius: 20px;
-            border: 3px solid var(--gold-main);
-            box-shadow: 0 0 50px rgba(212, 168, 79, 0.4), 0 20px 60px rgba(0,0,0,0.9);
-            margin-bottom: 20px;
+            padding: 14px;
+            border-radius: 18px;
+            border: 2px solid var(--gold-main);
+            box-shadow: 0 0 45px rgba(212, 168, 79, 0.35), 0 20px 60px rgba(0,0,0,0.9);
+            margin-bottom: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .qr-img {
-            width: min(70vw, 280px);
-            height: min(70vw, 280px);
+            width: min(68vw, 260px);
+            height: min(68vw, 260px);
             display: block;
             border-radius: 8px;
         }
         .qr-url-text {
             font-family: monospace;
-            font-size: 13px;
+            font-size: 12.5px;
             color: var(--cyan-glow);
             letter-spacing: 1px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
         .qr-secret-peek {
-            margin-top: 10px;
+            margin-top: 6px;
             font-family: 'Cinzel', monospace, sans-serif;
             font-size: 16px;
             font-weight: 700;
@@ -195,22 +195,22 @@
         /* TOAST FLOTANTE */
         .stealth-toast {
             position: fixed;
-            top: 20px;
+            top: 16px;
             left: 50%;
             transform: translateX(-50%);
             background: rgba(10, 6, 18, 0.95);
             border: 1px solid var(--gold-main);
             color: var(--gold-light);
-            padding: 10px 22px;
-            border-radius: 30px;
-            font-size: 12px;
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 11.5px;
             font-weight: 600;
             letter-spacing: 1px;
             z-index: 999999;
             box-shadow: 0 0 25px rgba(0,0,0,0.9);
             opacity: 0;
             pointer-events: none;
-            transition: opacity 0.5s ease;
+            transition: opacity 0.4s ease;
             text-align: center;
         }
         .stealth-toast.show {
@@ -220,8 +220,8 @@
         /* MIC PULSE DOT DISCRETO */
         .mic-pulse-dot {
             position: fixed;
-            top: 14px;
-            right: 14px;
+            top: 12px;
+            right: 12px;
             width: 6px;
             height: 6px;
             border-radius: 50%;
@@ -243,959 +243,570 @@
         }
 
         /* ====================================================
-           CONTENEDOR PRINCIPAL DARK PREMIUM
+           CONTENEDOR PRINCIPAL DARK PREMIUM TIPO MÓVIL
         ==================================================== */
         .console-wrapper {
             width: 100%;
-            max-width: 960px;
-            background: linear-gradient(180deg, #090914 0%, #070711 100%);
-            border: 1px solid rgba(212, 168, 79, 0.75);
-            border-radius: 22px;
-            padding: 26px 22px 34px;
-            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.95), 0 0 35px rgba(212, 168, 79, 0.1), inset 0 0 45px rgba(14, 10, 24, 0.7);
+            max-width: 480px;
+            background: linear-gradient(180deg, #090614 0%, #06040d 60%, #030207 100%);
+            border: 1.5px solid rgba(212, 168, 79, 0.6);
+            border-radius: 34px;
+            padding: 22px 14px 26px;
+            box-shadow: 0 25px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(212, 168, 79, 0.08), inset 0 0 35px rgba(18, 10, 32, 0.8);
             position: relative;
             display: flex;
             flex-direction: column;
-            gap: 20px;
-        }
-
-        /* Adornos esquinas doradas */
-        .console-wrapper::before, .console-wrapper::after {
-            content: '';
-            position: absolute;
-            width: 24px;
-            height: 24px;
-            border-color: var(--gold-light);
-            border-style: solid;
-            pointer-events: none;
-        }
-        .console-wrapper::before {
-            top: 7px;
-            left: 7px;
-            border-width: 2px 0 0 2px;
-            border-top-left-radius: 16px;
-        }
-        .console-wrapper::after {
-            bottom: 7px;
-            right: 7px;
-            border-width: 0 2px 2px 0;
-            border-bottom-right-radius: 16px;
-        }
-
-        /* ====================================================
-           CABECERA DEL ORÁCULO
-        ==================================================== */
-        .oracle-header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding-top: 4px;
-            position: relative;
-        }
-        .oracle-avatar-badge {
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            border: 1px solid var(--gold-main);
-            background: radial-gradient(circle, rgba(212, 168, 79, 0.28) 0%, rgba(10, 8, 20, 0.95) 70%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 22px rgba(212, 168, 79, 0.25);
-            margin-bottom: 10px;
-            position: relative;
-        }
-        .oracle-avatar-badge::before {
-            content: '';
-            position: absolute;
-            inset: -5px;
-            border-radius: 50%;
-            border: 1px dashed rgba(212, 168, 79, 0.45);
-            animation: spinOrbit 35s linear infinite;
-        }
-        @keyframes spinOrbit {
-            100% { transform: rotate(360deg); }
-        }
-        .oracle-avatar-icon {
-            width: 28px;
-            height: 28px;
-            fill: var(--gold-light);
-            filter: drop-shadow(0 0 6px rgba(241, 211, 122, 0.6));
-        }
-
-        .oracle-title {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(22px, 4vw, 34px);
-            font-weight: 700;
-            letter-spacing: 4px;
-            background: linear-gradient(180deg, #F1D37A 0%, #B98732 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-transform: uppercase;
-            margin-bottom: 4px;
-        }
-        .oracle-subtitle {
-            font-family: 'Montserrat', sans-serif;
-            font-size: clamp(10px, 2.2vw, 12px);
-            font-weight: 600;
-            letter-spacing: 2px;
-            color: var(--text-lavender);
-            text-transform: uppercase;
-            opacity: 0.85;
-        }
-
-        /* ====================================================
-           PANEL SUPERIOR: CLAVE ORACULAR
-        ==================================================== */
-        .key-panel-row {
-            width: 100%;
-            background: rgba(14, 10, 24, 0.75);
-            border: 1px solid rgba(212, 168, 79, 0.35);
-            border-radius: 14px;
-            padding: 12px 20px;
-            display: grid;
-            grid-template-columns: 1.2fr 1fr 1.2fr;
-            align-items: center;
             gap: 14px;
             box-sizing: border-box;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
-        }
-        .key-label-group {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .key-title {
-            font-family: 'Cinzel', serif;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--gold-light);
-            letter-spacing: 1px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .key-hint {
-            font-size: 10px;
-            color: var(--text-dim);
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
         }
 
-        .key-input-container {
-            display: flex;
-            justify-content: center;
-        }
-        .kw-input {
-            width: 100%;
-            max-width: 180px;
-            background: rgba(6, 4, 12, 0.95);
-            border: 1px solid var(--gold-main);
-            border-radius: 12px;
-            color: var(--gold-light);
-            font-family: 'Cinzel', monospace;
-            font-size: 17px;
-            font-weight: 800;
-            letter-spacing: 3px;
-            text-align: center;
-            text-transform: uppercase;
-            padding: 10px 14px;
-            outline: none;
-            box-shadow: 0 0 14px rgba(212, 168, 79, 0.18), inset 0 0 10px rgba(0,0,0,0.8);
-            transition: all 0.3s ease;
-        }
-        .kw-input:focus {
-            border-color: #ffe699;
-            box-shadow: 0 0 22px rgba(212, 168, 79, 0.45);
-        }
-
-        .channel-status-capsule {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 10px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.2px;
-            color: var(--green-glow);
-            text-transform: uppercase;
-            background: rgba(109, 222, 119, 0.08);
-            border: 1px solid rgba(109, 222, 119, 0.28);
-            padding: 8px 16px;
-            border-radius: 20px;
-            box-shadow: 0 0 12px rgba(109, 222, 119, 0.12);
-        }
-        .channel-status-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #6DDE77;
-            box-shadow: 0 0 10px #6DDE77;
-            animation: pulseStatus 2s infinite ease-in-out;
-        }
-        @keyframes pulseStatus {
-            0%, 100% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.25); opacity: 0.6; }
+        /* Fino borde interior */
+        .console-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: 3px;
+            border-radius: 30px;
+            border: 1px solid rgba(212, 168, 79, 0.15);
+            pointer-events: none;
         }
 
         /* ====================================================
-           CUADRÍCULA 3x3 DE BOTONES DE CONTROL
+           TÍTULO PRINCIPAL: CONECTAR CLAVE ORACULAR
         ==================================================== */
-        .controls-grid-3x3 {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            width: 100%;
+        .top-oracle-title {
+            text-align: center;
+            font-family: 'Cinzel', serif;
+            font-size: clamp(14px, 3.8vw, 17px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            color: var(--gold-light);
+            text-shadow: 0 0 14px rgba(243, 215, 133, 0.35);
+            text-transform: uppercase;
+            padding: 4px 0 2px;
+            cursor: pointer;
         }
 
-        .btn-ctrl {
-            min-height: 54px;
-            padding: 10px 14px;
-            border-radius: 14px;
-            font-family: 'Montserrat', sans-serif;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 0.8px;
-            text-transform: uppercase;
-            text-decoration: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: flex-start;
-            gap: 10px;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            box-sizing: border-box;
-            background: rgba(12, 8, 20, 0.88);
-            border: 1px solid transparent;
-            user-select: none;
+        /* Input de trigger oculto/accesible */
+        .trigger-input-hidden {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            width: 1px;
+            height: 1px;
         }
-        .btn-ctrl .ctrl-icon {
-            font-size: 18px;
+
+        /* ====================================================
+           BARRA HORIZONTAL SUPERIOR DE 9 BOTONES
+        ==================================================== */
+        .actions-top-bar {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 5px;
+            width: 100%;
+            margin-bottom: 2px;
+        }
+
+        .btn-action-tile {
+            aspect-ratio: 1 / 1.25;
+            min-height: 54px;
+            border-radius: 9px;
+            background: rgba(12, 8, 20, 0.85);
+            border: 1px solid transparent;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-            width: 28px;
+            text-decoration: none;
+            cursor: pointer;
+            padding: 3px 2px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            box-sizing: border-box;
+            user-select: none;
         }
-        .btn-ctrl .ctrl-text {
-            line-height: 1.25;
-            text-align: left;
-        }
-        .btn-ctrl:hover {
+        .btn-action-tile:hover {
             transform: translateY(-2px);
         }
 
-        /* 1. Conectar Mic (Rojo) */
-        .btn-mic-ctrl {
-            border-color: rgba(217, 52, 43, 0.65);
-            background: linear-gradient(135deg, rgba(217, 52, 43, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #ff8b85;
-            box-shadow: 0 0 14px rgba(217, 52, 43, 0.15);
+        .btn-action-tile .tile-icon {
+            font-size: 14px;
+            line-height: 1;
+            margin-bottom: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .btn-mic-ctrl:hover {
-            border-color: #ff5247;
-            box-shadow: 0 0 22px rgba(217, 52, 43, 0.35);
+        .btn-action-tile .tile-label {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 6.8px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            text-transform: uppercase;
+            text-align: center;
+            line-height: 1.1;
         }
-        .btn-mic-ctrl.listening {
+
+        /* 1. Conectar (Rojo) */
+        .tile-conectar {
+            border-color: #D9342B;
+            color: #ff7d75;
+            background: linear-gradient(180deg, rgba(217, 52, 43, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            box-shadow: 0 0 10px rgba(217, 52, 43, 0.15);
+        }
+        .tile-conectar.listening {
             border-color: #6DDE77;
-            background: linear-gradient(135deg, rgba(109, 222, 119, 0.3) 0%, rgba(10, 18, 12, 0.92) 100%);
             color: #afffba;
-            box-shadow: 0 0 24px rgba(109, 222, 119, 0.4);
-            animation: pulseMicCtrl 2s infinite;
-        }
-        @keyframes pulseMicCtrl {
-            0%, 100% { box-shadow: 0 0 14px rgba(109, 222, 119, 0.3); }
-            50% { box-shadow: 0 0 28px rgba(109, 222, 119, 0.6); }
+            background: linear-gradient(180deg, rgba(109, 222, 119, 0.35) 0%, rgba(10, 18, 12, 0.95) 100%);
+            box-shadow: 0 0 15px rgba(109, 222, 119, 0.5);
         }
 
         /* 2. Pantalla Negra */
-        .btn-black-ctrl {
-            border-color: rgba(72, 69, 86, 0.7);
-            background: linear-gradient(135deg, rgba(72, 69, 86, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
+        .tile-negra {
+            border-color: #484556;
             color: #d1ccdf;
-            box-shadow: 0 0 12px rgba(72, 69, 86, 0.15);
-        }
-        .btn-black-ctrl:hover {
-            border-color: #837e9b;
-            color: #ffffff;
-            box-shadow: 0 0 20px rgba(72, 69, 86, 0.35);
+            background: linear-gradient(180deg, rgba(72, 69, 86, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 3. Fondo */
-        .btn-wallpaper-ctrl {
-            border-color: rgba(44, 159, 232, 0.65);
-            background: linear-gradient(135deg, rgba(44, 159, 232, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #87d0ff;
-            box-shadow: 0 0 14px rgba(44, 159, 232, 0.15);
-        }
-        .btn-wallpaper-ctrl:hover {
-            border-color: #5bbbf7;
-            box-shadow: 0 0 22px rgba(44, 159, 232, 0.35);
+        .tile-fondo {
+            border-color: #18C7E8;
+            color: #6ee6fc;
+            background: linear-gradient(180deg, rgba(24, 199, 232, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 4. QR Visualizar */
-        .btn-qr-vis-ctrl {
-            border-color: rgba(24, 199, 232, 0.65);
-            background: linear-gradient(135deg, rgba(24, 199, 232, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #7deeff;
-            box-shadow: 0 0 14px rgba(24, 199, 232, 0.15);
-        }
-        .btn-qr-vis-ctrl:hover {
-            border-color: #4fe7ff;
-            box-shadow: 0 0 22px rgba(24, 199, 232, 0.35);
+        .tile-qr-vis {
+            border-color: #18C7E8;
+            color: #6ee6fc;
+            background: linear-gradient(180deg, rgba(24, 199, 232, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 5. QR Escuchar */
-        .btn-qr-esc-ctrl {
-            border-color: rgba(33, 216, 192, 0.65);
-            background: linear-gradient(135deg, rgba(33, 216, 192, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #8afff0;
-            box-shadow: 0 0 14px rgba(33, 216, 192, 0.15);
-        }
-        .btn-qr-esc-ctrl:hover {
-            border-color: #55ffec;
-            box-shadow: 0 0 22px rgba(33, 216, 192, 0.35);
+        .tile-qr-esc {
+            border-color: #21D8C0;
+            color: #7affef;
+            background: linear-gradient(180deg, rgba(33, 216, 192, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 6. Vídeo Tablet */
-        .btn-video-ctrl {
-            border-color: rgba(236, 62, 140, 0.65);
-            background: linear-gradient(135deg, rgba(236, 62, 140, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #ff91c5;
-            box-shadow: 0 0 14px rgba(236, 62, 140, 0.15);
-        }
-        .btn-video-ctrl:hover {
-            border-color: #ff68b0;
-            box-shadow: 0 0 22px rgba(236, 62, 140, 0.35);
+        .tile-video {
+            border-color: #EC3E8C;
+            color: #ffa1cc;
+            background: linear-gradient(180deg, rgba(236, 62, 140, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 7. Marco Analógico */
-        .btn-marco-ctrl {
-            border-color: rgba(166, 92, 255, 0.65);
-            background: linear-gradient(135deg, rgba(166, 92, 255, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #d1a8ff;
-            box-shadow: 0 0 14px rgba(166, 92, 255, 0.15);
-        }
-        .btn-marco-ctrl:hover {
-            border-color: #b97dff;
-            box-shadow: 0 0 22px rgba(166, 92, 255, 0.35);
+        .tile-marco {
+            border-color: #A65CFF;
+            color: #d9b8ff;
+            background: linear-gradient(180deg, rgba(166, 92, 255, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 8. QR Marco */
-        .btn-qrmarco-ctrl {
-            border-color: rgba(138, 63, 252, 0.65);
-            background: linear-gradient(135deg, rgba(138, 63, 252, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #caa0ff;
-            box-shadow: 0 0 14px rgba(138, 63, 252, 0.15);
-        }
-        .btn-qrmarco-ctrl:hover {
-            border-color: #9d59ff;
-            box-shadow: 0 0 22px rgba(138, 63, 252, 0.35);
+        .tile-qr-marco {
+            border-color: #8A3FFC;
+            color: #cca8ff;
+            background: linear-gradient(180deg, rgba(138, 63, 252, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 9. Configuración */
-        .btn-cfg-ctrl {
-            border-color: rgba(216, 156, 37, 0.65);
-            background: linear-gradient(135deg, rgba(216, 156, 37, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
-            color: #ffd678;
-            box-shadow: 0 0 14px rgba(216, 156, 37, 0.15);
-        }
-        .btn-cfg-ctrl:hover {
-            border-color: #ffbe42;
-            box-shadow: 0 0 22px rgba(216, 156, 37, 0.35);
+        .tile-config {
+            border-color: #D89C25;
+            color: #ffd978;
+            background: linear-gradient(180deg, rgba(216, 156, 37, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* ====================================================
-           SEPARADOR ORNAMENTAL
+           FILAS EN GRID DE 2 COLUMNAS
         ==================================================== */
-        .ornament-separator {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 14px;
-            margin: 4px 0 2px;
-        }
-        .ornament-line {
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(212, 168, 79, 0.45), transparent);
-        }
-        .ornament-title {
-            font-family: 'Cinzel', serif;
-            font-size: 13px;
-            font-weight: 700;
-            color: var(--gold-light);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* ====================================================
-           SECCIÓN CENTRAL (3 COLUMNAS)
-        ==================================================== */
-        .signal-grid-3col {
+        .row-grid-2col {
             display: grid;
-            grid-template-columns: 1fr 1.3fr 1fr;
-            gap: 14px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
             width: 100%;
         }
 
-        .signal-card {
-            background: rgba(12, 8, 20, 0.85);
-            border: 1px solid rgba(212, 168, 79, 0.3);
-            border-radius: 16px;
-            padding: 16px;
+        .oracle-card-box {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: 14px;
+            padding: 12px 10px;
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
             position: relative;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
-            min-height: 180px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
             box-sizing: border-box;
         }
 
-        /* Col 1: Radar Orbital del Micrófono */
-        .mic-radar-box {
-            position: relative;
-            width: 130px;
-            height: 130px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .radar-orbit-1, .radar-orbit-2, .radar-orbit-3 {
-            position: absolute;
-            border-radius: 50%;
-            border: 1px solid rgba(154, 77, 255, 0.25);
-            pointer-events: none;
-        }
-        .radar-orbit-1 { width: 70px; height: 70px; border-style: dashed; }
-        .radar-orbit-2 { width: 100px; height: 100px; border-color: rgba(154, 77, 255, 0.35); }
-        .radar-orbit-3 { width: 128px; height: 128px; border-color: rgba(154, 77, 255, 0.5); box-shadow: 0 0 20px rgba(154, 77, 255, 0.15); }
-
-        .mic-radar-core {
-            width: 58px;
-            height: 58px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(183, 104, 255, 0.35) 0%, rgba(10, 6, 20, 0.95) 75%);
-            border: 1px solid #B768FF;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 25px rgba(154, 77, 255, 0.4);
-            transition: all 0.3s ease;
-        }
-        .mic-radar-icon {
-            font-size: 24px;
-            filter: drop-shadow(0 0 6px rgba(241, 211, 122, 0.8));
-        }
-
-        /* Col 2: Palabra Detectada & Onda de Audio */
-        .detected-word-header {
+        .card-box-header {
             font-family: 'Cinzel', serif;
-            font-size: 11px;
+            font-size: 9.5px;
             font-weight: 700;
-            letter-spacing: 1.5px;
-            color: var(--text-lavender);
+            letter-spacing: 1.2px;
+            color: var(--gold-light);
             text-transform: uppercase;
-            margin-bottom: 6px;
-        }
-        .detected-word-display {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(28px, 4.5vw, 42px);
-            font-weight: 900;
-            color: #E7D9FF;
-            text-shadow: 0 0 20px rgba(154, 77, 255, 0.6), 0 0 4px #ffffff;
-            letter-spacing: 4px;
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            min-height: 48px;
             display: flex;
             align-items: center;
+            gap: 5px;
+            margin-bottom: 8px;
+        }
+        .card-box-header.center {
             justify-content: center;
         }
-        .audio-wave-box {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            height: 28px;
-            width: 100%;
-        }
-        .wave-bar {
-            width: 3px;
-            background: linear-gradient(180deg, #C96CFF 0%, #8F3CFF 100%);
-            border-radius: 3px;
-            box-shadow: 0 0 8px rgba(201, 108, 255, 0.6);
-            animation: waveBounce 1.2s infinite ease-in-out;
-        }
-        .wave-bar:nth-child(1) { height: 6px; animation-delay: 0.1s; }
-        .wave-bar:nth-child(2) { height: 14px; animation-delay: 0.3s; }
-        .wave-bar:nth-child(3) { height: 22px; animation-delay: 0.2s; }
-        .wave-bar:nth-child(4) { height: 26px; animation-delay: 0.4s; }
-        .wave-bar:nth-child(5) { height: 18px; animation-delay: 0.15s; }
-        .wave-bar:nth-child(6) { height: 26px; animation-delay: 0.35s; }
-        .wave-bar:nth-child(7) { height: 20px; animation-delay: 0.25s; }
-        .wave-bar:nth-child(8) { height: 12px; animation-delay: 0.45s; }
-        .wave-bar:nth-child(9) { height: 6px; animation-delay: 0.1s; }
 
-        @keyframes waveBounce {
-            0%, 100% { transform: scaleY(0.4); opacity: 0.5; }
+        /* ====================================================
+           FILA 1: PALABRA DETECTADA & INTERPRETACIÓN
+        ==================================================== */
+        /* Col 1: Palabra Detectada */
+        .palabra-box {
+            align-items: center;
+            justify-content: space-between;
+            min-height: 140px;
+            padding: 12px 6px 8px;
+        }
+        .palabra-display {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(24px, 5.5vw, 32px);
+            font-weight: 900;
+            color: #F1E5FF;
+            text-shadow: 0 0 16px rgba(154, 77, 255, 0.7), 0 0 2px #ffffff;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            text-align: center;
+            margin: auto 0;
+            cursor: pointer;
+        }
+        /* Onda de audio fina violeta */
+        .audio-wave-strip {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            height: 24px;
+            width: 100%;
+            padding: 0 6px;
+        }
+        .wave-line {
+            flex: 1;
+            max-width: 2.5px;
+            background: linear-gradient(180deg, #D488FF 0%, #8F3CFF 100%);
+            border-radius: 2px;
+            box-shadow: 0 0 6px rgba(201, 108, 255, 0.7);
+            animation: waveAnim 1.2s infinite ease-in-out;
+        }
+        .wave-line:nth-child(1) { height: 4px; animation-delay: 0.1s; }
+        .wave-line:nth-child(2) { height: 8px; animation-delay: 0.3s; }
+        .wave-line:nth-child(3) { height: 16px; animation-delay: 0.15s; }
+        .wave-line:nth-child(4) { height: 22px; animation-delay: 0.35s; }
+        .wave-line:nth-child(5) { height: 12px; animation-delay: 0.2s; }
+        .wave-line:nth-child(6) { height: 24px; animation-delay: 0.4s; }
+        .wave-line:nth-child(7) { height: 18px; animation-delay: 0.1s; }
+        .wave-line:nth-child(8) { height: 24px; animation-delay: 0.3s; }
+        .wave-line:nth-child(9) { height: 14px; animation-delay: 0.25s; }
+        .wave-line:nth-child(10) { height: 22px; animation-delay: 0.45s; }
+        .wave-line:nth-child(11) { height: 16px; animation-delay: 0.15s; }
+        .wave-line:nth-child(12) { height: 8px; animation-delay: 0.35s; }
+        .wave-line:nth-child(13) { height: 4px; animation-delay: 0.1s; }
+
+        @keyframes waveAnim {
+            0%, 100% { transform: scaleY(0.35); opacity: 0.45; }
             50% { transform: scaleY(1); opacity: 1; }
         }
 
-        /* Col 3: Interpretación */
-        .interp-header {
-            font-family: 'Cinzel', serif;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: var(--gold-light);
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-bottom: 12px;
-            align-self: flex-start;
+        /* Col 2: Interpretación */
+        .interp-box {
+            justify-content: flex-start;
+            gap: 7px;
+            font-size: 9px;
+            font-family: 'Space Grotesk', sans-serif;
         }
-        .interp-rows {
-            width: 100%;
+        .interp-field-row {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            font-size: 11px;
-            text-align: left;
+            gap: 1px;
+            color: var(--gold-light);
+            font-weight: 700;
+            letter-spacing: 0.6px;
         }
-        .interp-row {
+        .interp-field-val {
+            color: #ffffff;
+            font-family: 'Cinzel', serif;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+        .interp-stat-line {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            color: var(--text-lavender);
-            font-family: 'Montserrat', sans-serif;
+            font-size: 8.5px;
             font-weight: 600;
+            color: var(--text-gold);
+            letter-spacing: 0.5px;
         }
-        .interp-row span:last-child {
-            color: var(--text-light);
+        .interp-stat-line span:last-child {
+            color: #ffffff;
             font-family: 'Space Grotesk', monospace;
             font-weight: 700;
         }
-        .confidence-progress-bar {
+        .interp-progress-bar {
             width: 100%;
-            height: 5px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.08);
-            border-radius: 4px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-top: 4px;
+            margin-top: 2px;
         }
-        .confidence-progress-fill {
+        .interp-progress-fill {
             height: 100%;
             width: 94%;
-            background: linear-gradient(90deg, #B8892E 0%, #F1D37A 100%);
-            box-shadow: 0 0 10px rgba(241, 211, 122, 0.6);
-            border-radius: 4px;
-            transition: width 0.4s ease;
+            background: linear-gradient(90deg, #B8892E 0%, #F3D785 100%);
+            box-shadow: 0 0 8px rgba(243, 215, 133, 0.6);
+            border-radius: 3px;
+            transition: width 0.3s ease;
         }
 
         /* ====================================================
-           SECCIÓN INFERIOR CENTRAL (2 COLUMNAS)
+           FILA 2: CARTA SINTONIZADA & TRANSMISIÓN AL SERVIDOR
         ==================================================== */
-        .middle-grid-2col {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 14px;
-            width: 100%;
-        }
-
-        .middle-card {
-            background: rgba(12, 8, 20, 0.85);
-            border: 1px solid rgba(212, 168, 79, 0.35);
-            border-radius: 16px;
-            padding: 20px;
-            display: flex;
-            flex-direction: column;
+        /* Col 1: Carta Sintonizada */
+        .carta-stage-box {
             align-items: center;
-            position: relative;
-            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.7);
-            box-sizing: border-box;
+            justify-content: center;
+            min-height: 175px;
         }
-
-        .middle-card-title {
-            font-family: 'Cinzel', serif;
-            font-size: 12px;
-            font-weight: 700;
-            letter-spacing: 1.8px;
-            color: var(--gold-light);
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-bottom: 16px;
-            align-self: flex-start;
-        }
-
-        /* Carta Sintonizada */
-        .card-stage-box {
+        .carta-frame-wrap {
             position: relative;
-            width: 160px;
-            height: 224px;
-            margin-bottom: 12px;
+            width: 105px;
+            height: 148px;
             display: flex;
             align-items: center;
             justify-content: center;
+            margin: 2px 0;
         }
-        .card-sacred-bg {
+        .carta-sacred-rings {
             position: absolute;
-            inset: -20px;
+            inset: -14px;
             border-radius: 50%;
-            border: 1px solid rgba(212, 168, 79, 0.2);
+            border: 1px solid rgba(212, 168, 79, 0.22);
             pointer-events: none;
-            box-shadow: inset 0 0 20px rgba(212, 168, 79, 0.05);
         }
-        .card-sacred-bg::after {
+        .carta-sacred-rings::after {
             content: '';
             position: absolute;
-            inset: 8px;
+            inset: 6px;
             border-radius: 50%;
-            border: 1px dashed rgba(212, 168, 79, 0.15);
+            border: 1px dashed rgba(212, 168, 79, 0.16);
         }
-
-        .card-display-img {
+        .carta-img-element {
             width: 100%;
             height: 100%;
-            border-radius: 12px;
-            box-shadow: 0 12px 35px rgba(0,0,0,0.9), 0 0 25px rgba(212,168,79,0.3);
+            border-radius: 8px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.9), 0 0 16px rgba(212,168,79,0.25);
             border: 1px solid var(--gold-main);
             background: #ffffff;
             object-fit: fill;
-            transition: transform 0.5s ease;
             position: relative;
             z-index: 2;
+            transition: transform 0.4s ease;
         }
-        .card-display-img.pop {
-            animation: cardPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        .carta-img-element.pop {
+            animation: cardPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         @keyframes cardPop {
             0% { transform: scale(0.85) rotateY(90deg); opacity: 0.3; }
             100% { transform: scale(1) rotateY(0deg); opacity: 1; }
         }
 
-        .result-badge {
-            font-family: 'Cinzel', serif;
-            font-size: 14px;
-            font-weight: 700;
-            color: var(--gold-light);
-            letter-spacing: 1.5px;
-            margin-top: 4px;
-            text-align: center;
-            text-transform: uppercase;
-        }
-        .phonetic-breakdown {
-            font-size: 11px;
-            color: var(--text-dim);
-            text-align: center;
-            line-height: 1.6;
-            margin-top: 6px;
-        }
-
-        /* Transmisión al Servidor */
-        .server-transmit-box {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
+        /* Col 2: Transmisión al Servidor */
+        .transmit-box {
             align-items: center;
-            gap: 14px;
+            justify-content: space-between;
+            min-height: 175px;
         }
-        .transmit-status-circle {
-            width: 56px;
-            height: 56px;
+        .transmit-big-check {
+            width: 54px;
+            height: 54px;
             border-radius: 50%;
-            background: rgba(109, 222, 119, 0.15);
-            border: 2px solid #83D86C;
-            color: #83D86C;
+            border: 2px solid #6DDE77;
+            background: rgba(109, 222, 119, 0.12);
+            color: #6DDE77;
             font-size: 26px;
             font-weight: 800;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 20px rgba(131, 216, 108, 0.35);
+            box-shadow: 0 0 18px rgba(109, 222, 119, 0.3);
+            margin: 6px 0;
         }
-        .transmit-headline {
-            font-family: 'Cinzel', serif;
-            font-size: 19px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: #83D86C;
-            text-transform: uppercase;
-        }
-        .transmit-subtext {
-            font-family: 'Playfair Display', serif;
-            font-style: italic;
-            font-size: 12.5px;
-            color: #9fe894;
-            text-align: center;
-            margin-top: -4px;
-        }
-
-        .transmit-meta-table {
+        .transmit-table {
             width: 100%;
-            border-top: 1px solid rgba(212, 168, 79, 0.2);
-            padding-top: 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             font-family: 'Space Grotesk', monospace;
-            font-size: 11px;
+            font-size: 8.5px;
+            border-top: 1px solid rgba(212, 168, 79, 0.18);
+            padding-top: 6px;
         }
-        .meta-table-row {
+        .transmit-table-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 2px 0;
         }
-        .meta-table-row span:first-child {
-            color: var(--text-lavender);
-            letter-spacing: 1px;
-            text-transform: uppercase;
+        .transmit-table-row span:first-child {
+            color: var(--gold-light);
+            font-weight: 700;
         }
-        .meta-table-row span:last-child {
-            color: var(--text-light);
+        .transmit-table-row span:last-child {
+            color: #ffffff;
             font-weight: 700;
         }
 
         /* ====================================================
-           PANEL: REGISTRO DE TRANSMISIÓN DE AMBIENTE
+           FILA 3: REGISTROS INFERIORES (AMBIENTE & API REST)
         ==================================================== */
-        .ambient-panel {
-            width: 100%;
-            background: rgba(12, 8, 20, 0.85);
-            border: 1px solid rgba(212, 168, 79, 0.35);
-            border-radius: 16px;
-            padding: 16px 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+        /* Col 1: Registro Ambiente */
+        .ambient-box {
+            justify-content: flex-start;
+            gap: 6px;
         }
-        .ambient-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(212, 168, 79, 0.15);
-            padding-bottom: 8px;
-        }
-        .ambient-title {
-            font-family: 'Cinzel', serif;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: var(--gold-light);
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .ambient-badge {
+        .ambient-badge-row {
             font-family: 'Space Grotesk', monospace;
-            font-size: 10px;
+            font-size: 8px;
             font-weight: 700;
-            letter-spacing: 1px;
-            color: var(--gold-main);
+            color: var(--gold-light);
+            letter-spacing: 0.5px;
             text-transform: uppercase;
             cursor: pointer;
+            margin-bottom: 2px;
         }
-
-        .ambient-feed-text {
+        .ambient-feed-italic {
             font-family: 'Playfair Display', serif;
             font-style: italic;
-            font-size: 14.5px;
-            color: var(--text-light);
-            line-height: 1.6;
-            min-height: 24px;
+            font-size: 10.5px;
+            color: #d8cde8;
+            line-height: 1.4;
+            min-height: 28px;
         }
         .kw-tag {
             color: #6DDE77;
             font-weight: 700;
             text-transform: uppercase;
             background: rgba(109, 222, 119, 0.15);
-            padding: 2px 6px;
-            border-radius: 4px;
+            padding: 1px 4px;
+            border-radius: 3px;
             border: 1px solid rgba(109, 222, 119, 0.4);
-            margin: 0 2px;
+            margin: 0 1px;
             font-style: normal;
         }
         .matched-words-tag {
             color: var(--gold-light);
             font-weight: 700;
             background: rgba(212, 168, 79, 0.25);
-            padding: 2px 8px;
-            border-radius: 6px;
+            padding: 1px 5px;
+            border-radius: 4px;
             border: 1px solid rgba(212, 168, 79, 0.6);
-            box-shadow: 0 0 10px rgba(212, 168, 79, 0.3);
-            margin: 0 2px;
+            margin: 0 1px;
             display: inline-block;
             font-style: normal;
         }
-
-        .ambient-log-terminal {
-            background: rgba(6, 4, 12, 0.95);
-            border: 1px solid rgba(212, 168, 79, 0.25);
-            border-radius: 8px;
-            padding: 8px 12px;
+        .ambient-log-pill {
+            background: rgba(4, 2, 8, 0.95);
+            border: 1px solid rgba(212, 168, 79, 0.2);
+            border-radius: 6px;
+            padding: 5px 6px;
             font-family: 'Space Grotesk', monospace;
-            font-size: 11.5px;
+            font-size: 8px;
             color: #e2e8f0;
             display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
+            flex-direction: column;
+            gap: 3px;
         }
-        .log-timestamp-tag {
+        .timestamp-tag {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--text-lavender);
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 10px;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 7.5px;
+            align-self: flex-start;
         }
 
-        /* ====================================================
-           PANEL: REGISTRO AL SERVIDOR (API REST)
-        ==================================================== */
-        .api-panel {
-            width: 100%;
-            background: rgba(12, 8, 20, 0.85);
-            border: 1px solid rgba(75, 216, 232, 0.4);
-            border-radius: 16px;
-            padding: 16px 20px;
-            box-sizing: border-box;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+        /* Col 2: Registro API REST */
+        .api-box {
+            border-color: rgba(24, 199, 232, 0.35);
+            justify-content: flex-start;
+            gap: 6px;
         }
-        .api-panel-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(75, 216, 232, 0.2);
-            padding-bottom: 8px;
-        }
-        .api-panel-title {
+        .api-header-cyan {
             font-family: 'Cinzel', serif;
-            font-size: 11.5px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-            color: #4BD8E8;
-            text-transform: uppercase;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .api-status-tag {
-            font-family: 'Space Grotesk', monospace;
-            font-size: 10px;
+            font-size: 9px;
             font-weight: 700;
             letter-spacing: 1px;
+            color: #18C7E8;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .api-pill-status {
+            background: rgba(4, 2, 8, 0.9);
+            border: 1px solid rgba(24, 199, 232, 0.3);
             color: #77DDEB;
-            background: rgba(75, 216, 232, 0.15);
-            border: 1px solid rgba(75, 216, 232, 0.35);
-            padding: 3px 8px;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 7.5px;
+            font-weight: 700;
+            padding: 2px 6px;
             border-radius: 4px;
             text-transform: uppercase;
+            align-self: flex-end;
+            margin-top: -2px;
         }
-        .api-status-tag.api-tag-success {
+        .api-pill-status.api-tag-success {
             color: #6DDE77;
-            background: rgba(109, 222, 119, 0.18);
             border-color: #6DDE77;
+            background: rgba(109, 222, 119, 0.15);
         }
-        .api-status-tag.api-tag-error {
+        .api-pill-status.api-tag-error {
             color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.18);
             border-color: #ff6b6b;
+            background: rgba(255, 107, 107, 0.15);
         }
 
-        .api-json-view {
+        .api-terminal-text {
             font-family: 'Space Grotesk', 'Consolas', monospace;
-            font-size: 11.5px;
-            color: #77DDEB;
-            background: #050B12;
-            border: 1px solid rgba(75, 216, 232, 0.25);
-            padding: 10px 14px;
-            border-radius: 8px;
-            margin: 0;
-            overflow-x: auto;
-            max-height: 180px;
+            font-size: 8.5px;
+            color: #18C7E8;
+            background: #02070c;
+            border: 1px solid rgba(24, 199, 232, 0.2);
+            padding: 6px 8px;
+            border-radius: 6px;
+            line-height: 1.35;
+            min-height: 56px;
             white-space: pre-wrap;
             word-break: break-word;
-            line-height: 1.5;
         }
 
         /* ====================================================
-           DECORACIÓN INFERIOR (OJO ORNAMENTAL DORADO)
+           OJO SAGRADO DORADO INFERIOR
         ==================================================== */
-        .bottom-sacred-symbol {
+        .sacred-eye-bottom {
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-top: 4px;
-            opacity: 0.8;
+            margin-top: 2px;
+            opacity: 0.85;
         }
-        .sacred-eye-svg {
-            width: 80px;
-            height: 32px;
+        .eye-svg {
+            width: 76px;
+            height: 28px;
             fill: none;
             stroke: var(--gold-main);
             stroke-width: 1.2;
         }
 
-        /* Banner de alerta oculto (utilizado por JS) */
-        .kw-alert {
-            display: none;
-        }
-
-        /* ====================================================
-           RESPONSIVE DESIGN
-        ==================================================== */
-        @media (max-width: 860px) {
-            .controls-grid-3x3 {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .signal-grid-3col {
-                grid-template-columns: 1fr;
-                gap: 12px;
-            }
-            .middle-grid-2col {
-                grid-template-columns: 1fr;
-            }
-            .key-panel-row {
-                grid-template-columns: 1fr;
-                text-align: center;
-                gap: 10px;
-            }
-            .key-label-group {
-                align-items: center;
-            }
-            .channel-status-capsule {
-                justify-content: center;
-            }
-        }
-
-        @media (max-width: 520px) {
-            .console-wrapper {
-                padding: 18px 12px 28px;
-            }
-            .controls-grid-3x3 {
-                grid-template-columns: 1fr;
-            }
-            .oracle-title {
-                letter-spacing: 2px;
-            }
+        /* Elementos ocultos para compatibilidad total con JS */
+        .hidden-compat {
+            display: none !important;
         }
     </style>
 </head>
@@ -1205,7 +816,7 @@
     <div id="micPulseDot" class="mic-pulse-dot"></div>
 
     <!-- Toast Emergente de Modo Sigiloso -->
-    <div id="stealthToast" class="stealth-toast">🙈 MODO SIGILOSO: Doble toque en cualquier lugar para restaurar</div>
+    <div id="stealthToast" class="stealth-toast">🙈 MODO SIGILOSO: Doble toque para restaurar</div>
 
     <!-- OVERLAY MODO SIGILOSO (PANTALLA NEGRA COMPLETA) -->
     <div id="stealthScreenMode" class="stealth-screen-mode">
@@ -1230,238 +841,192 @@
         <div id="qrSecretPeek" class="qr-secret-peek">--</div>
     </div>
 
-    <!-- CONTENEDOR PRINCIPAL DARK PREMIUM -->
+    <!-- CONTENEDOR PRINCIPAL VERTICAL DARK PREMIUM -->
     <div class="console-wrapper">
 
-        <!-- 1. CABECERA DEL ORÁCULO -->
-        <header class="oracle-header">
-            <div class="oracle-avatar-badge">
-                <svg class="oracle-avatar-icon" viewBox="0 0 24 24">
-                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/>
-                </svg>
-            </div>
-            <h1 class="oracle-title">CONSOLA DEL ORÁCULO</h1>
-            <div class="oracle-subtitle">SINTONIZACIÓN DE SEÑAL & TRANSMISIÓN DEL ESCENARIO</div>
-        </header>
-
-        <!-- 2. PANEL SUPERIOR: CLAVE ORACULAR -->
-        <div class="key-panel-row">
-            <div class="key-label-group">
-                <div class="key-title">
-                    <span>🔑</span> CLAVE ORACULAR
-                </div>
-                <div class="key-hint">(VACÍO = ESCUCHA CONTINUA)</div>
-            </div>
-
-            <div class="key-input-container">
-                <input type="text" id="keywordInput" class="kw-input" value="vale" placeholder="VALE">
-            </div>
-
-            <div class="channel-status-capsule" id="channelStatusCapsule">
-                <span class="channel-status-dot" id="channelStatusDot"></span>
-                <span id="channelStatusText">CANAL CONECTADO</span>
-            </div>
+        <!-- 1. TÍTULO SUPERIOR -->
+        <div class="top-oracle-title" id="topOracleTitle" title="Toca para cambiar la clave oracular">
+            CONECTAR CLAVE ORACULAR
         </div>
 
-        <!-- 3. CUADRÍCULA 3x3 DE BOTONES DE CONTROL -->
-        <div class="controls-grid-3x3">
-            <!-- FILA 1 -->
-            <button id="btnMic" class="btn-ctrl btn-mic-ctrl" title="Conectar o pausar escucha del micrófono">
-                <span class="ctrl-icon" id="micIcon">🔴</span>
-                <span class="ctrl-text" id="micText">CONECTAR<br>CANAL ORACULAR</span>
+        <!-- Input oculto para keywordInput accesible vía JS -->
+        <input type="text" id="keywordInput" class="trigger-input-hidden" value="vale">
+
+        <!-- 2. BARRA HORIZONTAL DE 9 BOTONES -->
+        <div class="actions-top-bar">
+            <!-- 1. Conectar -->
+            <button id="btnMic" class="btn-action-tile tile-conectar" title="Conectar o pausar escucha del micrófono">
+                <span class="tile-icon" id="micIcon">((•))</span>
+                <span class="tile-label" id="micText">CONECTAR</span>
             </button>
 
-            <button id="btnHideUI" class="btn-ctrl btn-black-ctrl" title="Modo Pantalla Negra (Doble toque para restaurar)">
-                <span class="ctrl-icon">🖥️</span>
-                <span class="ctrl-text">PANTALLA<br>NEGRA</span>
+            <!-- 2. Pantalla Negra -->
+            <button id="btnHideUI" class="btn-action-tile tile-negra" title="Modo Pantalla Negra (Doble toque para restaurar)">
+                <span class="tile-icon">🖥️</span>
+                <span class="tile-label">PANTALLA<br>NEGRA</span>
             </button>
 
-            <button id="btnWallpaperUI" class="btn-ctrl btn-wallpaper-ctrl" title="Modo Fondo Wallpaper (Doble toque para restaurar)">
-                <span class="ctrl-icon">🖼️</span>
-                <span class="ctrl-text">FONDO</span>
+            <!-- 3. Fondo -->
+            <button id="btnWallpaperUI" class="btn-action-tile tile-fondo" title="Modo Fondo Wallpaper (Doble toque para restaurar)">
+                <span class="tile-icon">🖼️</span>
+                <span class="tile-label">FONDO</span>
             </button>
 
-            <!-- FILA 2 -->
-            <button id="btnQRUI" class="btn-ctrl btn-qr-vis-ctrl" title="Mostrar QR Espectador /visualizar">
-                <span class="ctrl-icon">📱</span>
-                <span class="ctrl-text">QR<br>VISUALIZAR</span>
+            <!-- 4. QR Visualizar -->
+            <button id="btnQRUI" class="btn-action-tile tile-qr-vis" title="Mostrar QR Espectador /visualizar">
+                <span class="tile-icon">📱</span>
+                <span class="tile-label">QR<br>VISUALIZAR</span>
             </button>
 
-            <button id="btnQREscucharUI" class="btn-ctrl btn-qr-esc-ctrl" title="Mostrar QR Revelación por Audio /escuchar">
-                <span class="ctrl-icon">🎧</span>
-                <span class="ctrl-text">QR<br>ESCUCHAR</span>
+            <!-- 5. QR Escuchar -->
+            <button id="btnQREscucharUI" class="btn-action-tile tile-qr-esc" title="Mostrar QR Revelación por Audio /escuchar">
+                <span class="tile-icon">🎧</span>
+                <span class="tile-label">QR<br>ESCUCHAR</span>
             </button>
 
-            <a href="/video_revelacion" target="_blank" class="btn-ctrl btn-video-ctrl" title="Abrir Revelación por Vídeo para Tablet">
-                <span class="ctrl-icon">📱</span>
-                <span class="ctrl-text">VÍDEO<br>TABLET</span>
+            <!-- 6. Vídeo Tablet -->
+            <a href="/video_revelacion" target="_blank" class="btn-action-tile tile-video" title="Abrir Revelación por Vídeo para Tablet">
+                <span class="tile-icon">📱</span>
+                <span class="tile-label">VÍDEO<br>TABLET</span>
             </a>
 
-            <!-- FILA 3 -->
-            <a href="/marco_analogico" target="_blank" class="btn-ctrl btn-marco-ctrl" title="Abrir Marco Analógico para Tablet">
-                <span class="ctrl-icon">🖼️</span>
-                <span class="ctrl-text">MARCO<br>ANALÓGICO</span>
+            <!-- 7. Marco Analógico -->
+            <a href="/marco_analogico" target="_blank" class="btn-action-tile tile-marco" title="Abrir Marco Analógico para Tablet">
+                <span class="tile-icon">🖼️</span>
+                <span class="tile-label">MARCO<br>ANALÓGICO</span>
             </a>
 
-            <button id="btnQRMarcoUI" class="btn-ctrl btn-qrmarco-ctrl" title="Mostrar QR Marco Analógico">
-                <span class="ctrl-icon">📷</span>
-                <span class="ctrl-text">QR<br>MARCO</span>
+            <!-- 8. QR Marco -->
+            <button id="btnQRMarcoUI" class="btn-action-tile tile-qr-marco" title="Mostrar QR Marco Analógico">
+                <span class="tile-icon">📷</span>
+                <span class="tile-label">QR<br>MARCO</span>
             </button>
 
-            <a href="/configuracion" class="btn-ctrl btn-cfg-ctrl" title="Abrir Configuración de Componentes Binarios">
-                <span class="ctrl-icon">⚙️</span>
-                <span class="ctrl-text">CONFIGURACIÓN</span>
+            <!-- 9. Configuración -->
+            <a href="/configuracion" class="btn-action-tile tile-config" title="Abrir Configuración de Componentes Binarios">
+                <span class="tile-icon">⚙️</span>
+                <span class="tile-label">CONFIGURACIÓN</span>
             </a>
         </div>
 
-        <!-- 4. SEPARADOR ORNAMENTAL -->
-        <div class="ornament-separator">
-            <div class="ornament-line"></div>
-            <div class="ornament-title">
-                <span>— ꩜</span> ESCUCHANDO SEÑAL DEL ORÁCULO... <span>꩜ —</span>
-            </div>
-            <div class="ornament-line"></div>
-        </div>
-
-        <!-- 5. SECCIÓN CENTRAL (3 COLUMNAS) -->
-        <div class="signal-grid-3col">
-            <!-- COLUMNA 1: RADAR ORBITAL MICRÓFONO -->
-            <div class="signal-card">
-                <div class="mic-radar-box">
-                    <div class="radar-orbit-1"></div>
-                    <div class="radar-orbit-2"></div>
-                    <div class="radar-orbit-3"></div>
-                    <div class="mic-radar-core" id="micRadarCore">
-                        <span class="mic-radar-icon">🎙️</span>
-                    </div>
+        <!-- 3. FILA 1: PALABRA DETECTADA & INTERPRETACIÓN -->
+        <div class="row-grid-2col">
+            <!-- PALABRA DETECTADA -->
+            <div class="oracle-card-box palabra-box">
+                <div class="card-box-header center">PALABRA DETECTADA</div>
+                <div class="palabra-display" id="kwDetectedName">VALE</div>
+                <div class="audio-wave-strip">
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
+                    <div class="wave-line"></div>
                 </div>
             </div>
 
-            <!-- COLUMNA 2: PALABRA DETECTADA & ONDA -->
-            <div class="signal-card">
-                <div class="detected-word-header">PALABRA DETECTADA</div>
-                <div class="detected-word-display" id="kwDetectedName">VALE</div>
-                <div class="audio-wave-box">
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                    <div class="wave-bar"></div>
-                </div>
-            </div>
-
-            <!-- COLUMNA 3: INTERPRETACIÓN -->
-            <div class="signal-card">
-                <div class="interp-header">
+            <!-- INTERPRETACIÓN -->
+            <div class="oracle-card-box interp-box">
+                <div class="card-box-header">
                     <span>🧠</span> INTERPRETACIÓN
                 </div>
-                <div class="interp-rows">
-                    <div class="interp-row">
-                        <span>CÓDIGO:</span>
-                        <span id="interpCode">VALE</span>
-                    </div>
-                    <div class="interp-row">
-                        <span>COMPONENTES:</span>
-                        <span id="interpComponents">3</span>
-                    </div>
-                    <div class="interp-row">
-                        <span>CONFIANZA:</span>
-                        <span id="interpConfidence">94%</span>
-                    </div>
+                <div class="interp-field-row">
+                    <span>CÓDIGO:</span>
+                    <span class="interp-field-val" id="interpCode">VALE</span>
                 </div>
-                <div class="confidence-progress-bar">
-                    <div class="confidence-progress-fill" id="confidenceBarFill"></div>
+                <div class="interp-stat-line">
+                    <span>COMPONENTES DETECTADOS:</span>
+                    <span id="interpComponentsDetected">3/3</span>
+                </div>
+                <div class="interp-stat-line">
+                    <span>COMPONENTES:</span>
+                    <span id="interpComponents">3</span>
+                </div>
+                <div class="interp-stat-line">
+                    <span>CONFIANZA:</span>
+                    <span id="interpConfidence">94%</span>
+                </div>
+                <div class="interp-progress-bar">
+                    <div class="interp-progress-fill" id="confidenceBarFill"></div>
                 </div>
             </div>
         </div>
 
-        <!-- 6. SECCIÓN INFERIOR CENTRAL (2 COLUMNAS) -->
-        <div class="middle-grid-2col">
+        <!-- 4. FILA 2: CARTA SINTONIZADA & TRANSMISIÓN AL SERVIDOR -->
+        <div class="row-grid-2col">
             <!-- CARTA SINTONIZADA -->
-            <div class="middle-card">
-                <div class="middle-card-title">
-                    <span>♦</span> CARTA SINTONIZADA
-                </div>
-                <div class="card-stage-box">
-                    <div class="card-sacred-bg"></div>
-                    <img id="cardImg" class="card-display-img" src="/cartas_svg/dorso.svg" alt="Carta Sintonizada">
-                </div>
-                <div class="result-badge" id="cardTitle">Esperando señal del oráculo...</div>
-                <div class="phonetic-breakdown" id="phoneticDetail">
-                    Esperando sintonización de la clave oracular de apertura...
+            <div class="oracle-card-box carta-stage-box">
+                <div class="card-box-header center">CARTA SINTONIZADA</div>
+                <div class="carta-frame-wrap">
+                    <div class="carta-sacred-rings"></div>
+                    <img id="cardImg" class="carta-img-element" src="/cartas_svg/dorso.svg" alt="Carta Sintonizada">
                 </div>
             </div>
 
             <!-- TRANSMISIÓN AL SERVIDOR -->
-            <div class="middle-card">
-                <div class="middle-card-title">
+            <div class="oracle-card-box transmit-box">
+                <div class="card-box-header">
                     <span>✈</span> TRANSMISIÓN AL SERVIDOR
                 </div>
-                <div class="server-transmit-box">
-                    <div class="transmit-status-circle" id="transmitStatusCircle">✓</div>
-                    <div class="transmit-headline" id="transmitHeadline">ENVIADA</div>
-                    <div class="transmit-subtext" id="transmitSubtext">La carta ha sido transmitida<br>al otro lado.</div>
-
-                    <div class="transmit-meta-table">
-                        <div class="meta-table-row">
-                            <span>MÉTODO:</span>
-                            <span>API REST</span>
-                        </div>
-                        <div class="meta-table-row">
-                            <span>ESTADO:</span>
-                            <span id="serverStatusVal" style="color: #6DDE77;">200 OK</span>
-                        </div>
-                        <div class="meta-table-row">
-                            <span>TIEMPO:</span>
-                            <span id="serverTimeVal">18:42:05</span>
-                        </div>
+                <div class="transmit-big-check" id="transmitBigCheck">✓</div>
+                <div class="transmit-table">
+                    <div class="transmit-table-row">
+                        <span>MÉTODO:</span>
+                        <span>API REST</span>
+                    </div>
+                    <div class="transmit-table-row">
+                        <span>ESTADO:</span>
+                        <span id="serverStatusVal" style="color: #6DDE77;">200 OK</span>
+                    </div>
+                    <div class="transmit-table-row">
+                        <span>TIEMPO:</span>
+                        <span id="serverTimeVal">18:42:05</span>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- 7. REGISTRO DE TRANSMISIÓN DE AMBIENTE -->
-        <div class="ambient-panel">
-            <div class="ambient-panel-header">
-                <div class="ambient-title">
-                    <span>▣</span> REGISTRO DE TRANSMISIÓN DE AMBIENTE
+        <!-- 5. FILA 3: REGISTROS INFERIORES -->
+        <div class="row-grid-2col">
+            <!-- REGISTRO DE TRANSMISIÓN DE AMBIENTE -->
+            <div class="oracle-card-box ambient-box">
+                <div class="card-box-header">
+                    <span>📋</span> REGISTRO DE TRANSMISIÓN DE AMBIENTE
                 </div>
-                <div class="ambient-badge" id="lockStatusBadge">
+                <div class="ambient-badge-row" id="lockStatusBadge">
                     ◉ ESPERANDO CLAVE ORACULAR
                 </div>
+                <div class="ambient-feed-italic" id="speechFeed">
+                    Inicia el canal oracular y transmite el código de apertura (ej. "vale")...
+                </div>
+                <div class="ambient-log-pill">
+                    <span class="timestamp-tag" id="logTimestampBadge">18:42:05</span>
+                    <span id="calcBreakdownBox">Cálculo de Componentes: Esperando detección tras la palabra clave...</span>
+                </div>
             </div>
 
-            <div class="ambient-feed-text" id="speechFeed">
-                Inicia el canal oracular y transmite el código de apertura (ej. "vale")...
-            </div>
-
-            <div class="ambient-log-terminal">
-                <span class="log-timestamp-tag" id="logTimestampBadge">18:42:05</span>
-                <span id="calcBreakdownBox">Cálculo de Componentes: Esperando detección tras la palabra clave...</span>
-            </div>
-        </div>
-
-        <!-- 8. REGISTRO AL SERVIDOR (API REST) -->
-        <div class="api-panel">
-            <div class="api-panel-header">
-                <div class="api-panel-title">
+            <!-- REGISTRO DE TRANSMISIÓN AL SERVIDOR (API REST) -->
+            <div class="oracle-card-box api-box">
+                <div class="api-header-cyan">
                     <span>⌁</span> REGISTRO DE TRANSMISIÓN AL SERVIDOR (API REST)
                 </div>
-                <div class="api-status-tag" id="apiStatusTag">
+                <div class="api-pill-status" id="apiStatusTag">
                     PENDIENTE DE CONEXIÓN
                 </div>
+                <div class="api-terminal-text" id="apiJsonView">// Registro en tiempo real de la transmisión de señal con el servidor oracular.</div>
             </div>
-
-            <pre id="apiJsonView" class="api-json-view">// Registro en tiempo real de la transmisión de señal con el servidor oracular.</pre>
         </div>
 
-        <!-- 9. DECORACIÓN INFERIOR (OJO MÍSTICO SAGRADO) -->
-        <div class="bottom-sacred-symbol">
-            <svg class="sacred-eye-svg" viewBox="0 0 100 40">
+        <!-- 6. OJO SAGRADO DORADO INFERIOR -->
+        <div class="sacred-eye-bottom">
+            <svg class="eye-svg" viewBox="0 0 100 40">
                 <path d="M10 20 Q50 -2 90 20 Q50 42 10 20 Z" />
                 <circle cx="50" cy="20" r="8" />
                 <circle cx="50" cy="20" r="3" fill="#D4A84F" />
@@ -1469,8 +1034,10 @@
             </svg>
         </div>
 
-        <!-- Elemento oculto de alerta de clave para compatibilidad con JS -->
-        <div id="kwAlert" class="kw-alert"></div>
+        <!-- Elementos ocultos para retener compatibilidad con JS -->
+        <div id="kwAlert" class="hidden-compat"></div>
+        <div id="cardTitle" class="hidden-compat"></div>
+        <div id="phoneticDetail" class="hidden-compat"></div>
     </div>
 
     <script>
@@ -1488,19 +1055,35 @@
         const wallpaperSecretPeek = document.getElementById('wallpaperSecretPeek');
         const micPulseDot = document.getElementById('micPulseDot');
 
-        // Elementos dinámicos de la interfaz gráfica
+        // Elementos dinámicos
+        const topOracleTitle = document.getElementById('topOracleTitle');
+        const keywordInput = document.getElementById('keywordInput');
+        const kwDetectedName = document.getElementById('kwDetectedName');
         const interpCode = document.getElementById('interpCode');
         const interpComponents = document.getElementById('interpComponents');
+        const interpComponentsDetected = document.getElementById('interpComponentsDetected');
         const interpConfidence = document.getElementById('interpConfidence');
         const confidenceBarFill = document.getElementById('confidenceBarFill');
         const serverStatusVal = document.getElementById('serverStatusVal');
         const serverTimeVal = document.getElementById('serverTimeVal');
         const logTimestampBadge = document.getElementById('logTimestampBadge');
-        const micRadarCore = document.getElementById('micRadarCore');
-        const channelStatusText = document.getElementById('channelStatusText');
-        const channelStatusDot = document.getElementById('channelStatusDot');
-        const transmitHeadline = document.getElementById('transmitHeadline');
-        const transmitSubtext = document.getElementById('transmitSubtext');
+        const transmitBigCheck = document.getElementById('transmitBigCheck');
+
+        // Posibilidad de editar trigger tocando el título o la palabra detectada
+        function promptEditKeyword() {
+            let current = keywordInput.value || 'vale';
+            let entered = prompt('Ingresa la Clave Oracular (vacío = escucha continua):', current);
+            if (entered !== null) {
+                keywordInput.value = entered.trim().toLowerCase();
+                let disp = entered.trim().toUpperCase() || 'CONTINUO';
+                if (kwDetectedName) kwDetectedName.textContent = disp;
+                if (interpCode) interpCode.textContent = disp;
+                showStealthToast('🔑 Clave Oracular: ' + disp);
+            }
+        }
+
+        if (topOracleTitle) topOracleTitle.addEventListener('click', promptEditKeyword);
+        if (kwDetectedName) kwDetectedName.addEventListener('click', promptEditKeyword);
 
         function setSecretPeekWaiting() {
             if (wallpaperSecretPeek) {
@@ -1873,9 +1456,7 @@
         const btnMic = document.getElementById('btnMic');
         const micIcon = document.getElementById('micIcon');
         const micText = document.getElementById('micText');
-        const keywordInput = document.getElementById('keywordInput');
         const kwAlert = document.getElementById('kwAlert');
-        const kwDetectedName = document.getElementById('kwDetectedName');
         const speechFeed = document.getElementById('speechFeed');
         const calcBreakdownBox = document.getElementById('calcBreakdownBox');
         const lockStatusBadge = document.getElementById('lockStatusBadge');
@@ -2055,11 +1636,9 @@
                 isListening = true;
                 acquireWakeLock();
                 btnMic.classList.add('listening');
-                if (micRadarCore) micRadarCore.style.borderColor = '#6DDE77';
                 micPulseDot.classList.add('active');
                 micIcon.textContent = '🟢';
-                micText.innerHTML = 'CANAL ACTIVO<br>(EN LÍNEA)';
-                if (channelStatusText) channelStatusText.textContent = 'CANAL CONECTADO';
+                micText.textContent = 'ACTIVO';
                 try { recognition.start(); } catch(e) {}
                 startProactiveCycling();
                 watchdogInterval = setInterval(() => {
@@ -2072,11 +1651,9 @@
                 releaseWakeLock();
                 stopProactiveCycling();
                 btnMic.classList.remove('listening');
-                if (micRadarCore) micRadarCore.style.borderColor = '#B768FF';
                 micPulseDot.classList.remove('active');
-                micIcon.textContent = '🔴';
-                micText.innerHTML = 'CONECTAR<br>CANAL ORACULAR';
-                if (channelStatusText) channelStatusText.textContent = 'CANAL PAUSADO';
+                micIcon.textContent = '((•))';
+                micText.textContent = 'CONECTAR';
                 if (watchdogInterval) { clearInterval(watchdogInterval); watchdogInterval = null; }
                 try { recognition.stop(); } catch(e) {}
             }
@@ -2122,7 +1699,6 @@
                         resetSessionState();
                         setSecretPeekWaiting();
                         sendLogToServer('KEYWORD_UNLOCKED', { kw });
-                        kwAlert.className = 'kw-alert active';
                         if (kwDetectedName) kwDetectedName.textContent = kw.toUpperCase();
                         if (interpCode) interpCode.textContent = kw.toUpperCase();
                         lockStatusBadge.innerHTML = `🟢 Transmitiendo tras "<span style="color:#6DDE77;">${kw.toUpperCase()}</span>"`;
@@ -2139,7 +1715,6 @@
                     renderBitDetection(words, isFinal, kw, transcript, true);
                 }
             } else {
-                kwAlert.className = 'kw-alert active';
                 if (kwDetectedName) kwDetectedName.textContent = 'CONTINUO';
                 if (interpCode) interpCode.textContent = 'SIN TRIGGER';
 
@@ -2195,8 +1770,10 @@
                     : '<span style="opacity:.4;font-style:italic;">Escuchando...</span>';
             }
 
-            // Actualizar interpretación en la UI premium
-            if (interpComponents) interpComponents.textContent = match.matchedWords.length || (match.effectiveValue ? '1' : '0');
+            // Actualizar interpretación
+            let detectedCount = match.matchedWords.length || (match.effectiveValue ? 1 : 0);
+            if (interpComponentsDetected) interpComponentsDetected.textContent = `${detectedCount}/${match.detected ? detectedCount : 3}`;
+            if (interpComponents) interpComponents.textContent = match.decimalValue || detectedCount;
             if (interpConfidence) {
                 let confVal = match.detected ? 99 : (match.effectiveValue ? 85 : 40);
                 interpConfidence.textContent = `${confVal}%`;
@@ -2261,7 +1838,7 @@
             let peekStr = `${val}${suitSymbol}`;
             setSecretPeekConfirmed(peekStr);
 
-            cardTitle.textContent = `✨ ${val} de ${suitName}`;
+            if (cardTitle) cardTitle.textContent = `✨ ${val} de ${suitName}`;
             cardImg.src = `/cartas_svg/${val}_${suit}.svg`;
             cardImg.classList.remove('pop');
             void cardImg.offsetWidth;
@@ -2284,11 +1861,13 @@
                 return `<span style="color:#F1D37A;font-weight:700;">${w.toUpperCase()}</span>`;
             }).join(' + ');
 
-            phoneticDetail.innerHTML = `
-                Clave: <span class="kw-tag">${kw.toUpperCase()}</span> &nbsp;|&nbsp;
-                Componentes: ${wordBadges} &nbsp;|&nbsp;
-                Sintonizado: <strong>${val} de ${suitName}</strong>
-            `;
+            if (phoneticDetail) {
+                phoneticDetail.innerHTML = `
+                    Clave: <span class="kw-tag">${kw.toUpperCase()}</span> &nbsp;|&nbsp;
+                    Componentes: ${wordBadges} &nbsp;|&nbsp;
+                    Sintonizado: <strong>${val} de ${suitName}</strong>
+                `;
+            }
 
             try {
                 const startTime = performance.now();
@@ -2310,21 +1889,23 @@
                 if (serverTimeVal) serverTimeVal.textContent = nowStr;
 
                 if (response.ok && data.exito) {
-                    apiStatusTag.className = 'api-status-tag api-tag-success';
-                    apiStatusTag.textContent = `HTTP 200 OK (${duration}ms) — ${nowStr}`;
+                    apiStatusTag.className = 'api-pill-status api-tag-success';
+                    apiStatusTag.textContent = `200 OK (${duration}ms)`;
                     apiJsonView.textContent = JSON.stringify(data, null, 2);
                     if (serverStatusVal) {
                         serverStatusVal.textContent = '200 OK';
                         serverStatusVal.style.color = '#6DDE77';
                     }
-                    if (transmitHeadline) transmitHeadline.textContent = 'ENVIADA';
-                    if (transmitSubtext) transmitSubtext.innerHTML = 'La carta ha sido transmitida<br>al otro lado.';
+                    if (transmitBigCheck) {
+                        transmitBigCheck.style.borderColor = '#6DDE77';
+                        transmitBigCheck.style.color = '#6DDE77';
+                    }
                     const paloNombre = (data.palo && data.palo.nombre) ? data.palo.nombre : (data.palo_id || suitName);
                     const cardVal = data.valor || val;
-                    lockStatusBadge.innerHTML = `🔒 REVELACIÓN ENVIADA (${cardVal} de ${paloNombre})`;
+                    lockStatusBadge.innerHTML = `🔒 ENVIADA (${cardVal} de ${paloNombre})`;
                 } else {
-                    apiStatusTag.className = 'api-status-tag api-tag-error';
-                    apiStatusTag.textContent = `HTTP ${response.status} Error — ${nowStr}`;
+                    apiStatusTag.className = 'api-pill-status api-tag-error';
+                    apiStatusTag.textContent = `HTTP ${response.status} Error`;
                     apiJsonView.textContent = JSON.stringify(data, null, 2);
                     if (serverStatusVal) {
                         serverStatusVal.textContent = `Error ${response.status}`;
@@ -2333,7 +1914,7 @@
                 }
             } catch (err) {
                 console.log('Sync API err:', err);
-                apiStatusTag.className = 'api-status-tag api-tag-error';
+                apiStatusTag.className = 'api-pill-status api-tag-error';
                 apiStatusTag.textContent = 'Error de Transmisión';
                 apiJsonView.textContent = JSON.stringify({ error: err.message }, null, 2);
                 if (serverStatusVal) {
