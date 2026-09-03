@@ -407,6 +407,22 @@
                 window.speechSynthesis.getVoices();
             };
         }
+
+        // Doble toque / doble clic para volver a la Consola
+        let lastTapReturnTime = 0;
+        document.addEventListener('touchend', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            const now = Date.now();
+            if (now - lastTapReturnTime < 380 && now - lastTapReturnTime > 0) {
+                window.location.href = '/probar_voz';
+            }
+            lastTapReturnTime = now;
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            window.location.href = '/probar_voz';
+        });
     </script>
 </body>
 </html>

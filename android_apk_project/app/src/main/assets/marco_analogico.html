@@ -789,30 +789,59 @@
 
         cardAnchor.addEventListener('click', handleCardClick);
 
-        // Control del menú de configuración
+        // Control de navegación y configuración
+        let lastTapTime = 0;
+        let tapCount = 0;
         let pressTimer = null;
+
+        function returnToConsole() {
+            showToast('🔮 Volviendo a la Consola...');
+            setTimeout(() => {
+                window.location.href = '/probar_voz';
+            }, 200);
+        }
+
         function openSettings() {
             settingsModal.classList.add('show');
         }
 
         btnOpenSettings.addEventListener('click', openSettings);
-        secretZone.addEventListener('touchstart', () => pressTimer = setTimeout(openSettings, 2000));
+        secretZone.addEventListener('touchstart', () => pressTimer = setTimeout(() => { showToast('⚙️ Abriendo Configuración...'); openSettings(); }, 1400));
         secretZone.addEventListener('touchend', () => clearTimeout(pressTimer));
-        secretZone.addEventListener('mousedown', () => pressTimer = setTimeout(openSettings, 2000));
+        secretZone.addEventListener('mousedown', () => pressTimer = setTimeout(() => { showToast('⚙️ Abriendo Configuración...'); openSettings(); }, 1400));
         secretZone.addEventListener('mouseup', () => clearTimeout(pressTimer));
 
-        // Doble clic en cualquier parte de la imagen para abrir la configuración
-        const photoContainer = document.getElementById('photoContainer');
-        if (photoContainer) {
-            photoContainer.addEventListener('dblclick', (e) => {
-                e.stopPropagation();
-                openSettings();
-            });
-        }
-        document.body.addEventListener('dblclick', (e) => {
-            if (!settingsModal.classList.contains('show')) {
-                openSettings();
+        // Doble toque / doble clic en cualquier parte de la pantalla vuelve a la consola
+        document.addEventListener('touchend', (e) => {
+            if (e.target.closest('#settingsModal') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            const now = Date.now();
+            const delta = now - lastTapTime;
+
+            if (delta < 380 && delta > 0) {
+                tapCount++;
+                if (tapCount === 2) {
+                    // Triple toque abre configuración
+                    clearTimeout(pressTimer);
+                    openSettings();
+                    tapCount = 0;
+                    lastTapTime = 0;
+                    return;
+                }
+                // Doble toque vuelve a la consola
+                setTimeout(() => {
+                    if (tapCount === 1) {
+                        returnToConsole();
+                    }
+                }, 280);
+            } else {
+                tapCount = 1;
             }
+            lastTapTime = now;
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.closest('#settingsModal') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            returnToConsole();
         });
 
         const apiUrlInput = document.getElementById('apiUrlInput');

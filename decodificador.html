@@ -701,6 +701,22 @@ if (!SpeechRecognitionAPI){
   micBtn.hidden = true;
   noSoportadoEl.hidden = false;
 }
+
+// Doble toque / doble clic en fondo para volver a la Consola
+let lastDecoTapTime = 0;
+document.addEventListener('touchend', (e) => {
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.tagName === 'INPUT' || e.target.closest('a')) return;
+  const now = Date.now();
+  if (now - lastDecoTapTime < 380 && now - lastDecoTapTime > 0) {
+    window.location.href = '/probar_voz';
+  }
+  lastDecoTapTime = now;
+});
+
+document.addEventListener('dblclick', (e) => {
+  if (e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.tagName === 'INPUT' || e.target.closest('a')) return;
+  window.location.href = '/probar_voz';
+});
 </script>
 </body>
 </html>

@@ -442,6 +442,22 @@
         }
 
         loadConfiguration();
+
+        // Doble toque / doble clic en fondo para volver a la Consola
+        let lastConfigTapTime = 0;
+        document.addEventListener('touchend', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('a')) return;
+            const now = Date.now();
+            if (now - lastConfigTapTime < 380 && now - lastConfigTapTime > 0) {
+                window.location.href = '/probar_voz';
+            }
+            lastConfigTapTime = now;
+        });
+
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('a')) return;
+            window.location.href = '/probar_voz';
+        });
     </script>
 </body>
 </html>

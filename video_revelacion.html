@@ -750,19 +750,68 @@
             }
         }
 
-        // Manejador de doble toque / doble clic para abrir configuración
+        // Control de navegación y configuración
         let lastTapTime = 0;
-        secretZone.addEventListener('touchend', (e) => {
+        let tapCount = 0;
+        let longPressTimer = null;
+
+        function returnToConsole() {
+            showToast('🔮 Volviendo a la Consola...');
+            setTimeout(() => {
+                window.location.href = '/probar_voz';
+            }, 200);
+        }
+
+        // Doble clic / doble toque en cualquier parte de la pantalla vuelve a la consola
+        document.addEventListener('touchend', (e) => {
+            if (e.target.closest('#settingsModal') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
             const now = Date.now();
-            if (now - lastTapTime < 350) {
-                openSettings();
+            const delta = now - lastTapTime;
+
+            if (delta < 380 && delta > 0) {
+                tapCount++;
+                if (tapCount === 2) {
+                    // Triple toque abre configuración
+                    clearTimeout(longPressTimer);
+                    openSettings();
+                    tapCount = 0;
+                    lastTapTime = 0;
+                    return;
+                }
+                // Doble toque vuelve a la consola
+                setTimeout(() => {
+                    if (tapCount === 1) {
+                        returnToConsole();
+                    }
+                }, 280);
+            } else {
+                tapCount = 1;
             }
             lastTapTime = now;
         });
 
-        secretZone.addEventListener('dblclick', () => {
-            openSettings();
+        document.addEventListener('dblclick', (e) => {
+            if (e.target.closest('#settingsModal') || e.target.tagName === 'BUTTON' || e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+            returnToConsole();
         });
+
+        // Pulsación prolongada (1.5s) en la zona secreta abre Ajustes
+        secretZone.addEventListener('touchstart', (e) => {
+            longPressTimer = setTimeout(() => {
+                showToast('⚙️ Abriendo Configuración...');
+                openSettings();
+            }, 1400);
+        });
+        secretZone.addEventListener('touchend', () => clearTimeout(longPressTimer));
+        secretZone.addEventListener('touchcancel', () => clearTimeout(longPressTimer));
+        secretZone.addEventListener('mousedown', (e) => {
+            longPressTimer = setTimeout(() => {
+                showToast('⚙️ Abriendo Configuración...');
+                openSettings();
+            }, 1400);
+        });
+        secretZone.addEventListener('mouseup', () => clearTimeout(longPressTimer));
+        secretZone.addEventListener('mouseleave', () => clearTimeout(longPressTimer));
 
         // Abrir y Cerrar Modal de Ajustes
         function openSettings() {

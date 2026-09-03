@@ -943,9 +943,36 @@ def visualizar_carta(
                 }}
             }}
 
-            // Manejador de evento por doble clic y clic para voltear con consulta única a Redis
-            cardScene.addEventListener('dblclick', handleCardFlip);
-            cardScene.addEventListener('click', handleCardFlip);
+            // Clic simple para voltear carta con consulta única a Redis
+            let clickTimeout = null;
+            let lastCardTapTime = 0;
+
+            function returnToConsole() {
+                window.location.href = '/probar_voz';
+            }
+
+            document.addEventListener('touchend', (e) => {
+                const now = Date.now();
+                if (now - lastCardTapTime < 380 && now - lastCardTapTime > 0) {
+                    if (clickTimeout) { clearTimeout(clickTimeout); clickTimeout = null; }
+                    returnToConsole();
+                    lastCardTapTime = 0;
+                    return;
+                }
+                lastCardTapTime = now;
+            });
+
+            document.addEventListener('dblclick', (e) => {
+                if (clickTimeout) { clearTimeout(clickTimeout); clickTimeout = null; }
+                returnToConsole();
+            });
+
+            cardScene.addEventListener('click', (e) => {
+                if (clickTimeout) clearTimeout(clickTimeout);
+                clickTimeout = setTimeout(() => {
+                    handleCardFlip();
+                }, 250);
+            });
         </script>
     </body>
     </html>
