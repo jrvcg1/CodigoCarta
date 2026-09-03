@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CONECTAR CLAVE ORACULAR — Consola del Oráculo</title>
+    <title>Consola del Oráculo — Sintonización & Transmisión</title>
     <link rel="icon" type="image/svg+xml" href="/cartas_svg/dorso.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,7 +11,6 @@
     <style>
         :root {
             --bg-body: #030206;
-            --bg-panel: #07050e;
             --bg-card: rgba(12, 8, 22, 0.92);
             --gold-light: #F3D785;
             --gold-main: #D4A84F;
@@ -25,7 +24,6 @@
             --green-glow: #6DDE77;
             --cyan-glow: #18C7E8;
             --purple-glow: #9A4DFF;
-            --violet-wave: #8F3CFF;
             --red-glow: #D9342B;
         }
 
@@ -44,7 +42,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            padding: 16px 8px 36px;
+            padding: 16px 8px 32px;
             user-select: none;
             -webkit-user-select: none;
             overflow-x: hidden;
@@ -243,73 +241,59 @@
         }
 
         /* ====================================================
-           CONTENEDOR PRINCIPAL DARK PREMIUM TIPO MÓVIL
+           CONTENEDOR PRINCIPAL DARK PREMIUM
         ==================================================== */
         .console-wrapper {
             width: 100%;
             max-width: 480px;
             background: linear-gradient(180deg, #090614 0%, #06040d 60%, #030207 100%);
             border: 1.5px solid rgba(212, 168, 79, 0.6);
-            border-radius: 34px;
-            padding: 22px 14px 26px;
+            border-radius: 28px;
+            padding: 16px 14px 22px;
             box-shadow: 0 25px 80px rgba(0, 0, 0, 0.98), 0 0 35px rgba(212, 168, 79, 0.08), inset 0 0 35px rgba(18, 10, 32, 0.8);
             position: relative;
             display: flex;
             flex-direction: column;
-            gap: 14px;
+            gap: 12px;
             box-sizing: border-box;
         }
 
-        /* Fino borde interior */
         .console-wrapper::before {
             content: '';
             position: absolute;
             inset: 3px;
-            border-radius: 30px;
+            border-radius: 24px;
             border: 1px solid rgba(212, 168, 79, 0.15);
             pointer-events: none;
         }
 
         /* ====================================================
-           TÍTULO PRINCIPAL: CONECTAR CLAVE ORACULAR
+           BARRA DE BOTONES EN 2 FILAS COMPACTAS
         ==================================================== */
-        .top-oracle-title {
-            text-align: center;
-            font-family: 'Cinzel', serif;
-            font-size: clamp(14px, 3.8vw, 17px);
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: var(--gold-light);
-            text-shadow: 0 0 14px rgba(243, 215, 133, 0.35);
-            text-transform: uppercase;
-            padding: 4px 0 2px;
-            cursor: pointer;
-        }
-
-        /* Input de trigger oculto/accesible */
-        .trigger-input-hidden {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-            width: 1px;
-            height: 1px;
-        }
-
-        /* ====================================================
-           BARRA HORIZONTAL SUPERIOR DE 9 BOTONES
-        ==================================================== */
-        .actions-top-bar {
-            display: grid;
-            grid-template-columns: repeat(9, 1fr);
-            gap: 5px;
+        .actions-2rows-container {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
             width: 100%;
-            margin-bottom: 2px;
+        }
+
+        .actions-row-top {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 6px;
+            width: 100%;
+        }
+
+        .actions-row-bottom {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            width: 100%;
         }
 
         .btn-action-tile {
-            aspect-ratio: 1 / 1.25;
-            min-height: 54px;
-            border-radius: 9px;
+            min-height: 44px;
+            border-radius: 8px;
             background: rgba(12, 8, 20, 0.85);
             border: 1px solid transparent;
             display: flex;
@@ -318,7 +302,7 @@
             justify-content: center;
             text-decoration: none;
             cursor: pointer;
-            padding: 3px 2px;
+            padding: 4px 2px;
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             box-sizing: border-box;
             user-select: none;
@@ -328,18 +312,18 @@
         }
 
         .btn-action-tile .tile-icon {
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
             display: flex;
             align-items: center;
             justify-content: center;
         }
         .btn-action-tile .tile-label {
             font-family: 'Montserrat', sans-serif;
-            font-size: 6.8px;
+            font-size: 7.5px;
             font-weight: 700;
-            letter-spacing: 0.2px;
+            letter-spacing: 0.3px;
             text-transform: uppercase;
             text-align: center;
             line-height: 1.1;
@@ -349,74 +333,74 @@
         .tile-conectar {
             border-color: #D9342B;
             color: #ff7d75;
-            background: linear-gradient(180deg, rgba(217, 52, 43, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
-            box-shadow: 0 0 10px rgba(217, 52, 43, 0.15);
+            background: linear-gradient(180deg, rgba(217, 52, 43, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
+            box-shadow: 0 0 8px rgba(217, 52, 43, 0.12);
         }
         .tile-conectar.listening {
             border-color: #6DDE77;
             color: #afffba;
             background: linear-gradient(180deg, rgba(109, 222, 119, 0.35) 0%, rgba(10, 18, 12, 0.95) 100%);
-            box-shadow: 0 0 15px rgba(109, 222, 119, 0.5);
+            box-shadow: 0 0 14px rgba(109, 222, 119, 0.4);
         }
 
         /* 2. Pantalla Negra */
         .tile-negra {
             border-color: #484556;
             color: #d1ccdf;
-            background: linear-gradient(180deg, rgba(72, 69, 86, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(72, 69, 86, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 3. Fondo */
         .tile-fondo {
             border-color: #18C7E8;
             color: #6ee6fc;
-            background: linear-gradient(180deg, rgba(24, 199, 232, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(24, 199, 232, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 4. QR Visualizar */
         .tile-qr-vis {
             border-color: #18C7E8;
             color: #6ee6fc;
-            background: linear-gradient(180deg, rgba(24, 199, 232, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(24, 199, 232, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 5. QR Escuchar */
         .tile-qr-esc {
             border-color: #21D8C0;
             color: #7affef;
-            background: linear-gradient(180deg, rgba(33, 216, 192, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(33, 216, 192, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 6. Vídeo Tablet */
         .tile-video {
             border-color: #EC3E8C;
             color: #ffa1cc;
-            background: linear-gradient(180deg, rgba(236, 62, 140, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(236, 62, 140, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 7. Marco Analógico */
         .tile-marco {
             border-color: #A65CFF;
             color: #d9b8ff;
-            background: linear-gradient(180deg, rgba(166, 92, 255, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(166, 92, 255, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 8. QR Marco */
         .tile-qr-marco {
             border-color: #8A3FFC;
             color: #cca8ff;
-            background: linear-gradient(180deg, rgba(138, 63, 252, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(138, 63, 252, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* 9. Configuración */
         .tile-config {
             border-color: #D89C25;
             color: #ffd978;
-            background: linear-gradient(180deg, rgba(216, 156, 37, 0.25) 0%, rgba(14, 8, 20, 0.9) 100%);
+            background: linear-gradient(180deg, rgba(216, 156, 37, 0.22) 0%, rgba(14, 8, 20, 0.9) 100%);
         }
 
         /* ====================================================
-           FILAS EN GRID DE 2 COLUMNAS
+           FILAS EN GRID
         ==================================================== */
         .row-grid-2col {
             display: grid;
@@ -454,107 +438,55 @@
         }
 
         /* ====================================================
-           FILA 1: PALABRA DETECTADA & INTERPRETACIÓN
+           PANEL INTERPRETACIÓN (ANCHO COMPLETO)
         ==================================================== */
-        /* Col 1: Palabra Detectada */
-        .palabra-box {
-            align-items: center;
-            justify-content: space-between;
-            min-height: 140px;
-            padding: 12px 6px 8px;
-        }
-        .palabra-display {
-            font-family: 'Cinzel', serif;
-            font-size: clamp(24px, 5.5vw, 32px);
-            font-weight: 900;
-            color: #F1E5FF;
-            text-shadow: 0 0 16px rgba(154, 77, 255, 0.7), 0 0 2px #ffffff;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            text-align: center;
-            margin: auto 0;
-            cursor: pointer;
-        }
-        /* Onda de audio fina violeta */
-        .audio-wave-strip {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 2px;
-            height: 24px;
+        .interp-full-box {
             width: 100%;
-            padding: 0 6px;
-        }
-        .wave-line {
-            flex: 1;
-            max-width: 2.5px;
-            background: linear-gradient(180deg, #D488FF 0%, #8F3CFF 100%);
-            border-radius: 2px;
-            box-shadow: 0 0 6px rgba(201, 108, 255, 0.7);
-            animation: waveAnim 1.2s infinite ease-in-out;
-        }
-        .wave-line:nth-child(1) { height: 4px; animation-delay: 0.1s; }
-        .wave-line:nth-child(2) { height: 8px; animation-delay: 0.3s; }
-        .wave-line:nth-child(3) { height: 16px; animation-delay: 0.15s; }
-        .wave-line:nth-child(4) { height: 22px; animation-delay: 0.35s; }
-        .wave-line:nth-child(5) { height: 12px; animation-delay: 0.2s; }
-        .wave-line:nth-child(6) { height: 24px; animation-delay: 0.4s; }
-        .wave-line:nth-child(7) { height: 18px; animation-delay: 0.1s; }
-        .wave-line:nth-child(8) { height: 24px; animation-delay: 0.3s; }
-        .wave-line:nth-child(9) { height: 14px; animation-delay: 0.25s; }
-        .wave-line:nth-child(10) { height: 22px; animation-delay: 0.45s; }
-        .wave-line:nth-child(11) { height: 16px; animation-delay: 0.15s; }
-        .wave-line:nth-child(12) { height: 8px; animation-delay: 0.35s; }
-        .wave-line:nth-child(13) { height: 4px; animation-delay: 0.1s; }
-
-        @keyframes waveAnim {
-            0%, 100% { transform: scaleY(0.35); opacity: 0.45; }
-            50% { transform: scaleY(1); opacity: 1; }
-        }
-
-        /* Col 2: Interpretación */
-        .interp-box {
             justify-content: flex-start;
-            gap: 7px;
-            font-size: 9px;
+            gap: 8px;
+            font-size: 9.5px;
             font-family: 'Space Grotesk', sans-serif;
+            padding: 12px 14px;
         }
-        .interp-field-row {
+        .interp-stats-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr 1fr 1fr;
+            gap: 8px;
+            align-items: center;
+        }
+        @media (max-width: 440px) {
+            .interp-stats-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 6px;
+            }
+        }
+        .interp-stat-col {
             display: flex;
             flex-direction: column;
-            gap: 1px;
-            color: var(--gold-light);
-            font-weight: 700;
-            letter-spacing: 0.6px;
+            gap: 2px;
         }
-        .interp-field-val {
+        .interp-stat-label {
+            font-size: 8px;
+            font-weight: 700;
+            color: var(--gold-light);
+            letter-spacing: 0.6px;
+            text-transform: uppercase;
+        }
+        .interp-stat-value {
             color: #ffffff;
             font-family: 'Cinzel', serif;
             font-size: 11px;
             font-weight: 800;
             letter-spacing: 1px;
         }
-        .interp-stat-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 8.5px;
-            font-weight: 600;
-            color: var(--text-gold);
-            letter-spacing: 0.5px;
-        }
-        .interp-stat-line span:last-child {
-            color: #ffffff;
-            font-family: 'Space Grotesk', monospace;
-            font-weight: 700;
-        }
+
         .interp-progress-bar {
             width: 100%;
             height: 4px;
             background: rgba(255, 255, 255, 0.08);
             border-radius: 3px;
             overflow: hidden;
-            margin-top: 2px;
+            margin-top: 4px;
         }
         .interp-progress-fill {
             height: 100%;
@@ -566,9 +498,9 @@
         }
 
         /* ====================================================
-           FILA 2: CARTA SINTONIZADA & TRANSMISIÓN AL SERVIDOR
+           FILA: CARTA SINTONIZADA & TRANSMISIÓN (SOLO CHECK)
         ==================================================== */
-        /* Col 1: Carta Sintonizada */
+        /* Carta Sintonizada */
         .carta-stage-box {
             align-items: center;
             justify-content: center;
@@ -617,55 +549,31 @@
             100% { transform: scale(1) rotateY(0deg); opacity: 1; }
         }
 
-        /* Col 2: Transmisión al Servidor */
-        .transmit-box {
+        /* Transmisión al Servidor (Solo Checkmark) */
+        .transmit-box-only-check {
             align-items: center;
-            justify-content: space-between;
+            justify-content: center;
             min-height: 175px;
         }
         .transmit-big-check {
-            width: 54px;
-            height: 54px;
+            width: 76px;
+            height: 76px;
             border-radius: 50%;
-            border: 2px solid #6DDE77;
+            border: 2.5px solid #6DDE77;
             background: rgba(109, 222, 119, 0.12);
             color: #6DDE77;
-            font-size: 26px;
+            font-size: 38px;
             font-weight: 800;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 0 18px rgba(109, 222, 119, 0.3);
-            margin: 6px 0;
-        }
-        .transmit-table {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 4px;
-            font-family: 'Space Grotesk', monospace;
-            font-size: 8.5px;
-            border-top: 1px solid rgba(212, 168, 79, 0.18);
-            padding-top: 6px;
-        }
-        .transmit-table-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .transmit-table-row span:first-child {
-            color: var(--gold-light);
-            font-weight: 700;
-        }
-        .transmit-table-row span:last-child {
-            color: #ffffff;
-            font-weight: 700;
+            box-shadow: 0 0 24px rgba(109, 222, 119, 0.4);
+            margin: auto;
         }
 
         /* ====================================================
-           FILA 3: REGISTROS INFERIORES (AMBIENTE & API REST)
+           FILA: REGISTROS INFERIORES
         ==================================================== */
-        /* Col 1: Registro Ambiente */
         .ambient-box {
             justify-content: flex-start;
             gap: 6px;
@@ -731,7 +639,6 @@
             align-self: flex-start;
         }
 
-        /* Col 2: Registro API REST */
         .api-box {
             border-color: rgba(24, 199, 232, 0.35);
             justify-content: flex-start;
@@ -804,7 +711,6 @@
             stroke-width: 1.2;
         }
 
-        /* Elementos ocultos para compatibilidad total con JS */
         .hidden-compat {
             display: none !important;
         }
@@ -844,122 +750,101 @@
     <!-- CONTENEDOR PRINCIPAL VERTICAL DARK PREMIUM -->
     <div class="console-wrapper">
 
-        <!-- 1. TÍTULO SUPERIOR -->
-        <div class="top-oracle-title" id="topOracleTitle" title="Toca para cambiar la clave oracular">
-            CONECTAR CLAVE ORACULAR
-        </div>
+        <!-- Input de keywordInput accesible vía JS -->
+        <input type="text" id="keywordInput" class="hidden-compat" value="vale">
 
-        <!-- Input oculto para keywordInput accesible vía JS -->
-        <input type="text" id="keywordInput" class="trigger-input-hidden" value="vale">
+        <!-- 1. BARRA DE BOTONES DE ACCESO EN 2 FILAS -->
+        <div class="actions-2rows-container">
+            <!-- FILA 1: 5 BOTONES -->
+            <div class="actions-row-top">
+                <!-- 1. Conectar -->
+                <button id="btnMic" class="btn-action-tile tile-conectar" title="Conectar o pausar escucha del micrófono">
+                    <span class="tile-icon" id="micIcon">((•))</span>
+                    <span class="tile-label" id="micText">CONECTAR</span>
+                </button>
 
-        <!-- 2. BARRA HORIZONTAL DE 9 BOTONES -->
-        <div class="actions-top-bar">
-            <!-- 1. Conectar -->
-            <button id="btnMic" class="btn-action-tile tile-conectar" title="Conectar o pausar escucha del micrófono">
-                <span class="tile-icon" id="micIcon">((•))</span>
-                <span class="tile-label" id="micText">CONECTAR</span>
-            </button>
+                <!-- 2. Pantalla Negra -->
+                <button id="btnHideUI" class="btn-action-tile tile-negra" title="Modo Pantalla Negra (Doble toque para restaurar)">
+                    <span class="tile-icon">🖥️</span>
+                    <span class="tile-label">PANTALLA<br>NEGRA</span>
+                </button>
 
-            <!-- 2. Pantalla Negra -->
-            <button id="btnHideUI" class="btn-action-tile tile-negra" title="Modo Pantalla Negra (Doble toque para restaurar)">
-                <span class="tile-icon">🖥️</span>
-                <span class="tile-label">PANTALLA<br>NEGRA</span>
-            </button>
+                <!-- 3. Fondo -->
+                <button id="btnWallpaperUI" class="btn-action-tile tile-fondo" title="Modo Fondo Wallpaper (Doble toque para restaurar)">
+                    <span class="tile-icon">🖼️</span>
+                    <span class="tile-label">FONDO</span>
+                </button>
 
-            <!-- 3. Fondo -->
-            <button id="btnWallpaperUI" class="btn-action-tile tile-fondo" title="Modo Fondo Wallpaper (Doble toque para restaurar)">
-                <span class="tile-icon">🖼️</span>
-                <span class="tile-label">FONDO</span>
-            </button>
+                <!-- 4. QR Visualizar -->
+                <button id="btnQRUI" class="btn-action-tile tile-qr-vis" title="Mostrar QR Espectador /visualizar">
+                    <span class="tile-icon">📱</span>
+                    <span class="tile-label">QR<br>VISUALIZAR</span>
+                </button>
 
-            <!-- 4. QR Visualizar -->
-            <button id="btnQRUI" class="btn-action-tile tile-qr-vis" title="Mostrar QR Espectador /visualizar">
-                <span class="tile-icon">📱</span>
-                <span class="tile-label">QR<br>VISUALIZAR</span>
-            </button>
-
-            <!-- 5. QR Escuchar -->
-            <button id="btnQREscucharUI" class="btn-action-tile tile-qr-esc" title="Mostrar QR Revelación por Audio /escuchar">
-                <span class="tile-icon">🎧</span>
-                <span class="tile-label">QR<br>ESCUCHAR</span>
-            </button>
-
-            <!-- 6. Vídeo Tablet -->
-            <a href="/video_revelacion" target="_blank" class="btn-action-tile tile-video" title="Abrir Revelación por Vídeo para Tablet">
-                <span class="tile-icon">📱</span>
-                <span class="tile-label">VÍDEO<br>TABLET</span>
-            </a>
-
-            <!-- 7. Marco Analógico -->
-            <a href="/marco_analogico" target="_blank" class="btn-action-tile tile-marco" title="Abrir Marco Analógico para Tablet">
-                <span class="tile-icon">🖼️</span>
-                <span class="tile-label">MARCO<br>ANALÓGICO</span>
-            </a>
-
-            <!-- 8. QR Marco -->
-            <button id="btnQRMarcoUI" class="btn-action-tile tile-qr-marco" title="Mostrar QR Marco Analógico">
-                <span class="tile-icon">📷</span>
-                <span class="tile-label">QR<br>MARCO</span>
-            </button>
-
-            <!-- 9. Configuración -->
-            <a href="/configuracion" class="btn-action-tile tile-config" title="Abrir Configuración de Componentes Binarios">
-                <span class="tile-icon">⚙️</span>
-                <span class="tile-label">CONFIGURACIÓN</span>
-            </a>
-        </div>
-
-        <!-- 3. FILA 1: PALABRA DETECTADA & INTERPRETACIÓN -->
-        <div class="row-grid-2col">
-            <!-- PALABRA DETECTADA -->
-            <div class="oracle-card-box palabra-box">
-                <div class="card-box-header center">PALABRA DETECTADA</div>
-                <div class="palabra-display" id="kwDetectedName">VALE</div>
-                <div class="audio-wave-strip">
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                    <div class="wave-line"></div>
-                </div>
+                <!-- 5. QR Escuchar -->
+                <button id="btnQREscucharUI" class="btn-action-tile tile-qr-esc" title="Mostrar QR Revelación por Audio /escuchar">
+                    <span class="tile-icon">🎧</span>
+                    <span class="tile-label">QR<br>ESCUCHAR</span>
+                </button>
             </div>
 
-            <!-- INTERPRETACIÓN -->
-            <div class="oracle-card-box interp-box">
-                <div class="card-box-header">
-                    <span>🧠</span> INTERPRETACIÓN
-                </div>
-                <div class="interp-field-row">
-                    <span>CÓDIGO:</span>
-                    <span class="interp-field-val" id="interpCode">VALE</span>
-                </div>
-                <div class="interp-stat-line">
-                    <span>COMPONENTES DETECTADOS:</span>
-                    <span id="interpComponentsDetected">3/3</span>
-                </div>
-                <div class="interp-stat-line">
-                    <span>COMPONENTES:</span>
-                    <span id="interpComponents">3</span>
-                </div>
-                <div class="interp-stat-line">
-                    <span>CONFIANZA:</span>
-                    <span id="interpConfidence">94%</span>
-                </div>
-                <div class="interp-progress-bar">
-                    <div class="interp-progress-fill" id="confidenceBarFill"></div>
-                </div>
+            <!-- FILA 2: 4 BOTONES -->
+            <div class="actions-row-bottom">
+                <!-- 6. Vídeo Tablet -->
+                <a href="/video_revelacion" target="_blank" class="btn-action-tile tile-video" title="Abrir Revelación por Vídeo para Tablet">
+                    <span class="tile-icon">📱</span>
+                    <span class="tile-label">VÍDEO TABLET</span>
+                </a>
+
+                <!-- 7. Marco Analógico -->
+                <a href="/marco_analogico" target="_blank" class="btn-action-tile tile-marco" title="Abrir Marco Analógico para Tablet">
+                    <span class="tile-icon">🖼️</span>
+                    <span class="tile-label">MARCO ANALÓGICO</span>
+                </a>
+
+                <!-- 8. QR Marco -->
+                <button id="btnQRMarcoUI" class="btn-action-tile tile-qr-marco" title="Mostrar QR Marco Analógico">
+                    <span class="tile-icon">📷</span>
+                    <span class="tile-label">QR MARCO</span>
+                </button>
+
+                <!-- 9. Configuración -->
+                <a href="/configuracion" class="btn-action-tile tile-config" title="Abrir Configuración de Componentes Binarios">
+                    <span class="tile-icon">⚙️</span>
+                    <span class="tile-label">CONFIGURACIÓN</span>
+                </a>
             </div>
         </div>
 
-        <!-- 4. FILA 2: CARTA SINTONIZADA & TRANSMISIÓN AL SERVIDOR -->
+        <!-- 2. PANEL INTERPRETACIÓN (ANCHO COMPLETO) -->
+        <div class="oracle-card-box interp-full-box">
+            <div class="card-box-header">
+                <span>🧠</span> INTERPRETACIÓN
+            </div>
+            <div class="interp-stats-grid">
+                <div class="interp-stat-col" onclick="promptEditKeyword()" style="cursor:pointer;" title="Toca para cambiar la clave oracular">
+                    <span class="interp-stat-label">CÓDIGO:</span>
+                    <span class="interp-stat-value" id="interpCode">VALE</span>
+                </div>
+                <div class="interp-stat-col">
+                    <span class="interp-stat-label">DETECTADOS:</span>
+                    <span class="interp-stat-value" id="interpComponentsDetected">3/3</span>
+                </div>
+                <div class="interp-stat-col">
+                    <span class="interp-stat-label">COMPONENTES:</span>
+                    <span class="interp-stat-value" id="interpComponents">3</span>
+                </div>
+                <div class="interp-stat-col">
+                    <span class="interp-stat-label">CONFIANZA:</span>
+                    <span class="interp-stat-value" id="interpConfidence">94%</span>
+                </div>
+            </div>
+            <div class="interp-progress-bar">
+                <div class="interp-progress-fill" id="confidenceBarFill"></div>
+            </div>
+        </div>
+
+        <!-- 3. FILA: CARTA SINTONIZADA & TRANSMISIÓN AL SERVIDOR (SOLO CHECK) -->
         <div class="row-grid-2col">
             <!-- CARTA SINTONIZADA -->
             <div class="oracle-card-box carta-stage-box">
@@ -970,30 +855,16 @@
                 </div>
             </div>
 
-            <!-- TRANSMISIÓN AL SERVIDOR -->
-            <div class="oracle-card-box transmit-box">
-                <div class="card-box-header">
+            <!-- TRANSMISIÓN AL SERVIDOR (SOLO CHECKMARK) -->
+            <div class="oracle-card-box transmit-box-only-check">
+                <div class="card-box-header center">
                     <span>✈</span> TRANSMISIÓN AL SERVIDOR
                 </div>
                 <div class="transmit-big-check" id="transmitBigCheck">✓</div>
-                <div class="transmit-table">
-                    <div class="transmit-table-row">
-                        <span>MÉTODO:</span>
-                        <span>API REST</span>
-                    </div>
-                    <div class="transmit-table-row">
-                        <span>ESTADO:</span>
-                        <span id="serverStatusVal" style="color: #6DDE77;">200 OK</span>
-                    </div>
-                    <div class="transmit-table-row">
-                        <span>TIEMPO:</span>
-                        <span id="serverTimeVal">18:42:05</span>
-                    </div>
-                </div>
             </div>
         </div>
 
-        <!-- 5. FILA 3: REGISTROS INFERIORES -->
+        <!-- 4. FILA: REGISTROS INFERIORES -->
         <div class="row-grid-2col">
             <!-- REGISTRO DE TRANSMISIÓN DE AMBIENTE -->
             <div class="oracle-card-box ambient-box">
@@ -1024,7 +895,7 @@
             </div>
         </div>
 
-        <!-- 6. OJO SAGRADO DORADO INFERIOR -->
+        <!-- 5. OJO SAGRADO DORADO INFERIOR -->
         <div class="sacred-eye-bottom">
             <svg class="eye-svg" viewBox="0 0 100 40">
                 <path d="M10 20 Q50 -2 90 20 Q50 42 10 20 Z" />
@@ -1034,10 +905,13 @@
             </svg>
         </div>
 
-        <!-- Elementos ocultos para retener compatibilidad con JS -->
+        <!-- Elementos ocultos para compatibilidad 100% con JS -->
+        <span id="kwDetectedName" class="hidden-compat">VALE</span>
         <div id="kwAlert" class="hidden-compat"></div>
         <div id="cardTitle" class="hidden-compat"></div>
         <div id="phoneticDetail" class="hidden-compat"></div>
+        <span id="serverStatusVal" class="hidden-compat">200 OK</span>
+        <span id="serverTimeVal" class="hidden-compat">18:42:05</span>
     </div>
 
     <script>
@@ -1056,7 +930,6 @@
         const micPulseDot = document.getElementById('micPulseDot');
 
         // Elementos dinámicos
-        const topOracleTitle = document.getElementById('topOracleTitle');
         const keywordInput = document.getElementById('keywordInput');
         const kwDetectedName = document.getElementById('kwDetectedName');
         const interpCode = document.getElementById('interpCode');
@@ -1069,7 +942,6 @@
         const logTimestampBadge = document.getElementById('logTimestampBadge');
         const transmitBigCheck = document.getElementById('transmitBigCheck');
 
-        // Posibilidad de editar trigger tocando el título o la palabra detectada
         function promptEditKeyword() {
             let current = keywordInput.value || 'vale';
             let entered = prompt('Ingresa la Clave Oracular (vacío = escucha continua):', current);
@@ -1081,9 +953,6 @@
                 showStealthToast('🔑 Clave Oracular: ' + disp);
             }
         }
-
-        if (topOracleTitle) topOracleTitle.addEventListener('click', promptEditKeyword);
-        if (kwDetectedName) kwDetectedName.addEventListener('click', promptEditKeyword);
 
         function setSecretPeekWaiting() {
             if (wallpaperSecretPeek) {
