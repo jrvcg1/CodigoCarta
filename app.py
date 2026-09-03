@@ -947,32 +947,32 @@ def visualizar_carta(
             let clickTimeout = null;
             let lastCardTapTime = 0;
 
-            function returnToConsole() {
+            function returnToConsole() {{
                 window.location.href = '/probar_voz';
-            }
+            }}
 
-            document.addEventListener('touchend', (e) => {
+            document.addEventListener('touchend', (e) => {{
                 const now = Date.now();
-                if (now - lastCardTapTime < 380 && now - lastCardTapTime > 0) {
-                    if (clickTimeout) { clearTimeout(clickTimeout); clickTimeout = null; }
+                if (now - lastCardTapTime < 380 && now - lastCardTapTime > 0) {{
+                    if (clickTimeout) {{ clearTimeout(clickTimeout); clickTimeout = null; }}
                     returnToConsole();
                     lastCardTapTime = 0;
                     return;
-                }
+                }}
                 lastCardTapTime = now;
-            });
+            }});
 
-            document.addEventListener('dblclick', (e) => {
-                if (clickTimeout) { clearTimeout(clickTimeout); clickTimeout = null; }
+            document.addEventListener('dblclick', (e) => {{
+                if (clickTimeout) {{ clearTimeout(clickTimeout); clickTimeout = null; }}
                 returnToConsole();
-            });
+            }});
 
-            cardScene.addEventListener('click', (e) => {
+            cardScene.addEventListener('click', (e) => {{
                 if (clickTimeout) clearTimeout(clickTimeout);
-                clickTimeout = setTimeout(() => {
+                clickTimeout = setTimeout(() => {{
                     handleCardFlip();
-                }, 250);
-            });
+                }}, 250);
+            }});
         </script>
     </body>
     </html>
