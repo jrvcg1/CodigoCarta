@@ -980,7 +980,7 @@ def decodificador_web():
 
 @app.get("/probar_voz", response_class=HTMLResponse, summary="Prueba de Reconocimiento de Voz con Palabra Clave", tags=["Visualización"])
 def probar_voz_web():
-    """Servicio de la interfaz gráfica de pruebas de voz con palabra clave (probar_voz.html) v1.3.1 (Video button)."""
+    """Servicio de la interfaz gráfica de la Consola del Oráculo (probar_voz.html) v2.0 Dark Premium Redesign."""
     html_path = os.path.join(os.path.dirname(__file__), "probar_voz.html")
     if os.path.exists(html_path):
         with open(html_path, "r", encoding="utf-8") as f:
