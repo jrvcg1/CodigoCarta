@@ -256,6 +256,7 @@
             flex-direction: column;
             gap: 10px;
             box-sizing: border-box;
+            z-index: 10;
         }
 
         .console-wrapper::before {
@@ -306,9 +307,15 @@
             transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             box-sizing: border-box;
             user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            position: relative;
+            z-index: 5;
         }
         .btn-action-tile:hover {
             transform: translateY(-2px);
+        }
+        .btn-action-tile:active {
+            transform: scale(0.96);
         }
 
         .btn-action-tile .tile-icon {
@@ -318,6 +325,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            pointer-events: none;
         }
         .btn-action-tile .tile-label {
             font-family: 'Montserrat', sans-serif;
@@ -327,6 +335,7 @@
             text-transform: uppercase;
             text-align: center;
             line-height: 1.1;
+            pointer-events: none;
         }
 
         /* 1. Conectar (Rojo) */
@@ -867,7 +876,7 @@
             <div class="oracle-card-box wave-meter-box">
                 <div class="card-box-header">
                     <span>🎙️ SEÑAL DE VOZ</span>
-                    <span class="wave-status-pill" id="waveStatusPill">EN VIVO</span>
+                    <span class="wave-status-pill" id="waveStatusPill">EN ESPERA</span>
                 </div>
                 <div class="wave-canvas-container">
                     <canvas id="audioWaveCanvas" width="220" height="90"></canvas>
@@ -1077,7 +1086,7 @@
         let isSwipingStealth = false;
 
         document.addEventListener('touchstart', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('a')) return;
             if (e.touches.length === 1) {
                 touchStartY = e.touches[0].clientY;
                 touchEndY = touchStartY;
@@ -1098,7 +1107,7 @@
         }, { passive: true });
 
         document.addEventListener('touchend', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('a')) return;
 
             let deltaY = touchStartY - touchEndY;
             if (isSwipingStealth && Math.abs(deltaY) >= 12) {
@@ -1127,7 +1136,7 @@
         });
 
         document.addEventListener('dblclick', (e) => {
-            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.closest('button') || e.target.closest('a')) return;
             if (currentScreenMode !== 'normal') {
                 setScreenMode('normal');
             } else {
@@ -1136,62 +1145,16 @@
         });
 
         // ====================================================
-        // --- VISUALIZADOR DE ONDA DE AUDIO EN TIEMPO REAL ---
+        // --- VISUALIZADOR DE ONDA DE AUDIO REACTIVO ---
         // ====================================================
         const waveCanvas = document.getElementById('audioWaveCanvas');
         const waveVolumeVal = document.getElementById('waveVolumeVal');
         const waveStatusPill = document.getElementById('waveStatusPill');
-        let audioCtx = null;
-        let audioAnalyser = null;
-        let audioSourceNode = null;
-        let audioStream = null;
+        let voiceEnergy = 0;
         let waveAnimFrameId = null;
-        let smoothedVolume = 0;
 
-        async function initAudioVisualizer() {
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    await audioCtx.resume();
-                }
-                if (!audioStream) {
-                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                }
-                if (!audioAnalyser) {
-                    audioAnalyser = audioCtx.createAnalyser();
-                    audioAnalyser.fftSize = 256;
-                    audioAnalyser.smoothingTimeConstant = 0.8;
-                    audioSourceNode = audioCtx.createMediaStreamSource(audioStream);
-                    audioSourceNode.connect(audioAnalyser);
-                }
-                if (waveStatusPill) {
-                    waveStatusPill.textContent = 'ACTIVO';
-                    waveStatusPill.style.color = '#afffba';
-                    waveStatusPill.style.borderColor = '#6DDE77';
-                }
-            } catch (err) {
-                console.log('Audio visualizer init (fallback mode):', err);
-            }
-        }
-
-        function stopAudioVisualizer() {
-            if (audioStream) {
-                audioStream.getTracks().forEach(track => track.stop());
-                audioStream = null;
-            }
-            if (audioSourceNode) {
-                try { audioSourceNode.disconnect(); } catch(e){}
-                audioSourceNode = null;
-            }
-            audioAnalyser = null;
-            if (waveStatusPill) {
-                waveStatusPill.textContent = 'EN ESPERA';
-                waveStatusPill.style.color = '#D488FF';
-                waveStatusPill.style.borderColor = 'rgba(154, 77, 255, 0.4)';
-            }
-            if (waveVolumeVal) waveVolumeVal.textContent = '0%';
+        function triggerVoicePulse(energyLevel = 85) {
+            voiceEnergy = Math.max(voiceEnergy, energyLevel);
         }
 
         function drawWaveform() {
@@ -1200,66 +1163,49 @@
             const width = waveCanvas.width;
             const height = waveCanvas.height;
 
-            let bufferLength = audioAnalyser ? audioAnalyser.frequencyBinCount : 64;
-            let dataArray = new Uint8Array(bufferLength);
-
-            if (audioAnalyser && isListening) {
-                audioAnalyser.getByteFrequencyData(dataArray);
-                // Calcular volumen promedio
-                let sum = 0;
-                for (let i = 0; i < bufferLength; i++) {
-                    sum += dataArray[i];
-                }
-                let avg = sum / bufferLength;
-                let targetVol = Math.round((avg / 255) * 100);
-                smoothedVolume += (targetVol - smoothedVolume) * 0.25;
-                if (waveVolumeVal) {
-                    waveVolumeVal.textContent = `${Math.round(smoothedVolume)}%`;
-                }
+            // Decaimiento suave de la energía de voz
+            if (isListening) {
+                voiceEnergy = Math.max(4, voiceEnergy * 0.92);
             } else {
-                // Simulación suave cuando está en reposo
-                smoothedVolume += (0 - smoothedVolume) * 0.1;
-                if (waveVolumeVal) waveVolumeVal.textContent = isListening ? '1%' : '0%';
+                voiceEnergy = Math.max(0, voiceEnergy * 0.85);
+            }
+
+            let displayVol = Math.round(voiceEnergy);
+            if (waveVolumeVal) {
+                waveVolumeVal.textContent = isListening ? `${Math.max(1, displayVol)}%` : '0%';
             }
 
             ctx.clearRect(0, 0, width, height);
 
-            // Fondo con rejilla sutil
+            // Fondo oscuro
             ctx.fillStyle = '#05030d';
             ctx.fillRect(0, 0, width, height);
 
-            ctx.strokeStyle = 'rgba(154, 77, 255, 0.08)';
+            // Línea central de referencia
+            ctx.strokeStyle = 'rgba(154, 77, 255, 0.1)';
             ctx.lineWidth = 1;
             ctx.beginPath();
             ctx.moveTo(0, height / 2);
             ctx.lineTo(width, height / 2);
             ctx.stroke();
 
-            // Dibujar barras osciloscópicas futuristas
-            const barCount = 28;
-            const barWidth = (width / barCount) - 2;
-            const step = Math.floor(bufferLength / barCount) || 1;
+            // Dibujar barras osciloscópicas reactivas
+            const barCount = 26;
+            const barWidth = (width / barCount) - 2.5;
+            const now = Date.now() * 0.004;
 
             for (let i = 0; i < barCount; i++) {
-                let value = 0;
-                if (audioAnalyser && isListening) {
-                    value = dataArray[i * step] || 0;
-                } else if (isListening) {
-                    // Pulso suave
-                    let time = Date.now() * 0.003;
-                    value = Math.sin(time + i * 0.3) * 15 + 18;
-                } else {
-                    value = 4;
-                }
+                let waveMod = Math.sin(now + i * 0.45) * 0.4 + Math.cos(now * 1.5 + i * 0.3) * 0.6;
+                let barPercent = (voiceEnergy / 100) * (0.4 + Math.abs(waveMod) * 0.6);
 
-                let percent = value / 255;
-                let barHeight = Math.max(3, percent * (height - 12));
-                let x = i * (barWidth + 2) + 2;
+                if (!isListening) barPercent = 0.04;
+
+                let barHeight = Math.max(3, barPercent * (height - 10));
+                let x = i * (barWidth + 2.5) + 3;
                 let y = (height - barHeight) / 2;
 
-                // Gradiente vibrante (Violeta -> Dorado -> Verde si hay voz fuerte)
                 let grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
-                if (percent > 0.45) {
+                if (voiceEnergy > 45) {
                     grad.addColorStop(0, '#6DDE77');
                     grad.addColorStop(0.5, '#F3D785');
                     grad.addColorStop(1, '#9A4DFF');
@@ -1270,26 +1216,27 @@
                 }
 
                 ctx.fillStyle = grad;
-                ctx.shadowBlur = percent > 0.2 ? 8 : 2;
+                ctx.shadowBlur = voiceEnergy > 30 ? 8 : 2;
                 ctx.shadowColor = '#9A4DFF';
                 ctx.beginPath();
                 ctx.roundRect(x, y, barWidth, barHeight, 2);
                 ctx.fill();
             }
 
-            // Línea de onda suave superpuesta
+            // Onda sinusoidal cian superpuesta
             ctx.shadowBlur = 10;
             ctx.shadowColor = '#18C7E8';
-            ctx.strokeStyle = 'rgba(24, 199, 232, 0.75)';
+            ctx.strokeStyle = isListening ? 'rgba(24, 199, 232, 0.85)' : 'rgba(24, 199, 232, 0.2)';
             ctx.lineWidth = 1.5;
             ctx.beginPath();
 
-            let sliceWidth = width / 20;
+            let sliceWidth = width / 24;
             let xPos = 0;
-            for (let i = 0; i <= 20; i++) {
-                let amp = (smoothedVolume * 0.45) + 2;
-                let time = Date.now() * 0.005;
-                let yPos = (height / 2) + Math.sin(time + i * 0.6) * amp;
+            let amp = isListening ? (voiceEnergy * 0.35 + 2) : 1;
+            let time = Date.now() * 0.006;
+
+            for (let i = 0; i <= 24; i++) {
+                let yPos = (height / 2) + Math.sin(time + i * 0.5) * amp;
                 if (i === 0) ctx.moveTo(xPos, yPos);
                 else ctx.lineTo(xPos, yPos);
                 xPos += sliceWidth;
@@ -1544,6 +1491,10 @@
             rec.interimResults  = true;
             rec.lang            = 'es-ES';
 
+            rec.onaudiostart = () => { triggerVoicePulse(50); };
+            rec.onsoundstart = () => { triggerVoicePulse(75); };
+            rec.onspeechstart = () => { triggerVoicePulse(90); };
+
             function extractCleanTranscript(event) {
                 let parts = [];
                 for (let i = 0; i < event.results.length; i++) {
@@ -1566,6 +1517,7 @@
 
             rec.onresult = (event) => {
                 lastSpeechTime = Date.now();
+                triggerVoicePulse(95);
                 let fullTranscript = extractCleanTranscript(event);
                 let isFinal = event.results[event.results.length - 1].isFinal;
                 sendLogToServer('SPEECH_RECOGNIZED', { transcript: fullTranscript, isFinal });
@@ -1658,22 +1610,46 @@
             } catch(e) {}
         }
 
+        // Inicializar objeto de reconocimiento
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-            recognition = createNewRecognition();
+            try {
+                recognition = createNewRecognition();
+            } catch(e) {
+                console.log('Error instanciando reconocimiento:', e);
+            }
         }
 
-        btnMic.addEventListener('click', async () => {
-            if (!recognition) return;
+        // Listener del Botón CONECTAR
+        btnMic.addEventListener('click', () => {
+            if (!recognition) {
+                recognition = createNewRecognition();
+            }
+            if (!recognition) {
+                alert('El reconocimiento de voz no está soportado en este navegador. Utiliza Google Chrome o Edge.');
+                return;
+            }
+
             if (!isListening) {
                 isListening = true;
                 acquireWakeLock();
                 btnMic.classList.add('listening');
                 micPulseDot.classList.add('active');
-                micIcon.textContent = '🟢';
-                micText.textContent = 'ACTIVO';
-                await initAudioVisualizer();
-                try { recognition.start(); } catch(e) {}
+                if (micIcon) micIcon.textContent = '🟢';
+                if (micText) micText.textContent = 'ACTIVO';
+                if (waveStatusPill) {
+                    waveStatusPill.textContent = 'ACTIVO';
+                    waveStatusPill.style.color = '#afffba';
+                    waveStatusPill.style.borderColor = '#6DDE77';
+                }
+
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.log('Error al invocar recognition.start():', e);
+                }
+
                 startProactiveCycling();
+
                 watchdogInterval = setInterval(() => {
                     if (isListening && recognition && !isRestarting) {
                         try { recognition.start(); } catch (e) {}
@@ -1683,11 +1659,16 @@
                 isListening = false;
                 releaseWakeLock();
                 stopProactiveCycling();
-                stopAudioVisualizer();
                 btnMic.classList.remove('listening');
                 micPulseDot.classList.remove('active');
-                micIcon.textContent = '((•))';
-                micText.textContent = 'CONECTAR';
+                if (micIcon) micIcon.textContent = '((•))';
+                if (micText) micText.textContent = 'CONECTAR';
+                if (waveStatusPill) {
+                    waveStatusPill.textContent = 'EN ESPERA';
+                    waveStatusPill.style.color = '#D488FF';
+                    waveStatusPill.style.borderColor = 'rgba(154, 77, 255, 0.4)';
+                }
+                if (waveVolumeVal) waveVolumeVal.textContent = '0%';
                 if (watchdogInterval) { clearInterval(watchdogInterval); watchdogInterval = null; }
                 try { recognition.stop(); } catch(e) {}
             }
