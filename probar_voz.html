@@ -92,14 +92,14 @@
             position: absolute;
             bottom: 18px;
             right: 22px;
-            font-family: 'Cinzel', monospace, sans-serif;
+            font-family: 'Roboto Mono', 'SF Mono', 'Consolas', 'Segoe UI Mono', monospace, sans-serif;
             font-size: 10px;
-            font-weight: 900;
-            color: #00ff66;
-            text-shadow: 0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000;
-            letter-spacing: 2px;
+            font-weight: 600;
+            color: #2bd980;
+            text-shadow: 0 0 4px rgba(43, 217, 128, 0.5), 0 1px 2px rgba(0, 0, 0, 0.95);
+            letter-spacing: 1.5px;
             pointer-events: none;
-            opacity: 1 !important;
+            opacity: 0.85;
         }
 
         .wallpaper-screen-mode {
@@ -119,13 +119,14 @@
             position: absolute;
             bottom: 18px;
             right: 22px;
-            font-family: 'Cinzel', monospace, sans-serif;
+            font-family: 'Roboto Mono', 'SF Mono', 'Consolas', 'Segoe UI Mono', monospace, sans-serif;
             font-size: 10px;
-            font-weight: 900;
-            color: #00ff66;
-            text-shadow: 0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000;
-            letter-spacing: 2px;
+            font-weight: 600;
+            color: #2bd980;
+            text-shadow: 0 0 4px rgba(43, 217, 128, 0.5), 0 1px 2px rgba(0, 0, 0, 0.95);
+            letter-spacing: 1.5px;
             pointer-events: none;
+            opacity: 0.85;
         }
 
         /* MODAL QR ESPECTADOR */
@@ -1048,13 +1049,13 @@
         function setSecretPeekWaiting() {
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = '--';
-                wallpaperSecretPeek.style.color = '#00ff66';
-                wallpaperSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
+                wallpaperSecretPeek.style.color = '#2bd980';
+                wallpaperSecretPeek.style.textShadow = '0 0 4px rgba(43, 217, 128, 0.5), 0 1px 2px rgba(0, 0, 0, 0.95)';
             }
             if (stealthSecretPeek) {
                 stealthSecretPeek.textContent = '--';
-                stealthSecretPeek.style.color = '#00ff66';
-                stealthSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
+                stealthSecretPeek.style.color = '#2bd980';
+                stealthSecretPeek.style.textShadow = '0 0 4px rgba(43, 217, 128, 0.5), 0 1px 2px rgba(0, 0, 0, 0.95)';
             }
             if (qrSecretPeek) qrSecretPeek.textContent = '--';
         }
@@ -1063,13 +1064,13 @@
             let display = valStr || '--';
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = display;
-                wallpaperSecretPeek.style.color = '#00ff66';
-                wallpaperSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
+                wallpaperSecretPeek.style.color = '#2bd980';
+                wallpaperSecretPeek.style.textShadow = '0 0 4px rgba(43, 217, 128, 0.5), 0 1px 2px rgba(0, 0, 0, 0.95)';
             }
             if (stealthSecretPeek) {
                 stealthSecretPeek.textContent = display;
-                stealthSecretPeek.style.color = '#00ff66';
-                stealthSecretPeek.style.textShadow = '0 0 6px #00ff66, 0 0 12px rgba(0, 255, 102, 0.9), 0 1px 2px #000';
+                stealthSecretPeek.style.color = '#2bd980';
+                stealthSecretPeek.style.textShadow = '0 0 4px rgba(43, 217, 128, 0.5), 0 1px 2px rgba(0, 0, 0, 0.95)';
             }
             if (qrSecretPeek) qrSecretPeek.textContent = display;
         }
@@ -1077,13 +1078,13 @@
         function setSecretPeekConfirmed(peekStr) {
             if (wallpaperSecretPeek) {
                 wallpaperSecretPeek.textContent = peekStr;
-                wallpaperSecretPeek.style.color = '#ffffff';
-                wallpaperSecretPeek.style.textShadow = '0 0 8px #ffffff, 0 0 16px rgba(255, 255, 255, 0.95), 0 1px 2px #000';
+                wallpaperSecretPeek.style.color = '#f0f4f8';
+                wallpaperSecretPeek.style.textShadow = '0 0 4px rgba(240, 244, 248, 0.6), 0 1px 2px rgba(0, 0, 0, 0.95)';
             }
             if (stealthSecretPeek) {
                 stealthSecretPeek.textContent = peekStr;
-                stealthSecretPeek.style.color = '#ffffff';
-                stealthSecretPeek.style.textShadow = '0 0 8px #ffffff, 0 0 16px rgba(255, 255, 255, 0.95), 0 1px 2px #000';
+                stealthSecretPeek.style.color = '#f0f4f8';
+                stealthSecretPeek.style.textShadow = '0 0 4px rgba(240, 244, 248, 0.6), 0 1px 2px rgba(0, 0, 0, 0.95)';
             }
             if (qrSecretPeek) qrSecretPeek.textContent = peekStr;
         }
