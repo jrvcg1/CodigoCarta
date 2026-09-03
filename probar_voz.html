@@ -415,17 +415,24 @@
             width: 100%;
         }
 
+        .row-grid-2col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            width: 100%;
+        }
+
         .card-box-header {
             font-family: 'Cinzel', serif;
-            font-size: 9px;
+            font-size: 8.5px;
             font-weight: 700;
-            letter-spacing: 1.2px;
+            letter-spacing: 1.1px;
             color: var(--gold-light);
             text-transform: uppercase;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 6px;
+            margin-bottom: 5px;
         }
         .card-box-header.center {
             justify-content: center;
@@ -435,22 +442,22 @@
            1. PANEL INTERPRETACIÓN + AMBIENTE (FUSIONADO)
         ==================================================== */
         .interp-ambient-merged-box {
-            gap: 6px;
-            padding: 10px 12px;
+            gap: 5px;
+            padding: 9px 11px;
         }
 
         .confidence-badge {
             font-family: 'Space Grotesk', monospace;
-            font-size: 8.5px;
+            font-size: 8px;
             font-weight: 700;
             color: #ffffff;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
         }
         .confidence-badge span:first-child {
             color: var(--gold-light);
-            font-size: 7.5px;
+            font-size: 7.2px;
         }
 
         .interp-progress-bar {
@@ -483,10 +490,10 @@
         .ambient-feed-italic {
             font-family: 'Playfair Display', serif;
             font-style: italic;
-            font-size: 10.5px;
+            font-size: 10px;
             color: #d8cde8;
             line-height: 1.35;
-            min-height: 22px;
+            min-height: 20px;
         }
 
         .kw-tag {
@@ -517,9 +524,9 @@
             background: rgba(4, 2, 8, 0.95);
             border: 1px solid rgba(212, 168, 79, 0.2);
             border-radius: 6px;
-            padding: 4px 6px;
+            padding: 3px 5px;
             font-family: 'Space Grotesk', monospace;
-            font-size: 7.8px;
+            font-size: 7.5px;
             color: #e2e8f0;
             display: flex;
             flex-direction: column;
@@ -536,17 +543,19 @@
         }
 
         /* ====================================================
-           2. CARTA SINTONIZADA (CENTRADA)
+           2. FILA DE CARTA SINTONIZADA & ONDA DE VOZ EN VIVO
         ==================================================== */
-        .carta-stage-box-full {
+        /* Col 1: Carta Sintonizada */
+        .carta-stage-box {
             align-items: center;
             justify-content: center;
-            padding: 8px 10px 12px;
+            min-height: 155px;
+            padding: 8px 6px;
         }
         .carta-frame-wrap {
             position: relative;
-            width: 100px;
-            height: 142px;
+            width: 88px;
+            height: 124px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -554,7 +563,7 @@
         }
         .carta-sacred-rings {
             position: absolute;
-            inset: -12px;
+            inset: -10px;
             border-radius: 50%;
             border: 1px solid rgba(212, 168, 79, 0.22);
             pointer-events: none;
@@ -562,15 +571,15 @@
         .carta-sacred-rings::after {
             content: '';
             position: absolute;
-            inset: 6px;
+            inset: 5px;
             border-radius: 50%;
             border: 1px dashed rgba(212, 168, 79, 0.16);
         }
         .carta-img-element {
             width: 100%;
             height: 100%;
-            border-radius: 8px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.9), 0 0 16px rgba(212,168,79,0.25);
+            border-radius: 7px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.9), 0 0 14px rgba(212,168,79,0.22);
             border: 1px solid var(--gold-main);
             background: #ffffff;
             object-fit: fill;
@@ -586,17 +595,68 @@
             100% { transform: scale(1) rotateY(0deg); opacity: 1; }
         }
 
+        /* Col 2: Gráfico de Ondas de Voz en Tiempo Real */
+        .wave-meter-box {
+            align-items: center;
+            justify-content: space-between;
+            min-height: 155px;
+            padding: 8px 8px;
+            border-color: rgba(154, 77, 255, 0.35);
+            background: radial-gradient(circle at 50% 50%, rgba(22, 12, 38, 0.95) 0%, rgba(9, 5, 18, 0.98) 100%);
+        }
+        .wave-canvas-container {
+            position: relative;
+            width: 100%;
+            height: 88px;
+            background: #04020a;
+            border: 1px solid rgba(154, 77, 255, 0.25);
+            border-radius: 8px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.9);
+        }
+        #audioWaveCanvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        .wave-footer-stats {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: 'Space Grotesk', monospace;
+            font-size: 7.5px;
+            color: var(--text-lavender);
+            margin-top: 4px;
+        }
+        .wave-db-val {
+            color: #6DDE77;
+            font-weight: 700;
+        }
+        .wave-status-pill {
+            background: rgba(154, 77, 255, 0.15);
+            border: 1px solid rgba(154, 77, 255, 0.4);
+            color: #D488FF;
+            padding: 1px 4px;
+            border-radius: 3px;
+            font-size: 7px;
+            text-transform: uppercase;
+        }
+
         /* ====================================================
            3. REGISTRO TRANSMISIÓN AL SERVIDOR (ANCHO COMPLETO)
         ==================================================== */
         .api-box-full {
             border-color: rgba(24, 199, 232, 0.35);
-            gap: 5px;
-            padding: 8px 10px;
+            gap: 4px;
+            padding: 7px 9px;
         }
         .api-header-cyan {
             font-family: 'Cinzel', serif;
-            font-size: 8.5px;
+            font-size: 8px;
             font-weight: 700;
             letter-spacing: 1px;
             color: #18C7E8;
@@ -610,9 +670,9 @@
             border: 1px solid rgba(24, 199, 232, 0.3);
             color: #77DDEB;
             font-family: 'Space Grotesk', monospace;
-            font-size: 7.2px;
+            font-size: 7px;
             font-weight: 700;
-            padding: 1px 5px;
+            padding: 1px 4px;
             border-radius: 4px;
             text-transform: uppercase;
         }
@@ -629,14 +689,14 @@
 
         .api-terminal-text {
             font-family: 'Space Grotesk', 'Consolas', monospace;
-            font-size: 8px;
+            font-size: 7.8px;
             color: #18C7E8;
             background: #02070c;
             border: 1px solid rgba(24, 199, 232, 0.2);
-            padding: 5px 7px;
+            padding: 4px 6px;
             border-radius: 5px;
-            line-height: 1.3;
-            min-height: 42px;
+            line-height: 1.25;
+            min-height: 38px;
             white-space: pre-wrap;
             word-break: break-word;
         }
@@ -652,8 +712,8 @@
             opacity: 0.85;
         }
         .eye-svg {
-            width: 64px;
-            height: 24px;
+            width: 60px;
+            height: 22px;
             fill: none;
             stroke: var(--gold-main);
             stroke-width: 1.2;
@@ -792,12 +852,30 @@
             </div>
         </div>
 
-        <!-- 3. CARTA SINTONIZADA (CENTRADA) -->
-        <div class="oracle-card-box carta-stage-box-full">
-            <div class="card-box-header center">CARTA SINTONIZADA</div>
-            <div class="carta-frame-wrap">
-                <div class="carta-sacred-rings"></div>
-                <img id="cardImg" class="carta-img-element" src="/cartas_svg/dorso.svg" alt="Carta Sintonizada">
+        <!-- 3. FILA DE CARTA SINTONIZADA & ONDA DE VOZ EN VIVO (2 COLUMNAS) -->
+        <div class="row-grid-2col">
+            <!-- CARTA SINTONIZADA -->
+            <div class="oracle-card-box carta-stage-box">
+                <div class="card-box-header center">CARTA SINTONIZADA</div>
+                <div class="carta-frame-wrap">
+                    <div class="carta-sacred-rings"></div>
+                    <img id="cardImg" class="carta-img-element" src="/cartas_svg/dorso.svg" alt="Carta Sintonizada">
+                </div>
+            </div>
+
+            <!-- GRÁFICO DE ONDA DE VOZ EN TIEMPO REAL -->
+            <div class="oracle-card-box wave-meter-box">
+                <div class="card-box-header">
+                    <span>🎙️ SEÑAL DE VOZ</span>
+                    <span class="wave-status-pill" id="waveStatusPill">EN VIVO</span>
+                </div>
+                <div class="wave-canvas-container">
+                    <canvas id="audioWaveCanvas" width="220" height="90"></canvas>
+                </div>
+                <div class="wave-footer-stats">
+                    <span>VOLUMEN: <span class="wave-db-val" id="waveVolumeVal">0%</span></span>
+                    <span id="waveFrequencyVal">44.1 kHz</span>
+                </div>
             </div>
         </div>
 
@@ -1056,6 +1134,172 @@
                 setScreenMode('black');
             }
         });
+
+        // ====================================================
+        // --- VISUALIZADOR DE ONDA DE AUDIO EN TIEMPO REAL ---
+        // ====================================================
+        const waveCanvas = document.getElementById('audioWaveCanvas');
+        const waveVolumeVal = document.getElementById('waveVolumeVal');
+        const waveStatusPill = document.getElementById('waveStatusPill');
+        let audioCtx = null;
+        let audioAnalyser = null;
+        let audioSourceNode = null;
+        let audioStream = null;
+        let waveAnimFrameId = null;
+        let smoothedVolume = 0;
+
+        async function initAudioVisualizer() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    await audioCtx.resume();
+                }
+                if (!audioStream) {
+                    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                }
+                if (!audioAnalyser) {
+                    audioAnalyser = audioCtx.createAnalyser();
+                    audioAnalyser.fftSize = 256;
+                    audioAnalyser.smoothingTimeConstant = 0.8;
+                    audioSourceNode = audioCtx.createMediaStreamSource(audioStream);
+                    audioSourceNode.connect(audioAnalyser);
+                }
+                if (waveStatusPill) {
+                    waveStatusPill.textContent = 'ACTIVO';
+                    waveStatusPill.style.color = '#afffba';
+                    waveStatusPill.style.borderColor = '#6DDE77';
+                }
+            } catch (err) {
+                console.log('Audio visualizer init (fallback mode):', err);
+            }
+        }
+
+        function stopAudioVisualizer() {
+            if (audioStream) {
+                audioStream.getTracks().forEach(track => track.stop());
+                audioStream = null;
+            }
+            if (audioSourceNode) {
+                try { audioSourceNode.disconnect(); } catch(e){}
+                audioSourceNode = null;
+            }
+            audioAnalyser = null;
+            if (waveStatusPill) {
+                waveStatusPill.textContent = 'EN ESPERA';
+                waveStatusPill.style.color = '#D488FF';
+                waveStatusPill.style.borderColor = 'rgba(154, 77, 255, 0.4)';
+            }
+            if (waveVolumeVal) waveVolumeVal.textContent = '0%';
+        }
+
+        function drawWaveform() {
+            if (!waveCanvas) return;
+            const ctx = waveCanvas.getContext('2d');
+            const width = waveCanvas.width;
+            const height = waveCanvas.height;
+
+            let bufferLength = audioAnalyser ? audioAnalyser.frequencyBinCount : 64;
+            let dataArray = new Uint8Array(bufferLength);
+
+            if (audioAnalyser && isListening) {
+                audioAnalyser.getByteFrequencyData(dataArray);
+                // Calcular volumen promedio
+                let sum = 0;
+                for (let i = 0; i < bufferLength; i++) {
+                    sum += dataArray[i];
+                }
+                let avg = sum / bufferLength;
+                let targetVol = Math.round((avg / 255) * 100);
+                smoothedVolume += (targetVol - smoothedVolume) * 0.25;
+                if (waveVolumeVal) {
+                    waveVolumeVal.textContent = `${Math.round(smoothedVolume)}%`;
+                }
+            } else {
+                // Simulación suave cuando está en reposo
+                smoothedVolume += (0 - smoothedVolume) * 0.1;
+                if (waveVolumeVal) waveVolumeVal.textContent = isListening ? '1%' : '0%';
+            }
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Fondo con rejilla sutil
+            ctx.fillStyle = '#05030d';
+            ctx.fillRect(0, 0, width, height);
+
+            ctx.strokeStyle = 'rgba(154, 77, 255, 0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, height / 2);
+            ctx.lineTo(width, height / 2);
+            ctx.stroke();
+
+            // Dibujar barras osciloscópicas futuristas
+            const barCount = 28;
+            const barWidth = (width / barCount) - 2;
+            const step = Math.floor(bufferLength / barCount) || 1;
+
+            for (let i = 0; i < barCount; i++) {
+                let value = 0;
+                if (audioAnalyser && isListening) {
+                    value = dataArray[i * step] || 0;
+                } else if (isListening) {
+                    // Pulso suave
+                    let time = Date.now() * 0.003;
+                    value = Math.sin(time + i * 0.3) * 15 + 18;
+                } else {
+                    value = 4;
+                }
+
+                let percent = value / 255;
+                let barHeight = Math.max(3, percent * (height - 12));
+                let x = i * (barWidth + 2) + 2;
+                let y = (height - barHeight) / 2;
+
+                // Gradiente vibrante (Violeta -> Dorado -> Verde si hay voz fuerte)
+                let grad = ctx.createLinearGradient(0, y, 0, y + barHeight);
+                if (percent > 0.45) {
+                    grad.addColorStop(0, '#6DDE77');
+                    grad.addColorStop(0.5, '#F3D785');
+                    grad.addColorStop(1, '#9A4DFF');
+                } else {
+                    grad.addColorStop(0, '#D488FF');
+                    grad.addColorStop(0.5, '#9A4DFF');
+                    grad.addColorStop(1, '#4B1A8A');
+                }
+
+                ctx.fillStyle = grad;
+                ctx.shadowBlur = percent > 0.2 ? 8 : 2;
+                ctx.shadowColor = '#9A4DFF';
+                ctx.beginPath();
+                ctx.roundRect(x, y, barWidth, barHeight, 2);
+                ctx.fill();
+            }
+
+            // Línea de onda suave superpuesta
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = '#18C7E8';
+            ctx.strokeStyle = 'rgba(24, 199, 232, 0.75)';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+
+            let sliceWidth = width / 20;
+            let xPos = 0;
+            for (let i = 0; i <= 20; i++) {
+                let amp = (smoothedVolume * 0.45) + 2;
+                let time = Date.now() * 0.005;
+                let yPos = (height / 2) + Math.sin(time + i * 0.6) * amp;
+                if (i === 0) ctx.moveTo(xPos, yPos);
+                else ctx.lineTo(xPos, yPos);
+                xPos += sliceWidth;
+            }
+            ctx.stroke();
+
+            waveAnimFrameId = requestAnimationFrame(drawWaveform);
+        }
+
+        drawWaveform();
 
         // --- MOTOR DE DECODIFICACIÓN DINÁMICO POR COMPONENTES BINARIOS ---
         let activeBinaryConfig = {
@@ -1418,7 +1662,7 @@
             recognition = createNewRecognition();
         }
 
-        btnMic.addEventListener('click', () => {
+        btnMic.addEventListener('click', async () => {
             if (!recognition) return;
             if (!isListening) {
                 isListening = true;
@@ -1427,6 +1671,7 @@
                 micPulseDot.classList.add('active');
                 micIcon.textContent = '🟢';
                 micText.textContent = 'ACTIVO';
+                await initAudioVisualizer();
                 try { recognition.start(); } catch(e) {}
                 startProactiveCycling();
                 watchdogInterval = setInterval(() => {
@@ -1438,6 +1683,7 @@
                 isListening = false;
                 releaseWakeLock();
                 stopProactiveCycling();
+                stopAudioVisualizer();
                 btnMic.classList.remove('listening');
                 micPulseDot.classList.remove('active');
                 micIcon.textContent = '((•))';
